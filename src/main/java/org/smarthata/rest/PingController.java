@@ -13,7 +13,7 @@ public class PingController {
     @Value("${build.version}")
     private String buildVersion;
 
-    @GetMapping
+    @GetMapping("/")
     public String version() {
         return applicationName + ":" + buildVersion;
     }
