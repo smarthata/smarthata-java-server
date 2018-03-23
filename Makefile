@@ -37,3 +37,22 @@ docker-stop:
 
 docker-rm: docker-stop
 	-docker rm smarthata-server
+
+
+mysql-start: mysql-stop
+	docker start smarthata-mysql
+
+mysql-run: mysql-rm
+	docker run -d --name smarthata-mysql -p3306:3306 \
+		-e MYSQL_RANDOM_ROOT_PASSWORD=true \
+		-e MYSQL_DATABASE=smarthata \
+		-e MYSQL_USER=smarthata \
+		-e MYSQL_PASSWORD=password \
+		mariadb
+	docker logs -f smarthata-mysql
+
+mysql-stop:
+	-docker stop smarthata-mysql
+
+mysql-rm: mysql-stop
+	-docker rm smarthata-mysql
