@@ -1,11 +1,13 @@
 package org.smarthata.model;
 
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
-import java.util.List;
 
 @Entity
-public class Device {
+public class Sensor {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -13,11 +15,13 @@ public class Device {
 
     private String name;
 
-    @NotNull
-    private String mac;
+    private Units units;
 
-    @OneToMany(mappedBy = "device", cascade = CascadeType.ALL)
-    private List<Sensor> sensors;
+    @JsonIgnore
+    @NotNull
+    @ManyToOne
+    @JoinColumn(name = "device_id")
+    private Device device;
 
     public Integer getId() {
         return id;
@@ -35,19 +39,19 @@ public class Device {
         this.name = name;
     }
 
-    public String getMac() {
-        return mac;
+    public Units getUnits() {
+        return units;
     }
 
-    public void setMac(String mac) {
-        this.mac = mac;
+    public void setUnits(Units units) {
+        this.units = units;
     }
 
-    public List<Sensor> getSensors() {
-        return sensors;
+    public Device getDevice() {
+        return device;
     }
 
-    public void setSensors(List<Sensor> sensors) {
-        this.sensors = sensors;
+    public void setDevice(Device device) {
+        this.device = device;
     }
 }
