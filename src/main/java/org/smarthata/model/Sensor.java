@@ -23,6 +23,14 @@ public class Sensor {
     @JoinColumn(name = "device_id")
     private Device device;
 
+    public Sensor() {
+    }
+
+    public Sensor(Device device, String name) {
+        this.device = device;
+        this.name = name;
+    }
+
     public Integer getId() {
         return id;
     }

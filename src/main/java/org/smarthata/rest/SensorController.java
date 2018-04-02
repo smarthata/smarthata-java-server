@@ -1,11 +1,15 @@
 package org.smarthata.rest;
 
 import org.smarthata.model.Device;
+import org.smarthata.model.Measure;
 import org.smarthata.model.Sensor;
 import org.smarthata.repository.DeviceRepository;
+import org.smarthata.repository.MeasureRepository;
 import org.smarthata.repository.SensorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/devices/{deviceId}/sensors")
@@ -13,11 +17,13 @@ public class SensorController {
 
     private final DeviceRepository deviceRepository;
     private final SensorRepository sensorRepository;
+    private final MeasureRepository measureRepository;
 
     @Autowired
-    public SensorController(DeviceRepository deviceRepository, SensorRepository sensorRepository) {
+    public SensorController(DeviceRepository deviceRepository, SensorRepository sensorRepository, MeasureRepository measureRepository) {
         this.deviceRepository = deviceRepository;
         this.sensorRepository = sensorRepository;
+        this.measureRepository = measureRepository;
     }
 
     @GetMapping
@@ -34,16 +40,22 @@ public class SensorController {
     }
 
     @GetMapping("/{sensorId}")
-    public Sensor findById(@PathVariable Integer sensorId) {
+    public Sensor findById(@PathVariable Integer deviceId, @PathVariable Integer sensorId) {
         return sensorRepository.findByIdOrElseThrow(sensorId);
     }
 
     @PutMapping("/{sensorId}")
     public Sensor put(@PathVariable Integer deviceId, @PathVariable Integer sensorId, @RequestBody Sensor sensor) {
-        Device device = deviceRepository.findByIdOrElseThrow(deviceId);
         Sensor saved = sensorRepository.findByIdOrElseThrow(sensorId);
         saved.setName(sensor.getName());
         saved.setUnits(sensor.getUnits());
         return sensorRepository.save(saved);
     }
+
+    @GetMapping("/{sensorId}/measures")
+    public List<Measure> measures(@PathVariable Integer deviceId, @PathVariable Integer sensorId) {
+        Sensor sensor = sensorRepository.findByIdOrElseThrow(sensorId);
+        return measureRepository.findBySensor(sensor);
+    }
+
 }
