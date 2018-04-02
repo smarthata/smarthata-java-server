@@ -12,7 +12,9 @@ run:
 update:
 	git fetch
 	git reset --hard origin/master
-deploy: update build
+release:
+	mvn --batch-mode release:prepare release:perform
+deploy: update release
 	cp ./target/smarthata.jar /app/smarthata/
 	systemctl restart smarthata
 
