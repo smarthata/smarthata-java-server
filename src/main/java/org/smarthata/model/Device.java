@@ -14,6 +14,7 @@ public class Device {
     private String name;
 
     @NotNull
+    @Column(unique = true)
     private String mac;
 
     @OneToMany(mappedBy = "device", cascade = CascadeType.ALL)
