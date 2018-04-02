@@ -7,6 +7,17 @@ build:
 run:
 	mvn spring-boot:run
 
+
+# Server deploy
+update:
+	git fetch
+	git reset --hard origin/master
+deploy: update build
+	cp ./target/smarthata.jar /app/smarthata/
+	systemctl restart smarthata
+
+
+# Docker build
 docker-spring-boot-run: docker-rm
 	docker run -d --name smarthata-server \
 		-v $$(pwd):/app -w /app \
@@ -39,6 +50,7 @@ docker-rm: docker-stop
 	-docker rm smarthata-server
 
 
+# Docker Mysql
 mysql-start: mysql-stop
 	docker start smarthata-mysql
 
