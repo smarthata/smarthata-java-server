@@ -1,0 +1,17 @@
+server:
+  port: 8080
+  servlet.context-path: /api
+
+application:
+  name: @project.artifactId@
+build:
+  version: @project.version@
+
+spring:
+  jpa.hibernate.ddl-auto: update
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/smarthata
+    username: smarthata
+    password: password
+
+#logging.level.root: DEBUG
