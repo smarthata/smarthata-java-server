@@ -15,3 +15,8 @@ spring:
     password: password
 
 #logging.level.root: DEBUG
+
+bot:
+  username: smarthatabot
+  token: ${bot.token}
+  adminChatId: ${bot.adminChatId}
