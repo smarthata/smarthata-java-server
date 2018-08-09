@@ -1,15 +1,11 @@
 package org.smarthata.rest;
 
 import org.smarthata.model.Device;
-import org.smarthata.model.Measure;
 import org.smarthata.model.Sensor;
 import org.smarthata.repository.DeviceRepository;
-import org.smarthata.repository.MeasureRepository;
 import org.smarthata.repository.SensorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/devices")
@@ -17,15 +13,12 @@ public class DeviceController {
 
     private final DeviceRepository deviceRepository;
     private final SensorRepository sensorRepository;
-    private final MeasureRepository measureRepository;
 
     @Autowired
     public DeviceController(DeviceRepository deviceRepository,
-                            SensorRepository sensorRepository,
-                            MeasureRepository measureRepository) {
+                            SensorRepository sensorRepository) {
         this.deviceRepository = deviceRepository;
         this.sensorRepository = sensorRepository;
-        this.measureRepository = measureRepository;
     }
 
     @GetMapping
@@ -48,12 +41,6 @@ public class DeviceController {
         Device saved = deviceRepository.findByIdOrElseThrow(deviceId);
         saved.setName(device.getName());
         return deviceRepository.save(saved);
-    }
-
-    @GetMapping("/{deviceId}/measures")
-    public List<Measure> measures(@PathVariable Integer deviceId) {
-        Device device = deviceRepository.findByIdOrElseThrow(deviceId);
-        return measureRepository.findBySensorIn(device.getSensors());
     }
 
     @GetMapping("/sensors")

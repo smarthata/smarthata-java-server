@@ -1,7 +1,6 @@
 package org.smarthata.model;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @Entity
@@ -12,10 +11,6 @@ public class Device {
     private Integer id;
 
     private String name;
-
-    @NotNull
-    @Column(unique = true)
-    private String mac;
 
     @OneToMany(mappedBy = "device", cascade = CascadeType.ALL)
     private List<Sensor> sensors;
@@ -34,14 +29,6 @@ public class Device {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getMac() {
-        return mac;
-    }
-
-    public void setMac(String mac) {
-        this.mac = mac;
     }
 
     public List<Sensor> getSensors() {

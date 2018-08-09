@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/devices/{mac}/measures")
+@RequestMapping("/devices/{deviceId}/measures")
 public class MeasureController {
 
     private final MeasureService measureService;
@@ -20,13 +20,13 @@ public class MeasureController {
     }
 
     @GetMapping
-    public List<Measure> saveGet(@PathVariable String mac, @RequestParam Map<String, String> params) {
-        return measureService.save(mac, params);
+    public List<Measure> measures(@PathVariable Integer deviceId) {
+        return measureService.findTopByDevice(deviceId);
     }
 
     @PostMapping
-    public List<Measure> savePost(@PathVariable String mac, @RequestBody Map<String, String> params) {
-        return measureService.save(mac, params);
+    public List<Measure> savePost(@PathVariable Integer deviceId, @RequestParam Map<String, String> params) {
+        return measureService.save(deviceId, params);
     }
 
 }
