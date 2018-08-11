@@ -106,7 +106,7 @@ public class TmBot extends TelegramLongPollingBot {
 
         path.remove(0);
 
-        BotApiMethod botApiMethod = command.answer(path, null, messageId);
+        BotApiMethod botApiMethod = command.answer(path, message.getChatId().toString(), messageId);
         if (botApiMethod != null) {
             Long chatId = message.getChatId();
             sendAnswer(botApiMethod, chatId);
