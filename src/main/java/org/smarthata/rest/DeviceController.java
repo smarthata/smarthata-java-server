@@ -7,6 +7,8 @@ import org.smarthata.repository.SensorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/devices")
 public class DeviceController {
@@ -43,13 +45,13 @@ public class DeviceController {
         return deviceRepository.save(saved);
     }
 
-    @GetMapping("/sensors")
-    public Iterable<Sensor> findByDevice(@PathVariable Integer deviceId) {
+    @GetMapping("/{deviceId}/sensors")
+    public List<Sensor> findByDevice(@PathVariable Integer deviceId) {
         Device device = deviceRepository.findByIdOrElseThrow(deviceId);
-        return sensorRepository.findByDevice(device);
+        return device.getSensors();
     }
 
-    @PostMapping("/sensors")
+    @PostMapping("/{deviceId}/sensors")
     public Sensor save(@PathVariable Integer deviceId, @RequestBody Sensor sensor) {
         Device device = deviceRepository.findByIdOrElseThrow(deviceId);
         sensor.setDevice(device);

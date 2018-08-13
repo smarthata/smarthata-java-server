@@ -15,6 +15,9 @@ public class Device {
     @OneToMany(mappedBy = "device", cascade = CascadeType.ALL)
     private List<Sensor> sensors;
 
+    @OneToMany(mappedBy = "device", cascade = CascadeType.ALL)
+    private List<Config> configs;
+
     public Integer getId() {
         return id;
     }
@@ -37,5 +40,13 @@ public class Device {
 
     public void setSensors(List<Sensor> sensors) {
         this.sensors = sensors;
+    }
+
+    public List<Config> getConfigs() {
+        return configs;
+    }
+
+    public void setConfigs(final List<Config> configs) {
+        this.configs = configs;
     }
 }
