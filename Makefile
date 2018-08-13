@@ -15,8 +15,10 @@ update:
 release:
 	mvn --batch-mode release:prepare release:perform
 deploy: update release
+	systemctl stop smarthata
+	sleep 20
 	cp ./target/smarthata.jar /app/smarthata/
-	systemctl restart smarthata
+	systemctl start smarthata
 
 
 # Docker build
