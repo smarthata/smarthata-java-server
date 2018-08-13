@@ -72,15 +72,14 @@ public class TmBot extends TelegramLongPollingBot {
             }
 
         } catch (TelegramApiException e) {
-            e.printStackTrace();
+            LOG.error("Telegram Api Exception, e");
         }
     }
 
     @Scheduled(cron = "0 0 9,10,13,17 * * *")
     public void sendStat() throws TelegramApiException {
-        System.out.println("scheduling");
-        SendMessage sendMessage = (SendMessage) temperatures.answer(null, null, null);
-        sendMessage.setChatId(adminChatId);
+        LOG.debug("Scheduling");
+        SendMessage sendMessage = (SendMessage) temperatures.answer(null, adminChatId.toString(), null);
         super.sendMessage(sendMessage);
     }
 
