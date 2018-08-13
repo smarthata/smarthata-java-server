@@ -4,7 +4,7 @@
 
     <groupId>org.smarthata</groupId>
     <artifactId>smarthata-server</artifactId>
-    <version>1.0.4</version>
+    <version>1.0.5-SNAPSHOT</version>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -94,7 +94,7 @@
         <url>scm:git:git@github.com:smarthata/smarthata-java-server.git</url>
         <connection>scm:git:git@github.com:smarthata/smarthata-java-server.git</connection>
         <developerConnection>scm:git:git@github.com:smarthata/smarthata-java-server.git</developerConnection>
-        <tag>smarthata-server-1.0.4</tag>
+        <tag>HEAD</tag>
     </scm>
 
 </project>
