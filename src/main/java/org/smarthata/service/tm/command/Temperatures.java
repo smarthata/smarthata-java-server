@@ -6,7 +6,7 @@ import org.smarthata.repository.MeasureRepository;
 import org.smarthata.repository.SensorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 
 import java.util.Date;
 import java.util.List;

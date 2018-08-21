@@ -2,11 +2,11 @@ package org.smarthata.service.tm.command;
 
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.api.methods.BotApiMethod;
-import org.telegram.telegrambots.api.methods.send.SendMessage;
-import org.telegram.telegrambots.api.methods.updatingmessages.EditMessageText;
-import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import java.util.HashMap;
 import java.util.List;
@@ -48,7 +48,7 @@ public class Heating implements Command {
             if (messageId == null) {
                 return aSimpleSendMessage(chatId, "Выберите комнату:", createRoomButtons());
             } else {
-                return anEditMessageText(messageId, createRoomButtons(), "Выберите комнату:");
+                return anEditMessageText(chatId, messageId, createRoomButtons(), "Выберите комнату:");
             }
         }
 
@@ -66,7 +66,7 @@ public class Heating implements Command {
             } else if ("-".equals(path.get(0))) {
                 map.put(room, --temp);
             } else if ("⇐".equals(path.get(0))) {
-                return answer(emptyList(), null, messageId);
+                return answer(emptyList(), chatId, messageId);
             }
         }
 
@@ -77,12 +77,13 @@ public class Heating implements Command {
             message.setText(text);
             return message;
         } else {
-            return anEditMessageText(messageId, createPlusMinusButtons(room), text);
+            return anEditMessageText(chatId, messageId, createPlusMinusButtons(room), text);
         }
     }
 
-    private static BotApiMethod anEditMessageText(final Integer messageId, final InlineKeyboardMarkup roomButtons, final String s) {
+    private static BotApiMethod anEditMessageText(String chatId, final Integer messageId, final InlineKeyboardMarkup roomButtons, final String s) {
         EditMessageText message = new EditMessageText();
+        message.setChatId(chatId);
         message.setMessageId(messageId);
         message.setReplyMarkup(roomButtons);
         message.setText(s);

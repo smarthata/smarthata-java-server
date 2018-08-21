@@ -9,17 +9,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.api.methods.BotApiMethod;
-import org.telegram.telegrambots.api.methods.send.SendMessage;
-import org.telegram.telegrambots.api.methods.updatingmessages.EditMessageText;
-import org.telegram.telegrambots.api.objects.CallbackQuery;
-import org.telegram.telegrambots.api.objects.Message;
-import org.telegram.telegrambots.api.objects.Update;
-import org.telegram.telegrambots.api.objects.replykeyboard.ReplyKeyboardMarkup;
-import org.telegram.telegrambots.api.objects.replykeyboard.buttons.KeyboardButton;
-import org.telegram.telegrambots.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
-import org.telegram.telegrambots.exceptions.TelegramApiException;
+import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -72,15 +70,14 @@ public class TmBot extends TelegramLongPollingBot {
             }
 
         } catch (TelegramApiException e) {
-            LOG.error("Telegram Api Exception, e");
+            LOG.error("Telegram Api Exception", e);
         }
     }
 
     @Scheduled(cron = "0 0 9,10,13,17 * * *")
     public void sendStat() throws TelegramApiException {
         LOG.debug("Scheduling");
-        SendMessage sendMessage = (SendMessage) temperatures.answer(null, adminChatId.toString(), null);
-        super.sendMessage(sendMessage);
+        super.execute(temperatures.answer(null, adminChatId.toString(), null));
     }
 
     private void processMessage(final Message message, String text) throws TelegramApiException {
@@ -107,22 +104,7 @@ public class TmBot extends TelegramLongPollingBot {
 
         BotApiMethod botApiMethod = command.answer(path, message.getChatId().toString(), messageId);
         if (botApiMethod != null) {
-            Long chatId = message.getChatId();
-            sendAnswer(botApiMethod, chatId);
-        }
-    }
-
-    private void sendAnswer(BotApiMethod botApiMethod, Long chatId) throws TelegramApiException {
-        if (botApiMethod instanceof SendMessage) {
-            SendMessage sendMessage = (SendMessage) botApiMethod;
-            sendMessage.setChatId(chatId);
-            super.sendMessage(sendMessage);
-        } else if (botApiMethod instanceof EditMessageText) {
-            EditMessageText editMessageText = (EditMessageText) botApiMethod;
-            editMessageText.setChatId(chatId);
-            super.editMessageText(editMessageText);
-        } else {
-            throw new RuntimeException("Failed to find type");
+            super.execute(botApiMethod);
         }
     }
 

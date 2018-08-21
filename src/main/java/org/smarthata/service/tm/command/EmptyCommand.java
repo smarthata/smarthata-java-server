@@ -2,7 +2,7 @@ package org.smarthata.service.tm.command;
 
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 
 import java.util.List;
 
