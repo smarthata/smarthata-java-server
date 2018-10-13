@@ -14,7 +14,7 @@ public interface MeasureRepository extends CrudRepository<Measure, Integer> {
 
     Page<Measure> findBySensor(Sensor sensor, Pageable pageable);
 
-    List<Measure> findBySensorIn(Collection<Sensor> sensors);
+    List<Measure> findBySensorInAndDateAfterOrderByDateAsc(Collection<Sensor> sensors, Date date);
 
     Measure findTopBySensorOrderByDateDesc(Sensor sensor);
 }
