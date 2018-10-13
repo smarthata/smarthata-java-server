@@ -5,9 +5,11 @@ import org.smarthata.model.Sensor;
 import org.smarthata.repository.MeasureRepository;
 import org.smarthata.repository.SensorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.SortDefault;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/sensors")
@@ -41,9 +43,10 @@ public class SensorController {
     }
 
     @GetMapping("/{sensorId}/measures")
-    public List<Measure> measures(@PathVariable Integer sensorId) {
+    public Page<Measure> measures(@PathVariable Integer sensorId,
+                                  @SortDefault(value = "date", direction = Sort.Direction.DESC) Pageable pageable) {
         Sensor sensor = sensorRepository.findByIdOrElseThrow(sensorId);
-        return measureRepository.findBySensor(sensor);
+        return measureRepository.findBySensor(sensor, pageable);
     }
 
 }

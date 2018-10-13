@@ -34,6 +34,12 @@ public class Measure {
         this.date = new Date();
     }
 
+    public Measure(Sensor sensor, Double value, Date date) {
+        this.sensor = sensor;
+        this.value = value;
+        this.date = date;
+    }
+
     public Integer getId() {
         return id;
     }

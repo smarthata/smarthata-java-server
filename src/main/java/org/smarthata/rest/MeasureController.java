@@ -20,7 +20,7 @@ public class MeasureController {
     }
 
     @GetMapping
-    public List<Measure> measures(@PathVariable Integer deviceId) {
+    public Map<String, Measure> measures(@PathVariable Integer deviceId) {
         return measureService.findTopByDevice(deviceId);
     }
 

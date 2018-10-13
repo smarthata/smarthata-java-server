@@ -14,7 +14,7 @@ update:
 	git reset --hard origin/master
 release:
 	mvn --batch-mode release:prepare release:perform
-deploy: update release
+deploy:
 	systemctl stop smarthata
 	sleep 20
 	cp ./target/smarthata.jar /app/smarthata/
