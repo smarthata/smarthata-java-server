@@ -41,16 +41,22 @@ public class MeasureService {
 
         Date date = new Date();
 
-        return params.keySet().stream()
-                .map(name -> createMeasure(params, device, name, date))
+        return params.entrySet().stream()
+                .filter(this::isValid)
+                .map(entry -> createMeasure(device, date, entry))
                 .map(measureRepository::save)
                 .collect(Collectors.toList());
     }
 
-    private Measure createMeasure(final Map<String, String> params, final Device device, final String name, Date date) {
-        Sensor sensor = findOrCreateSensor(device, name);
-        Double value = Double.valueOf(params.get(name));
+    private Measure createMeasure(Device device, Date date, Map.Entry<String, String> entry) {
+        Sensor sensor = findOrCreateSensor(device, entry.getKey());
+        Double value = Double.valueOf(entry.getValue());
         return new Measure(sensor, value, date);
+    }
+
+    private boolean isValid(Map.Entry<String, String> entry) {
+        Double value = Double.valueOf(entry.getValue());
+        return value > -50 && value < 120;
     }
 
     private Sensor findOrCreateSensor(final Device device, final String name) {
