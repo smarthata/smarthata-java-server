@@ -24,11 +24,10 @@ public class ChartService {
         this.measureRepository = measureRepository;
     }
 
-    public List<List> getChartData(Integer deviceId, int hours) {
+    public List<List> getChartData(Integer deviceId, int hours, int page) {
         Device device = deviceRepository.findByIdOrElseThrow(deviceId);
 
-        Date startDate = getStartDate(hours);
-        List<Measure> allMeasures = measureRepository.findBySensorInAndDateAfterOrderByDateAsc(device.getSensors(), startDate);
+        List<Measure> allMeasures = getMeasures(device, hours, page);
 
         List<List> list = new ArrayList<>(allMeasures.size() / device.getSensors().size());
         List<String> headers = getHeaders(device.getSensors());
@@ -40,6 +39,15 @@ public class ChartService {
         map.forEach((date, measuresLine) -> list.add(makeLine(headers, date, measuresLine)));
 
         return list;
+    }
+
+    private List<Measure> getMeasures(Device device, int hours, int page) {
+        Date startDate = getStartDate(hours, page);
+        if (page == 0) {
+            return measureRepository.findBySensorInAndDateAfterOrderByDateAsc(device.getSensors(), startDate);
+        }
+        Date endDate = getEndDate(hours, page);
+        return measureRepository.findBySensorInAndDateBetweenOrderByDateAsc(device.getSensors(), startDate, endDate);
     }
 
     private List<Object> makeLine(List<String> headers, Date date, List<Measure> measuresLine) {
@@ -57,9 +65,15 @@ public class ChartService {
         return line;
     }
 
-    private Date getStartDate(int hours) {
+    private Date getStartDate(int hours, int page) {
         Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.HOUR, -hours);
+        cal.add(Calendar.HOUR, -hours * (page + 1));
+        return cal.getTime();
+    }
+
+    private Date getEndDate(int hours, int page) {
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.HOUR, -hours * page);
         return cal.getTime();
     }
 
