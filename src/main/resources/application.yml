@@ -14,6 +14,11 @@ spring:
     username: smarthata
     password: password
 
+mqtt:
+  server-uri: tcp://iot.eclipse.org:1883
+  user: user
+  password: password
+
 #logging.level.root: DEBUG
 
 bot:
