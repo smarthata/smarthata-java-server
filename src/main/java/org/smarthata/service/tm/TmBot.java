@@ -3,6 +3,9 @@ package org.smarthata.service.tm;
 import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smarthata.service.message.SmarthataMessage;
+import org.smarthata.service.message.SmarthataMessageBroker;
+import org.smarthata.service.message.SmarthataMessageListener;
 import org.smarthata.service.tm.command.Command;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,8 +25,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.smarthata.service.message.SmarthataMessage.SOURCE_TM;
+
 @Service
-public class TmBot extends TelegramLongPollingBot {
+public class TmBot extends TelegramLongPollingBot implements SmarthataMessageListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(TmBot.class);
 
@@ -39,6 +44,9 @@ public class TmBot extends TelegramLongPollingBot {
     @Autowired
     private List<Command> commands;
 
+    @Autowired
+    private SmarthataMessageBroker messageBroker;
+
 
     @Override
     public String getBotToken() {
@@ -52,39 +60,49 @@ public class TmBot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(final Update update) {
-        try {
-            LOG.debug("Received update: {}", update);
 
-            if (update.hasMessage()) {
-                Message message = update.getMessage();
-                processMessage(message.getChatId(), message.getText());
-            }
+        LOG.debug("Received update: {}", update);
 
-            if (update.hasCallbackQuery()) {
-                CallbackQuery callback = update.getCallbackQuery();
-                processMessage(callback.getMessage().getChatId(), callback.getData(), callback.getMessage().getMessageId());
-            }
+        if (update.hasMessage()) {
+            Message message = update.getMessage();
+            onMessageReceived(message.getChatId(), message.getText());
+        }
 
-        } catch (TelegramApiException e) {
-            LOG.error("Telegram Api Exception", e);
+        if (update.hasCallbackQuery()) {
+            CallbackQuery callback = update.getCallbackQuery();
+            onMessageReceived(callback.getMessage().getChatId(), callback.getData(), callback.getMessage().getMessageId());
+        }
+
+    }
+
+    @Override
+    public void receiveSmarthataMessage(SmarthataMessage message) {
+        if (!SOURCE_TM.equalsIgnoreCase(message.getSource())) {
+            processMessage(adminChatId, message.getPath() + " " + message.getText(), null);
         }
     }
 
     @Scheduled(cron = "0 0 9,10,13,17 * * *")
-    public void sendStat() throws TelegramApiException {
+    public void sendStat() {
         LOG.debug("Scheduling send street temp");
-        processMessage(adminChatId, "/temp");
+        onMessageReceived(adminChatId, "/temp");
     }
 
-    private void processMessage(Long chatId, String text) throws TelegramApiException {
-        processMessage(chatId, text, null);
+    private void onMessageReceived(Long chatId, String text) {
+        onMessageReceived(chatId, text, null);
     }
 
-    private void processMessage(Long chatId, String text, final Integer messageId) throws TelegramApiException {
+    private void onMessageReceived(Long chatId, String text, Integer messageId) {
 
         LOG.info("text: '{}', messageId {}", text, messageId);
         text = text.replace("@" + username, "");
 
+        broadcast(text);
+
+        processMessage(chatId, text, messageId);
+    }
+
+    private void processMessage(Long chatId, String text, Integer messageId) {
         List<String> path = Arrays.stream(text.split("/"))
                 .filter(s -> !s.isEmpty())
                 .collect(Collectors.toList());
@@ -100,8 +118,23 @@ public class TmBot extends TelegramLongPollingBot {
 
         BotApiMethod<?> botApiMethod = command.answer(path, chatId.toString(), messageId);
         if (botApiMethod != null) {
-            super.execute(botApiMethod);
+            try {
+                super.execute(botApiMethod);
+            } catch (TelegramApiException e) {
+                LOG.error("Telegram Api Exception", e);
+            }
         }
+    }
+
+    private void broadcast(String text) {
+        String[] split = text.split("\\s");
+        SmarthataMessage message;
+        if (split.length >= 2) {
+            message = new SmarthataMessage(split[0], split[1], SOURCE_TM);
+        } else {
+            message = new SmarthataMessage(text, "", SOURCE_TM);
+        }
+        messageBroker.broadcastSmarthataMessage(message);
     }
 
     private ReplyKeyboardMarkup createMainButtons() {
@@ -115,11 +148,11 @@ public class TmBot extends TelegramLongPollingBot {
 
     private List<KeyboardRow> createKeyboardRows() {
         KeyboardRow keyboardFirstRow = new KeyboardRow();
-        keyboardFirstRow.add(new KeyboardButton("/temp"));
-        keyboardFirstRow.add(new KeyboardButton("/heating"));
-        keyboardFirstRow.add(new KeyboardButton("/watering"));
-        keyboardFirstRow.add(new KeyboardButton("/lighting"));
+        keyboardFirstRow.add(new KeyboardButton("/temp/street"));
+        keyboardFirstRow.add(new KeyboardButton("/heating/temp/floor/request"));
+//        keyboardFirstRow.add(new KeyboardButton("/heating"));
+//        keyboardFirstRow.add(new KeyboardButton("/watering"));
+//        keyboardFirstRow.add(new KeyboardButton("/lighting"));
         return ImmutableList.of(keyboardFirstRow);
     }
-
 }

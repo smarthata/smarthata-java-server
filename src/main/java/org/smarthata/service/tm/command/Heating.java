@@ -21,7 +21,7 @@ import static java.util.Collections.singletonList;
 @Service
 public class Heating implements Command {
 
-    private static final String HEATING = "heating";
+    private static final String HEATING = "heating2";
 
     private static final List<String> ROOMS = asList("Кухня", "Зал", "Прихожая");
     private static final List<String> ROOM_OPERATIONS = asList("+", "-", "⇐");

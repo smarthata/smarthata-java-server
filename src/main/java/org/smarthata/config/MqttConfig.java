@@ -35,7 +35,7 @@ public class MqttConfig {
         options.setPassword(password.toCharArray());
         publisher.connect(options);
 
-        publisher.subscribe("/#", 2, mqttService);
+        publisher.subscribe("/#", 1, mqttService);
 
         return publisher;
     }
