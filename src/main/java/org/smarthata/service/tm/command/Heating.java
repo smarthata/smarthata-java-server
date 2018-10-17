@@ -42,7 +42,7 @@ public class Heating implements Command {
     }
 
     @Override
-    public BotApiMethod answer(final List<String> path, final String chatId, final Integer messageId) {
+    public BotApiMethod<?> answer(final List<String> path, final String chatId, final Integer messageId) {
 
         if (path.isEmpty()) {
             if (messageId == null) {

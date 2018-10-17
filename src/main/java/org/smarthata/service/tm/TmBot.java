@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthata.service.tm.command.Command;
-import org.smarthata.service.tm.command.Temperatures;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -40,9 +39,6 @@ public class TmBot extends TelegramLongPollingBot {
     @Autowired
     private List<Command> commands;
 
-    @Autowired
-    private Temperatures temperatures;
-
 
     @Override
     public String getBotToken() {
@@ -61,12 +57,12 @@ public class TmBot extends TelegramLongPollingBot {
 
             if (update.hasMessage()) {
                 Message message = update.getMessage();
-                processMessage(message, message.getText());
+                processMessage(message.getChatId(), message.getText());
             }
 
             if (update.hasCallbackQuery()) {
                 CallbackQuery callback = update.getCallbackQuery();
-                processMessage(callback.getMessage(), callback.getData(), callback.getMessage().getMessageId());
+                processMessage(callback.getMessage().getChatId(), callback.getData(), callback.getMessage().getMessageId());
             }
 
         } catch (TelegramApiException e) {
@@ -76,15 +72,15 @@ public class TmBot extends TelegramLongPollingBot {
 
     @Scheduled(cron = "0 0 9,10,13,17 * * *")
     public void sendStat() throws TelegramApiException {
-        LOG.debug("Scheduling");
-        super.execute(temperatures.answer(null, adminChatId.toString(), null));
+        LOG.debug("Scheduling send street temp");
+        processMessage(adminChatId, "/temp");
     }
 
-    private void processMessage(final Message message, String text) throws TelegramApiException {
-        processMessage(message, text, null);
+    private void processMessage(Long chatId, String text) throws TelegramApiException {
+        processMessage(chatId, text, null);
     }
 
-    private void processMessage(final Message message, String text, final Integer messageId) throws TelegramApiException {
+    private void processMessage(Long chatId, String text, final Integer messageId) throws TelegramApiException {
 
         LOG.info("text: '{}', messageId {}", text, messageId);
         text = text.replace("@" + username, "");
@@ -102,7 +98,7 @@ public class TmBot extends TelegramLongPollingBot {
 
         path.remove(0);
 
-        BotApiMethod botApiMethod = command.answer(path, message.getChatId().toString(), messageId);
+        BotApiMethod<?> botApiMethod = command.answer(path, chatId.toString(), messageId);
         if (botApiMethod != null) {
             super.execute(botApiMethod);
         }

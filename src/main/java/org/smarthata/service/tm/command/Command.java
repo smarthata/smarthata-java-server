@@ -12,7 +12,7 @@ public interface Command {
 
     boolean isProcessed(final String name);
 
-    BotApiMethod answer(List<String> path, final String chatId, final Integer messageId);
+    BotApiMethod<?> answer(List<String> path, final String chatId, final Integer messageId);
 
     default SendMessage aSimpleSendMessage(final String chatId, final String text) {
         return new SendMessage(chatId, text);

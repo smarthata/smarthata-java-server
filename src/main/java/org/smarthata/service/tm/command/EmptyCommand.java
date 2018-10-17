@@ -15,7 +15,7 @@ public class EmptyCommand implements Command {
     }
 
     @Override
-    public BotApiMethod answer(final List<String> path, final String chatId, final Integer messageId) {
+    public BotApiMethod<?> answer(final List<String> path, final String chatId, final Integer messageId) {
         return null;
     }
 }

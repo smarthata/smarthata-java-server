@@ -30,7 +30,7 @@ public class Temperatures implements Command {
     }
 
     @Override
-    public BotApiMethod answer(final List<String> path, final String chatId, final Integer messageId) {
+    public BotApiMethod<?> answer(final List<String> path, final String chatId, final Integer messageId) {
 
         Sensor sensor = sensorRepository.findByIdOrElseThrow(13);
         Measure measure = measureRepository.findTopBySensorOrderByDateDesc(sensor);
