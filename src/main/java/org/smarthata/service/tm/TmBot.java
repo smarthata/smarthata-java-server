@@ -9,7 +9,6 @@ import org.smarthata.service.message.SmarthataMessageListener;
 import org.smarthata.service.tm.command.Command;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
@@ -78,14 +77,8 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
     @Override
     public void receiveSmarthataMessage(SmarthataMessage message) {
         if (!SOURCE_TM.equalsIgnoreCase(message.getSource())) {
-            processMessage(adminChatId, message.getPath() + " " + message.getText(), null);
+            processMessage(adminChatId, message.getPath() + "/" + message.getText(), null);
         }
-    }
-
-    @Scheduled(cron = "0 0 9,10,13,17 * * *")
-    public void sendStat() {
-        LOG.debug("Scheduling send street temp");
-        onMessageReceived(adminChatId, "/temp");
     }
 
     private void onMessageReceived(Long chatId, String text) {

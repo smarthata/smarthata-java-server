@@ -4,6 +4,7 @@ public class SmarthataMessage {
 
     public static final String SOURCE_MQTT = "MQTT";
     public static final String SOURCE_TM = "TM";
+    public static final String SOURCE_CRON = "CRON";
 
     private String path;
 
