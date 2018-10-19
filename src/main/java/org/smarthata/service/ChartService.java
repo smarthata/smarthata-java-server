@@ -2,7 +2,6 @@ package org.smarthata.service;
 
 import org.smarthata.model.Device;
 import org.smarthata.model.Measure;
-import org.smarthata.model.Sensor;
 import org.smarthata.repository.DeviceRepository;
 import org.smarthata.repository.MeasureRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +29,7 @@ public class ChartService {
         List<Measure> allMeasures = getMeasures(device, hours, page);
 
         List<List> list = new ArrayList<>(allMeasures.size() / device.getSensors().size());
-        List<String> headers = getHeaders(device.getSensors());
+        List<String> headers = getHeaders(allMeasures);
         list.add(headers);
 
         Map<Date, List<Measure>> map = allMeasures.stream()
@@ -77,11 +76,11 @@ public class ChartService {
         return cal.getTime();
     }
 
-    private List<String> getHeaders(List<Sensor> sensors) {
-        List<String> headers = sensors.stream()
-                .map(Sensor::getName)
-                .sorted()
-                .collect(Collectors.toList());
+    private List<String> getHeaders(List<Measure> allMeasures) {
+        List<String> headers = allMeasures.stream()
+                .map(measure -> measure.getSensor().getName())
+                .distinct()
+                .sorted().collect(Collectors.toList());
         headers.add(0, "Time");
         return headers;
     }
