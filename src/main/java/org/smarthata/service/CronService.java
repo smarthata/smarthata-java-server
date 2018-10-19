@@ -13,7 +13,7 @@ import static org.smarthata.service.message.SmarthataMessage.SOURCE_CRON;
 @Service
 public class CronService {
 
-    private static final String HEATING_TEMP_FLOOR_REQUEST = "/heating/temp/floor/request";
+    private static final String HEATING_TEMP_FLOOR_REQUEST = "/heating/floor";
 
     @Autowired
     private SmarthataMessageBroker messageBroker;

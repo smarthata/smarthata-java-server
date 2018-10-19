@@ -28,8 +28,8 @@ public class MqttService implements IMqttMessageListener, SmarthataMessageListen
 
     @Override
     public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
-        LOG.info("messageArrived: {}, {}", topic, mqttMessage);
         String text = new String(mqttMessage.getPayload());
+        LOG.info("messageArrived: [{}], [{}]", topic, text);
         SmarthataMessage message = new SmarthataMessage(topic, text, SOURCE_MQTT);
         messageBroker.broadcastSmarthataMessage(message);
     }
@@ -45,6 +45,7 @@ public class MqttService implements IMqttMessageListener, SmarthataMessageListen
         try {
             LOG.info("Try to send message to mqtt: topic [{}], message [{}]", topic, message);
             mqttClient.publish(topic, new MqttMessage(message.getBytes()));
+            LOG.info("Message sent to mqtt: topic [{}], message [{}]", topic, message);
         } catch (MqttException e) {
             LOG.error("Failed to send message: {}", e.getMessage(), e);
         }
