@@ -11,7 +11,7 @@ public abstract class AbstractCommand implements Command {
     }
 
     @Override
-    public boolean isProcessed(final String name) {
-        return command.equalsIgnoreCase(name);
+    public String getCommand() {
+        return command;
     }
 }

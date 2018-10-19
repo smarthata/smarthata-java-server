@@ -18,6 +18,8 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.smarthata.service.message.SmarthataMessage.SOURCE_TM;
@@ -36,11 +38,16 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
     @Value("${bot.adminChatId}")
     private Long adminChatId;
 
-    @Autowired
-    private List<Command> commands;
+    private final Map<String, Command> commandsMap;
 
     @Autowired
     private SmarthataMessageBroker messageBroker;
+
+    @Autowired
+    public TmBot(List<Command> commands) {
+        commandsMap = commands.stream()
+                .collect(Collectors.toMap(Command::getCommand, Function.identity()));
+    }
 
 
     @Override
@@ -83,10 +90,10 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
 
     private void onMessageReceived(Long chatId, String text, Integer messageId) {
 
-        LOG.info("text: '{}', messageId {}", text, messageId);
+        LOG.info("text: [{}], messageId {}", text, messageId);
         text = text.replace("@" + username, "");
 
-        broadcast(text);
+        broadcastSmarthataMessage(text);
 
         processMessage(chatId, text, messageId);
     }
@@ -95,30 +102,32 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
         List<String> path = Arrays.stream(text.split("/"))
                 .filter(s -> !s.isEmpty())
                 .collect(Collectors.toList());
-        LOG.info("path: '{}'", path);
+        LOG.info("Process telegram message: path {}, text: {}", path, text);
         if (path.isEmpty()) return;
 
-        Command command = commands.stream()
-                .filter(c -> c.isProcessed(path.get(0)))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Command not found"));
-
-        path.remove(0);
-
-        BotApiMethod<?> botApiMethod = command.answer(path, chatId.toString(), messageId);
-        if (botApiMethod != null) {
-            try {
-                super.execute(botApiMethod);
-            } catch (TelegramApiException e) {
-                LOG.error("Telegram Api Exception", e);
-            }
+        String commandName = path.remove(0);
+        Command command = commandsMap.get(commandName);
+        if (command != null) {
+            LOG.info("Found command: [{}]", commandName);
+            BotApiMethod<?> botApiMethod = command.answer(path, chatId.toString(), messageId);
+            sendMessageToTelegram(botApiMethod);
         }
     }
 
-    private void broadcast(String text) {
-        String[] split = text.split("\\s");
+    private void sendMessageToTelegram(BotApiMethod<?> botApiMethod) {
+        try {
+            LOG.info("Try to send message to telegram: {}", botApiMethod);
+            super.execute(botApiMethod);
+            LOG.info("Message to telegram sent: {}", botApiMethod);
+        } catch (TelegramApiException e) {
+            LOG.error("Telegram Api Exception: {}", e.getMessage(), e);
+        }
+    }
+
+    private void broadcastSmarthataMessage(String text) {
         SmarthataMessage message;
-        if (split.length >= 2) {
+        if (text.matches("\\s")) {
+            String[] split = text.split("\\s", 2);
             message = new SmarthataMessage(split[0], split[1], SOURCE_TM);
         } else {
             message = new SmarthataMessage(text, "", SOURCE_TM);

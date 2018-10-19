@@ -10,7 +10,7 @@ import java.util.List;
 @Order(1)
 public interface Command {
 
-    boolean isProcessed(String name);
+    String getCommand();
 
     BotApiMethod<?> answer(List<String> path, String chatId, Integer messageId);
 
