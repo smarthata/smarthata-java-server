@@ -14,19 +14,18 @@ import java.util.concurrent.TimeUnit;
 
 
 @Service
-public class Temperatures implements Command {
+public class Temperatures extends AbstractCommand {
 
     private static final String TEMPERATURES = "temp";
 
-    @Autowired
-    private SensorRepository sensorRepository;
+    private final SensorRepository sensorRepository;
+    private final MeasureRepository measureRepository;
 
     @Autowired
-    private MeasureRepository measureRepository;
-
-    @Override
-    public boolean isProcessed(final String name) {
-        return TEMPERATURES.equalsIgnoreCase(name);
+    public Temperatures(SensorRepository sensorRepository, MeasureRepository measureRepository) {
+        super(TEMPERATURES);
+        this.sensorRepository = sensorRepository;
+        this.measureRepository = measureRepository;
     }
 
     @Override

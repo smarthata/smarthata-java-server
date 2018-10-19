@@ -19,13 +19,17 @@ import static java.util.Collections.singletonList;
 
 @Order(1)
 @Service
-public class Heating implements Command {
+public class Heating extends AbstractCommand {
 
     private static final String HEATING = "heating2";
 
     private static final List<String> ROOMS = asList("Кухня", "Зал", "Прихожая");
     private static final List<String> ROOM_OPERATIONS = asList("+", "-", "⇐");
     private static final Map<String, Byte> map = createMap();
+
+    public Heating() {
+        super(HEATING);
+    }
 
     private static Map<String, Byte> createMap() {
         Map<String, Byte> map = new HashMap<>();
@@ -35,11 +39,6 @@ public class Heating implements Command {
         return map;
     }
 
-
-    @Override
-    public boolean isProcessed(final String name) {
-        return HEATING.equalsIgnoreCase(name);
-    }
 
     @Override
     public BotApiMethod<?> answer(final List<String> path, final String chatId, final Integer messageId) {

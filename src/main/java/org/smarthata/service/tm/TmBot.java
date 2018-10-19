@@ -1,6 +1,5 @@
 package org.smarthata.service.tm;
 
-import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthata.service.message.SmarthataMessage;
@@ -15,9 +14,6 @@ import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.Arrays;
@@ -128,24 +124,5 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
             message = new SmarthataMessage(text, "", SOURCE_TM);
         }
         messageBroker.broadcastSmarthataMessage(message);
-    }
-
-    private ReplyKeyboardMarkup createMainButtons() {
-        ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
-        replyKeyboardMarkup.setSelective(true);
-        replyKeyboardMarkup.setResizeKeyboard(true);
-        replyKeyboardMarkup.setOneTimeKeyboard(false);
-        replyKeyboardMarkup.setKeyboard(createKeyboardRows());
-        return replyKeyboardMarkup;
-    }
-
-    private List<KeyboardRow> createKeyboardRows() {
-        KeyboardRow keyboardFirstRow = new KeyboardRow();
-        keyboardFirstRow.add(new KeyboardButton("/temp/street"));
-        keyboardFirstRow.add(new KeyboardButton("/heating/temp/floor/request"));
-//        keyboardFirstRow.add(new KeyboardButton("/heating"));
-//        keyboardFirstRow.add(new KeyboardButton("/watering"));
-//        keyboardFirstRow.add(new KeyboardButton("/lighting"));
-        return ImmutableList.of(keyboardFirstRow);
     }
 }

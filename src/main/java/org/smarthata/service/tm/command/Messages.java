@@ -8,13 +8,12 @@ import java.util.List;
 
 
 @Service
-public class Messages implements Command {
+public class Messages extends AbstractCommand {
 
     private static final String MESSAGES = "messages";
 
-    @Override
-    public boolean isProcessed(final String name) {
-        return MESSAGES.equalsIgnoreCase(name);
+    public Messages() {
+        super(MESSAGES);
     }
 
     @Override
