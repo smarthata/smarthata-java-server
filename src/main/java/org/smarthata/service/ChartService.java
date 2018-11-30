@@ -2,6 +2,7 @@ package org.smarthata.service;
 
 import org.smarthata.model.Device;
 import org.smarthata.model.Measure;
+import org.smarthata.model.Sensor;
 import org.smarthata.repository.DeviceRepository;
 import org.smarthata.repository.MeasureRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,9 @@ import org.springframework.stereotype.Service;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import static java.util.stream.Collectors.groupingBy;
 
 @Service
 public class ChartService {
@@ -23,30 +27,88 @@ public class ChartService {
         this.measureRepository = measureRepository;
     }
 
-    public List<List> getChartData(Integer deviceId, int hours, int page) {
+    public List<List> getChartData(Integer deviceId, int hours, int page, int points) {
         Device device = deviceRepository.findByIdOrElseThrow(deviceId);
 
-        List<Measure> allMeasures = getMeasures(device, hours, page);
+        List<Measure> allMeasures = getMeasures(device, hours, page, points);
 
         List<List> list = new ArrayList<>(allMeasures.size() / device.getSensors().size());
         List<String> headers = getHeaders(allMeasures);
         list.add(headers);
 
         Map<Date, List<Measure>> map = allMeasures.stream()
-                .collect(Collectors.groupingBy(Measure::getDate));
+                .collect(groupingBy(Measure::getDate));
         map = new TreeMap<>(map);
         map.forEach((date, measuresLine) -> list.add(makeLine(headers, date, measuresLine)));
 
         return list;
     }
 
-    private List<Measure> getMeasures(Device device, int hours, int page) {
+    private List<Measure> getMeasures(Device device, int hours, int page, int points) {
         Date startDate = getStartDate(hours, page);
-        if (page == 0) {
-            return measureRepository.findBySensorInAndDateAfterOrderByDateAsc(device.getSensors(), startDate);
-        }
         Date endDate = getEndDate(hours, page);
-        return measureRepository.findBySensorInAndDateBetweenOrderByDateAsc(device.getSensors(), startDate, endDate);
+        final List<Measure> sourceList = measureRepository.findBySensorInAndDateBetweenOrderByDateAsc(device.getSensors(), startDate, endDate);
+
+        points = Math.min(points, sourceList.size());
+        List<Date> dates = buildChartDates(points, startDate, endDate);
+
+        Map<Sensor, List<Measure>> measuresBySensors = sourceList.stream().collect(groupingBy(Measure::getSensor));
+
+        return measuresBySensors.entrySet().stream()
+                .map(sensorMeasures -> averageMeasuresForSensor(sensorMeasures.getKey(), sensorMeasures.getValue(), dates))
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
+    }
+
+    private List<Date> buildChartDates(int points, Date startDate, Date endDate) {
+        long millisFullRange = endDate.getTime() - startDate.getTime();
+        long millisStep = millisFullRange / points;
+
+        return IntStream.rangeClosed(0, points)
+                .mapToObj(i -> new Date(startDate.getTime() + i * millisStep))
+                .collect(Collectors.toList());
+    }
+
+    private List<Measure> averageMeasuresForSensor(Sensor sensor, List<Measure> measures, List<Date> dates) {
+        Map<Date, List<Measure>> datesWithMeasures = allocateMeasuresByDates(measures, dates);
+
+        return datesWithMeasures.entrySet().stream()
+                .map(measuresByDate -> createAverageMeasure(sensor, measuresByDate.getKey(), measuresByDate.getValue()))
+                .collect(Collectors.toList());
+    }
+
+    private Map<Date, List<Measure>> allocateMeasuresByDates(final List<Measure> measures, final List<Date> dates) {
+        Map<Date, List<Measure>> datesWithMeasures = dates.stream()
+                .collect(Collectors.toMap(date -> date, measure -> new ArrayList<>(), CommonUtils.joinLists()));
+
+        for (Measure measure : measures) {
+            Date date = findClosestDate(dates, measure.getDate());
+            datesWithMeasures.get(date).add(measure);
+        }
+        return datesWithMeasures;
+    }
+
+    private Measure createAverageMeasure(Sensor key, Date date, List<Measure> measures) {
+        Measure measure = new Measure();
+        measure.setSensor(key);
+        measure.setDate(date);
+        double value = measures.stream().mapToDouble(Measure::getValue).average().orElse(0);
+        measure.setValue(CommonUtils.round(value, 1));
+        return measure;
+    }
+
+    private Date findClosestDate(List<Date> dates, Date measureDate) {
+        long minDiff = Long.MAX_VALUE;
+        Date minDate = dates.get(0);
+
+        for (Date date : dates) {
+            long diff = Math.abs(date.getTime() - measureDate.getTime());
+            if (diff < minDiff) {
+                minDate = date;
+                minDiff = diff;
+            }
+        }
+        return minDate;
     }
 
     private List<Object> makeLine(List<String> headers, Date date, List<Measure> measuresLine) {
@@ -80,7 +142,8 @@ public class ChartService {
         List<String> headers = allMeasures.stream()
                 .map(measure -> measure.getSensor().getName())
                 .distinct()
-                .sorted().collect(Collectors.toList());
+                .sorted()
+                .collect(Collectors.toList());
         headers.add(0, "Time");
         return headers;
     }
