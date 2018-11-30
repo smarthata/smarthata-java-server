@@ -34,7 +34,7 @@ public class Temperatures extends AbstractCommand {
         Sensor sensor = sensorRepository.findByIdOrElseThrow(13);
         Measure measure = measureRepository.findTopBySensorOrderByDateDesc(sensor);
 
-        String text = String.format("Уличная температура: %.1f°C (%d мин. назад)", measure.getValue(), getMinutesAgo(measure.getDate()));
+        String text = String.format("Street temp: %.1f°C (%d мин. назад)", measure.getValue(), getMinutesAgo(measure.getDate()));
 
         return aSimpleSendMessage(chatId, text);
     }

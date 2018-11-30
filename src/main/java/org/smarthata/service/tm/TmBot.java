@@ -80,7 +80,9 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
     @Override
     public void receiveSmarthataMessage(SmarthataMessage message) {
         if (!SOURCE_TM.equalsIgnoreCase(message.getSource())) {
-            processMessage(adminChatId, message.getPath() + "/" + message.getText(), null);
+            if (message.getPath().equals("/messages")) {
+                processMessage(adminChatId, message.getPath() + "/" + message.getText(), null);
+            }
         }
     }
 
@@ -93,7 +95,9 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
         LOG.info("text: [{}], messageId {}", text, messageId);
         text = text.replace("@" + username, "");
 
-        broadcastSmarthataMessage(text);
+        if (!text.isEmpty()) {
+            broadcastSmarthataMessage(text);
+        }
 
         processMessage(chatId, text, messageId);
     }
