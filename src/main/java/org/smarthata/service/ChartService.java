@@ -36,12 +36,26 @@ public class ChartService {
         List<String> headers = getHeaders(allMeasures);
         list.add(headers);
 
+        SimpleDateFormat sdf = new SimpleDateFormat(getPattern(hours));
+
         Map<Date, List<Measure>> map = allMeasures.stream()
                 .collect(groupingBy(Measure::getDate));
         map = new TreeMap<>(map);
-        map.forEach((date, measuresLine) -> list.add(makeLine(headers, date, measuresLine)));
+        map.forEach((date, measuresLine) -> list.add(makeLine(headers, date, measuresLine, sdf)));
 
         return list;
+    }
+
+    private String getPattern(final int hours) {
+        if (hours < 24) {
+            return "HH:mm";
+        } else if (hours < 24 * 7) {
+            return "MM-dd HH:mm";
+        } else if (hours < 24 * 7 * 4) {
+            return "MM-dd";
+        } else {
+            return "yyyy-MM-dd";
+        }
     }
 
     private List<Measure> getMeasures(Device device, int hours, int page, int points) {
@@ -111,9 +125,10 @@ public class ChartService {
         return minDate;
     }
 
-    private List<Object> makeLine(List<String> headers, Date date, List<Measure> measuresLine) {
+    private List<Object> makeLine(List<String> headers, Date date, List<Measure> measuresLine, SimpleDateFormat sdf) {
+
         List<Object> line = new ArrayList<>(headers.size());
-        line.add(new SimpleDateFormat("HH:mm").format(date));
+        line.add(sdf.format(date));
 
         Map<String, Double> measureByName = measuresLine.stream()
                 .collect(Collectors.toMap(measure -> measure.getSensor().getName(), Measure::getValue));
