@@ -64,10 +64,13 @@ public class ChartService {
         List<Sensor> sensors = device.getSensors()
                 .stream()
                 .filter(sensor -> {
-                    String requestParamsOrDefault = requestParams.getOrDefault(sensor.getName(), "1");
-                    return !requestParamsOrDefault.equals("0");
+                    String requestParamsOrDefault = requestParams.getOrDefault(sensor.getName(), "0");
+                    return requestParamsOrDefault.equals("1");
                 })
                 .collect(Collectors.toList());
+        if (sensors.isEmpty()) {
+            sensors = device.getSensors();
+        }
         final List<Measure> sourceList = measureRepository.findBySensorInAndDateBetweenOrderByDateAsc(sensors, startDate, endDate);
 
         points = Math.min(points, sourceList.size());
