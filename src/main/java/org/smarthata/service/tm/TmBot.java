@@ -93,6 +93,8 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
     private void onMessageReceived(Long chatId, String text, Integer messageId) {
 
         LOG.info("text: [{}], messageId {}", text, messageId);
+        if (text == null) return;
+
         text = text.replace("@" + username, "");
 
         if (!text.isEmpty()) {
