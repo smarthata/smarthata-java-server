@@ -27,10 +27,10 @@ public class ChartService {
         this.measureRepository = measureRepository;
     }
 
-    public List<List> getChartData(Integer deviceId, int hours, int page, int points) {
+    public List<List> getChartData(Integer deviceId, int hours, int page, int points, Map<String, String> requestParams) {
         Device device = deviceRepository.findByIdOrElseThrow(deviceId);
 
-        List<Measure> allMeasures = getMeasures(device, hours, page, points);
+        List<Measure> allMeasures = getMeasures(device, hours, page, points, requestParams);
 
         List<List> list = new ArrayList<>(allMeasures.size() / device.getSensors().size());
         List<String> headers = getHeaders(allMeasures);
@@ -58,10 +58,17 @@ public class ChartService {
         }
     }
 
-    private List<Measure> getMeasures(Device device, int hours, int page, int points) {
+    private List<Measure> getMeasures(Device device, int hours, int page, int points, final Map<String, String> requestParams) {
         Date startDate = getStartDate(hours, page);
         Date endDate = getEndDate(hours, page);
-        final List<Measure> sourceList = measureRepository.findBySensorInAndDateBetweenOrderByDateAsc(device.getSensors(), startDate, endDate);
+        List<Sensor> sensors = device.getSensors()
+                .stream()
+                .filter(sensor -> {
+                    String requestParamsOrDefault = requestParams.getOrDefault(sensor.getName(), "1");
+                    return !requestParamsOrDefault.equals("0");
+                })
+                .collect(Collectors.toList());
+        final List<Measure> sourceList = measureRepository.findBySensorInAndDateBetweenOrderByDateAsc(sensors, startDate, endDate);
 
         points = Math.min(points, sourceList.size());
         List<Date> dates = buildChartDates(points, startDate, endDate);
