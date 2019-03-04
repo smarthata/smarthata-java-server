@@ -23,6 +23,7 @@ public class CronService {
         LocalTime now = LocalTime.now(ZoneId.systemDefault());
         Integer secondOfDay = now.toSecondOfDay();
         SmarthataMessage message = new SmarthataMessage("/second-of-day", secondOfDay.toString(), SOURCE_CRON);
+        message.setRetained(true);
         messageBroker.broadcastSmarthataMessage(message);
     }
 

@@ -37,14 +37,16 @@ public class MqttService implements IMqttMessageListener, SmarthataMessageListen
     @Override
     public void receiveSmarthataMessage(SmarthataMessage message) {
         if (!SOURCE_MQTT.equalsIgnoreCase(message.getSource())) {
-            publishMessageToMqtt(message.getPath(), message.getText());
+            publishMessageToMqtt(message.getPath(), message.getText(), message.isRetained());
         }
     }
 
-    private void publishMessageToMqtt(String topic, String message) {
+    private void publishMessageToMqtt(String topic, String message, boolean retained) {
         try {
             LOG.info("Try to send message to mqtt: topic [{}], message [{}]", topic, message);
-            mqttClient.publish(topic, new MqttMessage(message.getBytes()));
+            MqttMessage mqttMessage = new MqttMessage(message.getBytes());
+            mqttMessage.setRetained(retained);
+            mqttClient.publish(topic, mqttMessage);
             LOG.info("Message sent to mqtt: topic [{}], message [{}]", topic, message);
         } catch (MqttException e) {
             LOG.error("Failed to send message: {}", e.getMessage(), e);

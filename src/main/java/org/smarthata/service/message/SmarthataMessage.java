@@ -12,6 +12,8 @@ public class SmarthataMessage {
 
     private String source;
 
+    private boolean retained = false;
+
     public SmarthataMessage() {
     }
 
@@ -45,12 +47,21 @@ public class SmarthataMessage {
         this.source = source;
     }
 
+    public boolean isRetained() {
+        return retained;
+    }
+
+    public void setRetained(boolean retained) {
+        this.retained = retained;
+    }
+
     @Override
     public String toString() {
         return "SmarthataMessage{" +
                 "path='" + path + '\'' +
                 ", text='" + text + '\'' +
                 ", source='" + source + '\'' +
+                ", retained=" + retained +
                 '}';
     }
 }
