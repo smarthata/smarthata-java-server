@@ -19,11 +19,16 @@ public class MqttService implements IMqttMessageListener, SmarthataMessageListen
 
     private static final Logger LOG = LoggerFactory.getLogger(MqttService.class);
 
-    @Autowired
-    private IMqttClient mqttClient;
+    private final IMqttClient mqttClient;
+    private final SmarthataMessageBroker messageBroker;
 
     @Autowired
-    private SmarthataMessageBroker messageBroker;
+    public MqttService(IMqttClient mqttClient, SmarthataMessageBroker messageBroker) throws MqttException {
+        this.mqttClient = mqttClient;
+        this.messageBroker = messageBroker;
+        messageBroker.register(this);
+        mqttClient.subscribe("/#", 1, this);
+    }
 
 
     @Override

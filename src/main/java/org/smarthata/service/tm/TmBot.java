@@ -40,11 +40,13 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
 
     private final Map<String, Command> commandsMap;
 
-    @Autowired
-    private SmarthataMessageBroker messageBroker;
+    private final SmarthataMessageBroker messageBroker;
 
     @Autowired
-    public TmBot(List<Command> commands) {
+    public TmBot(List<Command> commands, SmarthataMessageBroker messageBroker) {
+        this.messageBroker = messageBroker;
+        this.messageBroker.register(this);
+
         commandsMap = commands.stream()
                 .collect(Collectors.toMap(Command::getCommand, Function.identity()));
     }
