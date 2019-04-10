@@ -66,8 +66,7 @@ public class Heating extends AbstractCommand {
                 break;
             default:
                 String text = "Unknown command";
-                InlineKeyboardMarkup buttons = createButtons("inc", "dec");
-                return createTmMessage(chatId, messageId, text, buttons);
+                return createTmMessage(chatId, messageId, text, null);
         }
 
         return answer(emptyList(), chatId, messageId);

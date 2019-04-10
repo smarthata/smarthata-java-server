@@ -15,7 +15,7 @@ public class SmarthataMessageBroker {
     private final List<SmarthataMessageListener> listeners = new ArrayList<>();
 
     public void broadcastSmarthataMessage(SmarthataMessage message) {
-        LOG.info("Broadcasting message: {}", message);
+        LOG.debug("Broadcasting message: {}", message);
         listeners.forEach(listener -> listener.receiveSmarthataMessage(message));
     }
 

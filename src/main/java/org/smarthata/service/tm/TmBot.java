@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -83,7 +84,8 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
     public void receiveSmarthataMessage(SmarthataMessage message) {
         if (!SOURCE_TM.equalsIgnoreCase(message.getSource())) {
             if (message.getPath().equals("/messages")) {
-                processMessage(adminChatId, message.getPath() + "/" + message.getText(), null);
+                BotApiMethod<?> botApiMethod = new SendMessage(adminChatId, message.getText());
+                sendMessageToTelegram(botApiMethod);
             }
         }
     }
@@ -107,9 +109,7 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
     }
 
     private void processMessage(Long chatId, String text, Integer messageId) {
-        List<String> path = Arrays.stream(text.split("/"))
-                .filter(s -> !s.isEmpty())
-                .collect(Collectors.toList());
+        List<String> path = getPath(text);
         LOG.info("Process telegram message: path {}, text: {}", path, text);
         if (path.isEmpty()) return;
 
@@ -120,6 +120,12 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
             BotApiMethod<?> botApiMethod = command.answer(path, chatId.toString(), messageId);
             sendMessageToTelegram(botApiMethod);
         }
+    }
+
+    private List<String> getPath(String text) {
+        return Arrays.stream(text.split("/"))
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
     }
 
     private void sendMessageToTelegram(BotApiMethod<?> botApiMethod) {

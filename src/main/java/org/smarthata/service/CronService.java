@@ -14,8 +14,12 @@ import static org.smarthata.service.message.SmarthataMessage.SOURCE_CRON;
 @Service
 public class CronService {
 
+    private final SmarthataMessageBroker messageBroker;
+
     @Autowired
-    private SmarthataMessageBroker messageBroker;
+    public CronService(SmarthataMessageBroker messageBroker) {
+        this.messageBroker = messageBroker;
+    }
 
 
     @Scheduled(cron = "0 * * * * *")
