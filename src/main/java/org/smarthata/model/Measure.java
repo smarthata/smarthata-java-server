@@ -2,11 +2,17 @@ package org.smarthata.model;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.util.Date;
 
+@Getter
+@Setter
+@NoArgsConstructor
 @Entity
 public class Measure {
 
@@ -25,54 +31,10 @@ public class Measure {
 
     private Date date;
 
-    public Measure() {
-    }
-
-    public Measure(Sensor sensor, Double value) {
-        this.sensor = sensor;
-        this.value = value;
-        this.date = new Date();
-    }
-
     public Measure(Sensor sensor, Double value, Date date) {
         this.sensor = sensor;
         this.value = value;
         this.date = date;
     }
 
-    public Integer getId() {
-        return id;
-    }
-
-    public Measure setId(final Integer id) {
-        this.id = id;
-        return this;
-    }
-
-    public Sensor getSensor() {
-        return sensor;
-    }
-
-    public Measure setSensor(final Sensor sensor) {
-        this.sensor = sensor;
-        return this;
-    }
-
-    public Double getValue() {
-        return value;
-    }
-
-    public Measure setValue(final Double value) {
-        this.value = value;
-        return this;
-    }
-
-    public Date getDate() {
-        return date;
-    }
-
-    public Measure setDate(final Date date) {
-        this.date = date;
-        return this;
-    }
 }

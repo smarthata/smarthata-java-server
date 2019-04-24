@@ -1,8 +1,15 @@
 package org.smarthata.model;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import javax.persistence.*;
 import java.util.List;
 
+@Getter
+@Setter
+@NoArgsConstructor
 @Entity
 public class Device {
 
@@ -18,35 +25,4 @@ public class Device {
     @OneToMany(mappedBy = "device", cascade = CascadeType.ALL)
     private List<Config> configs;
 
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public List<Sensor> getSensors() {
-        return sensors;
-    }
-
-    public void setSensors(List<Sensor> sensors) {
-        this.sensors = sensors;
-    }
-
-    public List<Config> getConfigs() {
-        return configs;
-    }
-
-    public void setConfigs(final List<Config> configs) {
-        this.configs = configs;
-    }
 }

@@ -2,10 +2,16 @@ package org.smarthata.model;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
+@Getter
+@Setter
+@NoArgsConstructor
 @Entity
 public class Sensor {
 
@@ -23,43 +29,8 @@ public class Sensor {
     @JoinColumn(name = "device_id")
     private Device device;
 
-    public Sensor() {
-    }
-
-    public Sensor(Device device, String name) {
-        this.device = device;
+    public Sensor(@NotNull Device device, String name) {
         this.name = name;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Units getUnits() {
-        return units;
-    }
-
-    public void setUnits(Units units) {
-        this.units = units;
-    }
-
-    public Device getDevice() {
-        return device;
-    }
-
-    public void setDevice(Device device) {
         this.device = device;
     }
 }

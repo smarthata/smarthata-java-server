@@ -1,10 +1,16 @@
 package org.smarthata.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
+@Getter
+@Setter
+@NoArgsConstructor
 @Table(
         uniqueConstraints = @UniqueConstraint(columnNames = {"name", "device_id"})
 )
@@ -29,48 +35,4 @@ public class Config {
     @JoinColumn(name = "device_id")
     private Device device;
 
-    public Integer getId() {
-        return id;
-    }
-
-    public Config setId(final Integer id) {
-        this.id = id;
-        return this;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public Config setName(final String name) {
-        this.name = name;
-        return this;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public Config setValue(final String value) {
-        this.value = value;
-        return this;
-    }
-
-    public Units getUnits() {
-        return units;
-    }
-
-    public Config setUnits(final Units units) {
-        this.units = units;
-        return this;
-    }
-
-    public Device getDevice() {
-        return device;
-    }
-
-    public Config setDevice(final Device device) {
-        this.device = device;
-        return this;
-    }
 }
