@@ -44,7 +44,14 @@ public class DeviceHealthCheckService implements SmarthataMessageListener {
     public void receiveSmarthataMessage(SmarthataMessage message) {
         DeviceHealth deviceHealth = deviceTimeMap.get(message.getPath());
         if (deviceHealth != null) {
+
+            if (deviceHealth.getStatus() != DeviceStatus.ACTIVE) {
+                deviceHealth.setLastNotificationTime(null);
+                sendMessage("Device is active: " + deviceHealth.getDevicePath());
+            }
+
             deviceHealth.setUpdateTime(now());
+            deviceHealth.setStatus(DeviceStatus.ACTIVE);
         }
     }
 
@@ -59,8 +66,8 @@ public class DeviceHealthCheckService implements SmarthataMessageListener {
         List<DeviceHealth> offlineDevices = new ArrayList<>();
         for (String device : DEVICES) {
             DeviceHealth deviceHealth = deviceTimeMap.get(device);
-            LocalDateTime time = deviceHealth.getUpdateTime();
-            if (time == null || Duration.between(time, now()).compareTo(OFFLINE_DURATION) > 0) {
+            if (isDateAfter(deviceHealth.getUpdateTime(), OFFLINE_DURATION)) {
+                deviceHealth.setStatus(DeviceStatus.OFFLINE);
                 offlineDevices.add(deviceHealth);
             }
         }
@@ -69,12 +76,15 @@ public class DeviceHealthCheckService implements SmarthataMessageListener {
 
     private void sendNotifications(List<DeviceHealth> offlineDevices) {
         for (DeviceHealth offlineDevice : offlineDevices) {
-            LocalDateTime lastNotification = offlineDevice.getLastNotificationTime();
-            if (lastNotification == null || Duration.between(lastNotification, now()).compareTo(NOTIFICATION_DURATION) > 0) {
+            if (isDateAfter(offlineDevice.getLastNotificationTime(), NOTIFICATION_DURATION)) {
                 offlineDevice.setLastNotificationTime(now());
                 sendMessage("Device is offline: " + offlineDevice.getDevicePath());
             }
         }
+    }
+
+    private boolean isDateAfter(LocalDateTime time, Duration duration) {
+        return time == null || Duration.between(time, now()).compareTo(duration) > 0;
     }
 
     private void sendMessage(String text) {
