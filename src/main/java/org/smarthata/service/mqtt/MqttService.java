@@ -6,13 +6,14 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smarthata.service.message.EndpointType;
 import org.smarthata.service.message.SmarthataMessage;
 import org.smarthata.service.message.SmarthataMessageBroker;
 import org.smarthata.service.message.SmarthataMessageListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import static org.smarthata.service.message.SmarthataMessage.SOURCE_MQTT;
+import static org.smarthata.service.message.EndpointType.MQTT;
 
 @Service
 public class MqttService implements IMqttMessageListener, SmarthataMessageListener {
@@ -34,25 +35,27 @@ public class MqttService implements IMqttMessageListener, SmarthataMessageListen
     @Override
     public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
         String text = new String(mqttMessage.getPayload());
-        LOG.info("messageArrived: [{}], [{}]", topic, text);
-        SmarthataMessage message = new SmarthataMessage(topic, text, SOURCE_MQTT);
+        LOG.debug("messageArrived: [{}], [{}]", topic, text);
+        SmarthataMessage message = new SmarthataMessage(topic, text, MQTT);
         messageBroker.broadcastSmarthataMessage(message);
     }
 
     @Override
     public void receiveSmarthataMessage(SmarthataMessage message) {
-        if (!SOURCE_MQTT.equalsIgnoreCase(message.getSource())) {
-            publishMessageToMqtt(message.getPath(), message.getText(), message.isRetained());
-        }
+        publishMessageToMqtt(message.getPath(), message.getText(), message.isRetained());
+    }
+
+    @Override
+    public EndpointType getEndpointType() {
+        return MQTT;
     }
 
     private void publishMessageToMqtt(String topic, String message, boolean retained) {
         try {
-            LOG.info("Try to send message to mqtt: topic [{}], message [{}]", topic, message);
             MqttMessage mqttMessage = new MqttMessage(message.getBytes());
             mqttMessage.setRetained(retained);
             mqttClient.publish(topic, mqttMessage);
-            LOG.info("Message sent to mqtt: topic [{}], message [{}]", topic, message);
+            LOG.debug("Message sent to mqtt: topic [{}], message [{}]", topic, message);
         } catch (MqttException e) {
             LOG.error("Failed to send message: {}", e.getMessage(), e);
         }

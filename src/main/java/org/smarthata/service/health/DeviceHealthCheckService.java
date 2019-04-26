@@ -2,6 +2,7 @@ package org.smarthata.service.health;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smarthata.service.message.EndpointType;
 import org.smarthata.service.message.SmarthataMessage;
 import org.smarthata.service.message.SmarthataMessageBroker;
 import org.smarthata.service.message.SmarthataMessageListener;
@@ -13,6 +14,8 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 import static java.time.LocalDateTime.now;
+import static org.smarthata.service.message.EndpointType.SYSTEM;
+import static org.smarthata.service.message.EndpointType.TM;
 
 @Service
 public class DeviceHealthCheckService implements SmarthataMessageListener {
@@ -20,8 +23,8 @@ public class DeviceHealthCheckService implements SmarthataMessageListener {
     private static final Logger LOG = LoggerFactory.getLogger(DeviceHealthCheckService.class);
 
     private static final List<String> DEVICES = Arrays.asList("/bedroom", "/bathroom", "/heating/floor", "/bedroom/humidifier");
-    private static final Duration OFFLINE_DURATION = Duration.ofMinutes(10);
-    private static final Duration NOTIFICATION_DURATION = Duration.ofMinutes(60);
+    private static final Duration OFFLINE_DURATION = Duration.ofMinutes(30);
+    private static final Duration NOTIFICATION_DURATION = Duration.ofHours(3);
 
     private final SmarthataMessageBroker messageBroker;
     private final Map<String, DeviceHealth> deviceTimeMap = createMap();
@@ -55,10 +58,15 @@ public class DeviceHealthCheckService implements SmarthataMessageListener {
         }
     }
 
+    @Override
+    public EndpointType getEndpointType() {
+        return SYSTEM;
+    }
+
     @Scheduled(cron = "0 * * * * *")
     public void check() {
         List<DeviceHealth> offlineDevices = getOfflineDevices();
-        LOG.info("offlineDevices = " + offlineDevices);
+        LOG.debug("offlineDevices = " + offlineDevices);
         sendNotifications(offlineDevices);
     }
 
@@ -88,7 +96,7 @@ public class DeviceHealthCheckService implements SmarthataMessageListener {
     }
 
     private void sendMessage(String text) {
-        SmarthataMessage message = new SmarthataMessage("/messages", text, SmarthataMessage.SOURCE_CRON);
+        SmarthataMessage message = new SmarthataMessage("/messages", text, SYSTEM, TM);
         messageBroker.broadcastSmarthataMessage(message);
     }
 }

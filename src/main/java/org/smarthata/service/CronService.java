@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalTime;
 import java.time.ZoneId;
 
-import static org.smarthata.service.message.SmarthataMessage.SOURCE_CRON;
+import static org.smarthata.service.message.EndpointType.SYSTEM;
 
 @Service
 public class CronService {
@@ -26,14 +26,14 @@ public class CronService {
     public void sendTime() {
         LocalTime now = LocalTime.now(ZoneId.systemDefault());
         Integer secondOfDay = now.toSecondOfDay();
-        SmarthataMessage message = new SmarthataMessage("/second-of-day", secondOfDay.toString(), SOURCE_CRON);
+        SmarthataMessage message = new SmarthataMessage("/second-of-day", secondOfDay.toString(), SYSTEM);
         message.setRetained(true);
         messageBroker.broadcastSmarthataMessage(message);
     }
 
     @Scheduled(cron = "0 0 8-10,12-14,17-19 * * *")
     public void sendStreetTemp() {
-        SmarthataMessage message = new SmarthataMessage("/temp/street", "", SOURCE_CRON);
+        SmarthataMessage message = new SmarthataMessage("/temp/street", "", SYSTEM);
         messageBroker.broadcastSmarthataMessage(message);
     }
 

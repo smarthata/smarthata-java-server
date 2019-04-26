@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static org.smarthata.service.message.SmarthataMessage.SOURCE_TM;
+import static org.smarthata.service.message.EndpointType.TM;
 
 @Order(1)
 @Service
@@ -81,7 +81,7 @@ public class Heating extends AbstractCommand {
     }
 
     private void sendTempToBroker() {
-        SmarthataMessage message = new SmarthataMessage("/heating/floor/in", floorTemp.toString(), SOURCE_TM);
+        SmarthataMessage message = new SmarthataMessage("/heating/floor/in", floorTemp.toString(), TM);
         messageBroker.broadcastSmarthataMessage(message);
     }
 

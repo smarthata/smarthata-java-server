@@ -16,11 +16,19 @@ public class SmarthataMessageBroker {
 
     public void broadcastSmarthataMessage(SmarthataMessage message) {
         LOG.debug("Broadcasting message: {}", message);
-        listeners.forEach(listener -> listener.receiveSmarthataMessage(message));
+
+        listeners.stream()
+                .filter(listener -> isNeedSendMessage(message, listener.getEndpointType()))
+                .forEach(listener -> listener.receiveSmarthataMessage(message));
     }
 
     public void register(SmarthataMessageListener listener) {
         listeners.add(listener);
+    }
+
+    private boolean isNeedSendMessage(SmarthataMessage message, EndpointType endpointType) {
+        EndpointType destination = message.getDestination();
+        return endpointType != message.getSource() && (endpointType == destination || destination == null);
     }
 
 }

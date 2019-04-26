@@ -2,6 +2,7 @@ package org.smarthata.service.tm;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smarthata.service.message.EndpointType;
 import org.smarthata.service.message.SmarthataMessage;
 import org.smarthata.service.message.SmarthataMessageBroker;
 import org.smarthata.service.message.SmarthataMessageListener;
@@ -23,7 +24,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static org.smarthata.service.message.SmarthataMessage.SOURCE_TM;
+import static org.smarthata.service.message.EndpointType.TM;
 
 @Service
 public class TmBot extends TelegramLongPollingBot implements SmarthataMessageListener {
@@ -82,12 +83,15 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
 
     @Override
     public void receiveSmarthataMessage(SmarthataMessage message) {
-        if (!SOURCE_TM.equalsIgnoreCase(message.getSource())) {
-            if (message.getPath().equals("/messages")) {
-                BotApiMethod<?> botApiMethod = new SendMessage(adminChatId, message.getText());
-                sendMessageToTelegram(botApiMethod);
-            }
+        if (message.getPath().equals("/messages")) {
+            BotApiMethod<?> botApiMethod = new SendMessage(adminChatId, message.getText());
+            sendMessageToTelegram(botApiMethod);
         }
+    }
+
+    @Override
+    public EndpointType getEndpointType() {
+        return TM;
     }
 
     private void onMessageReceived(Long chatId, String text) {
@@ -130,9 +134,8 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
 
     private void sendMessageToTelegram(BotApiMethod<?> botApiMethod) {
         try {
-            LOG.info("Try to send message to telegram: {}", botApiMethod);
             super.execute(botApiMethod);
-            LOG.info("Message to telegram sent: {}", botApiMethod);
+            LOG.debug("Message to telegram sent: {}", botApiMethod);
         } catch (TelegramApiException e) {
             LOG.error("Telegram Api Exception: {}", e.getMessage(), e);
         }
@@ -142,9 +145,9 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
         SmarthataMessage message;
         if (text.matches("\\s")) {
             String[] split = text.split("\\s", 2);
-            message = new SmarthataMessage(split[0], split[1], SOURCE_TM);
+            message = new SmarthataMessage(split[0], split[1], TM);
         } else {
-            message = new SmarthataMessage(text, "", SOURCE_TM);
+            message = new SmarthataMessage(text, "", TM);
         }
         messageBroker.broadcastSmarthataMessage(message);
     }
