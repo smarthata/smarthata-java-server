@@ -22,7 +22,7 @@ public class DeviceHealthCheckService implements SmarthataMessageListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(DeviceHealthCheckService.class);
 
-    private static final List<String> DEVICES = Arrays.asList("/bedroom", "/bathroom", "/heating/floor", "/bedroom/humidifier");
+    private static final List<String> DEVICES = Arrays.asList("/bedroom", "/bathroom", "/heating/floor", "/hum");
     private static final Duration OFFLINE_DURATION = Duration.ofMinutes(30);
     private static final Duration NOTIFICATION_DURATION = Duration.ofHours(3);
 
