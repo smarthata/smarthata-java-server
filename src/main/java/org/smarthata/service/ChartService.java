@@ -74,6 +74,7 @@ public class ChartService {
         final List<Measure> sourceList = measureRepository.findBySensorInAndDateBetweenOrderByDateAsc(sensors, startDate, endDate);
 
         points = Math.min(points, sourceList.size());
+        if (points == 0) points = 1;
         List<Date> dates = buildChartDates(points, startDate, endDate);
 
         Map<Sensor, List<Measure>> measuresBySensors = sourceList.stream().collect(groupingBy(Measure::getSensor));
