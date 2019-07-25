@@ -16,10 +16,12 @@ import static org.smarthata.service.message.EndpointType.SYSTEM;
 public class CronService {
 
     private final SmarthataMessageBroker messageBroker;
+    private final WeatherService weatherService;
 
     @Autowired
-    public CronService(SmarthataMessageBroker messageBroker) {
+    public CronService(SmarthataMessageBroker messageBroker, WeatherService weatherService) {
         this.messageBroker = messageBroker;
+        this.weatherService = weatherService;
     }
 
 
@@ -52,6 +54,14 @@ public class CronService {
     public void sendStreetTemp() {
         SmarthataMessage message = new SmarthataMessage("/temp", "", SYSTEM);
         messageBroker.broadcastSmarthataMessage(message);
+    }
+
+    @Scheduled(cron = "0 0 * * * *")
+    public void calcAverageDailyStreetTemp() {
+        double averageDailyStreetTemperature = weatherService.calcAverageDailyStreetTemperature();
+
+        SmarthataMessage message = new SmarthataMessage("/temp/average", Double.toString(averageDailyStreetTemperature), SYSTEM, MQTT);
+        messageBroker.broadcastSmarthataMessageRetained(message);
     }
 
 }
