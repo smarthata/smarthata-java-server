@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 public class WeatherService {
 
     private static final int STREET_TEMP_SENSOR_ID = 13;
+    private static final int STREET_AVG_TEMP_SENSOR_ID = 14;
 
     private final SensorRepository sensorRepository;
     private final MeasureRepository measureRepository;
@@ -28,10 +29,16 @@ public class WeatherService {
 
     public double calcAverageDailyStreetTemperature() {
 
-        Sensor sensor = sensorRepository.findByIdOrElseThrow(STREET_TEMP_SENSOR_ID);
+        Sensor streetSensor = sensorRepository.findByIdOrElseThrow(STREET_TEMP_SENSOR_ID);
 
-        return round(measureRepository.findBySensorAndDateAfter(sensor, aDayAgo()).stream()
+        double dailyAverage = round(measureRepository.findBySensorAndDateAfter(streetSensor, aDayAgo()).stream()
                 .collect(Collectors.averagingDouble(Measure::getValue)));
+
+        Sensor dailyAverageSensor = sensorRepository.findByIdOrElseThrow(STREET_AVG_TEMP_SENSOR_ID);
+        Measure measure = new Measure(dailyAverageSensor, dailyAverage, new Date());
+        measureRepository.save(measure);
+
+        return dailyAverage;
     }
 
     private double round(double number) {
