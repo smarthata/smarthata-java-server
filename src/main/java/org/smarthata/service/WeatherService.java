@@ -30,8 +30,12 @@ public class WeatherService {
 
         Sensor sensor = sensorRepository.findByIdOrElseThrow(STREET_TEMP_SENSOR_ID);
 
-        return measureRepository.findBySensorAndDateAfter(sensor, aDayAgo()).stream()
-                .collect(Collectors.averagingDouble(Measure::getValue));
+        return round(measureRepository.findBySensorAndDateAfter(sensor, aDayAgo()).stream()
+                .collect(Collectors.averagingDouble(Measure::getValue)));
+    }
+
+    private double round(double number) {
+        return Math.floor(number * 10) / 10;
     }
 
     private Date aDayAgo() {
