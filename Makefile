@@ -2,10 +2,22 @@
 USER_ID ?= $(shell stat -c "%u:%g" .)
 
 
+clean:
+	mvn -B clean
 build:
-	mvn clean package
+	mvn -B package
+build-no-tests:
+	mvn -B package -DskipTests=true
+unit-tests:
+	mvn -B test
+integration-tests:
+	mvn -B verify
+qa:
+	mvn -B pmd:check -Dpmd.printFailingErrors=true
 run:
 	mvn spring-boot:run
+run-jar: build-no-tests
+	java -jar target/*.jar
 
 
 # Server deploy
@@ -13,7 +25,7 @@ update:
 	git fetch
 	git reset --hard origin/master
 release:
-	mvn --batch-mode release:prepare release:perform
+	mvn -B release:prepare release:perform
 deploy:
 	systemctl stop smarthata
 	sleep 20
