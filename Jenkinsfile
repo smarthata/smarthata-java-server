@@ -4,7 +4,7 @@ pipeline {
     options { disableConcurrentBuilds() }
 
     triggers {
-        pollSCM 'H/10 * * * *'
+        githubPush()
     }
 
     stages {
