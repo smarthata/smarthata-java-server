@@ -32,7 +32,7 @@ pipeline {
                     echo "Branch ${env.BRANCH_NAME}"
                     if (env.BRANCH_NAME == 'master') {
                         echo 'Deploy to PROD'
-                        sh 'cp ./target/smarthata.jar /app/smarthata/smarthata.jar'
+                        sh 'make deploy'
                     }
                 }
             }
