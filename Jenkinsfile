@@ -26,6 +26,12 @@ pipeline {
             }
         }
 
+        stage('qa') {
+            steps {
+                sh 'make qa'
+            }
+        }
+
         stage('Deploy') {
             steps {
                 script {
