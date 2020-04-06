@@ -1,6 +1,7 @@
 server:
   port: 8080
   servlet.context-path: /api
+  tomcat.max-threads: 5
 
 application:
   name: @project.artifactId@
@@ -8,7 +9,7 @@ build:
   version: @project.version@
 
 spring:
-  jpa.hibernate.ddl-auto: update
+  jpa.hibernate.ddl-auto: none
   datasource:
     url: jdbc:mysql://127.0.0.1:3306/smarthata
     username: smarthata
