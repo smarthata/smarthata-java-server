@@ -26,3 +26,6 @@ bot:
   username: smarthatabot
   token: ${bot.token}
   adminChatId: ${bot.adminChatId}
+
+health:
+  devices: /bedroom, /bathroom, /heating, /hum
