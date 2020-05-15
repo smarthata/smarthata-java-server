@@ -2,10 +2,7 @@ package org.smarthata.service.health;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthata.service.message.EndpointType;
-import org.smarthata.service.message.SmarthataMessage;
-import org.smarthata.service.message.SmarthataMessageBroker;
-import org.smarthata.service.message.SmarthataMessageListener;
+import org.smarthata.service.message.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -22,20 +19,18 @@ import static org.smarthata.service.message.EndpointType.SYSTEM;
 import static org.smarthata.service.message.EndpointType.TM;
 
 @Service
-public class DeviceHealthCheckService implements SmarthataMessageListener {
+public class DeviceHealthCheckService extends AbstractSmarthataMessageListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(DeviceHealthCheckService.class);
 
     private static final Duration OFFLINE_DURATION = Duration.ofMinutes(30);
     private static final Duration NOTIFICATION_DURATION = Duration.ofHours(6);
 
-    private final SmarthataMessageBroker messageBroker;
     private final Map<String, DeviceHealth> deviceTimeMap;
     private final List<String> devices;
 
     public DeviceHealthCheckService(SmarthataMessageBroker messageBroker, @Value("${health.devices}") List<String> devices) {
-        this.messageBroker = messageBroker;
-        messageBroker.register(this);
+        super(messageBroker);
 
         this.devices = devices;
         deviceTimeMap = createMap(devices);

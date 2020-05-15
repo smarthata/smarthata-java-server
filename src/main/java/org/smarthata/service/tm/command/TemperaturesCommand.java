@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 
 
 @Service
-public class Temperatures extends AbstractCommand {
+public class TemperaturesCommand extends AbstractCommand {
 
     private static final String TEMPERATURES = "temp";
 
@@ -22,7 +22,7 @@ public class Temperatures extends AbstractCommand {
     private final MeasureRepository measureRepository;
 
     @Autowired
-    public Temperatures(SensorRepository sensorRepository, MeasureRepository measureRepository) {
+    public TemperaturesCommand(SensorRepository sensorRepository, MeasureRepository measureRepository) {
         super(TEMPERATURES);
         this.sensorRepository = sensorRepository;
         this.measureRepository = measureRepository;

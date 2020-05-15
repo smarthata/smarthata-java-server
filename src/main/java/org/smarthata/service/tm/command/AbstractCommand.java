@@ -1,8 +1,5 @@
 package org.smarthata.service.tm.command;
 
-import org.smarthata.service.message.SmarthataMessageBroker;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import javax.validation.constraints.NotNull;
 
 public abstract class AbstractCommand implements Command {
@@ -12,9 +9,6 @@ public abstract class AbstractCommand implements Command {
     public AbstractCommand(@NotNull String command) {
         this.command = command;
     }
-
-    @Autowired
-    protected SmarthataMessageBroker messageBroker;
 
     @Override
     public String getCommand() {

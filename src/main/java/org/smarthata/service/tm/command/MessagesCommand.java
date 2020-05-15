@@ -8,11 +8,11 @@ import java.util.List;
 
 
 @Service
-public class Messages extends AbstractCommand {
+public class MessagesCommand extends AbstractCommand {
 
     private static final String MESSAGES = "messages";
 
-    public Messages() {
+    public MessagesCommand() {
         super(MESSAGES);
     }
 
