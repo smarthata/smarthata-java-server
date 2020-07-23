@@ -19,6 +19,11 @@ public class HeatingFloorDevice extends AbstractSmarthataMessageListener {
         return floorTemp;
     }
 
+    public void setFloorTemp(Integer floorTemp) {
+        this.floorTemp = floorTemp;
+        sendTempToBroker(floorTemp.toString());
+    }
+
     public void incFloorTemp() {
         floorTemp++;
         sendTempToBroker(floorTemp.toString());
