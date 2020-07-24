@@ -18,7 +18,7 @@ public class LightController {
     }
 
     @GetMapping
-    public Map<String, String> getLight(@RequestParam String room) {
+    public Map<String, Boolean> getLight(@RequestParam String room) {
         return singletonMap("value", lightService.getLight(room));
     }
 

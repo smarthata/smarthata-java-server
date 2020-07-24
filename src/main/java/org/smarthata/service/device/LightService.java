@@ -1,5 +1,7 @@
 package org.smarthata.service.device;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.smarthata.service.message.AbstractSmarthataMessageListener;
 import org.smarthata.service.message.EndpointType;
@@ -7,29 +9,38 @@ import org.smarthata.service.message.SmarthataMessage;
 import org.smarthata.service.message.SmarthataMessageBroker;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.smarthata.service.message.EndpointType.ALICE;
 
 @Slf4j
 @Service
 public class LightService extends AbstractSmarthataMessageListener {
 
-    private String action;
+    private final ObjectMapper objectMapper;
 
-    protected LightService(SmarthataMessageBroker messageBroker) {
+    private Map<String, Boolean> actions = new HashMap<>();
+
+    protected LightService(SmarthataMessageBroker messageBroker, ObjectMapper objectMapper) {
         super(messageBroker);
+        this.objectMapper = objectMapper;
     }
 
-    public String getLight(String room) {
+    public Boolean getLight(String room) {
         log.debug("Get light room = {}", room);
-        return action;
+        return actions.get(room);
     }
 
+    @SneakyThrows
     public void setLight(String room, String action) {
         log.info("Switch light room = {}, action = {}", room, action);
 
-        this.action = action;
+        actions.put(room, "1".equals(action));
 
-        String message = String.format("{\"%s\":\"%s\"}", room, action);
+        Map<String, Object> map = Map.of("room", room, "state", actions.get(room));
+
+        String message = objectMapper.writeValueAsString(map);
         sendToBroker(message);
     }
 
