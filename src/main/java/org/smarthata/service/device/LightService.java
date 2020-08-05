@@ -20,28 +20,37 @@ public class LightService extends AbstractSmarthataMessageListener {
 
     private final ObjectMapper objectMapper;
 
-    private Map<String, Boolean> actions = new HashMap<>();
+    private final Map<String, Boolean> lightState = new HashMap<>();
 
     protected LightService(SmarthataMessageBroker messageBroker, ObjectMapper objectMapper) {
         super(messageBroker);
         this.objectMapper = objectMapper;
     }
 
+    public Map<String, Boolean> getLightState() {
+        return lightState;
+    }
+
     public Boolean getLight(String room) {
-        log.debug("Get light room = {}", room);
-        return actions.get(room);
+        log.debug("IN Get light room = {}", room);
+        Boolean state = lightState.getOrDefault(room, false);
+        log.debug("OUT Get light room = {}, state = {}", room, state);
+        return state;
     }
 
     @SneakyThrows
-    public void setLight(String room, String action) {
-        log.info("Switch light room = {}, action = {}", room, action);
+    public synchronized void setLight(String room, String action) {
+        log.info("IN Switch light room = {}, action = {}, currentState = {}", room, action, lightState.get(room));
 
-        actions.put(room, "1".equals(action));
+        boolean newState = "1".equals(action) || "true".equals(action);
+        synchronized (lightState) {
+            lightState.put(room, newState);
+        }
 
-        Map<String, Object> map = Map.of("room", room, "state", actions.get(room));
+        Map<String, Object> map = Map.of("room", room, "state", newState);
+        sendToBroker(objectMapper.writeValueAsString(map));
 
-        String message = objectMapper.writeValueAsString(map);
-        sendToBroker(message);
+        log.info("OUT Switch light room = {}, newState = {}", room, newState);
     }
 
     private void sendToBroker(String text) {
@@ -49,9 +58,16 @@ public class LightService extends AbstractSmarthataMessageListener {
         messageBroker.broadcastSmarthataMessage(message);
     }
 
+    @SneakyThrows
     @Override
+    @SuppressWarnings("unchecked")
     public void receiveSmarthataMessage(SmarthataMessage message) {
-
+        if (message.getPath().equals("/light/state")) {
+            Map<String, Boolean> map = objectMapper.readValue(message.getText(), Map.class);
+            synchronized (lightState) {
+                lightState.putAll(map);
+            }
+        }
     }
 
     @Override

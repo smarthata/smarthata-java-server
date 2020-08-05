@@ -5,12 +5,8 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -20,6 +16,7 @@ import static java.util.Collections.singletonList;
 public class HeatingCommand extends AbstractCommand {
 
     private static final String HEATING = "heating";
+    private static final List<String> rooms = List.of("floor", "bedroom");
 
     private final HeatingFloorDevice heatingFloorDevice;
 
@@ -34,7 +31,7 @@ public class HeatingCommand extends AbstractCommand {
 
         if (path.isEmpty()) {
             String text = "Device:";
-            InlineKeyboardMarkup buttons = createButtons(path, "floor", "bedroom");
+            InlineKeyboardMarkup buttons = createButtons(path, rooms);
             return createTmMessage(chatId, messageId, text, buttons);
         }
 
@@ -76,24 +73,4 @@ public class HeatingCommand extends AbstractCommand {
         return createTmMessage(chatId, messageId, text, buttons);
     }
 
-    private InlineKeyboardMarkup createButtons(List<String> path, String... buttons) {
-        List<InlineKeyboardButton> floor = Arrays.stream(buttons)
-                .map(button -> createButton(button, path, button))
-                .collect(Collectors.toList());
-        return new InlineKeyboardMarkup().setKeyboard(singletonList(floor));
-    }
-
-    private InlineKeyboardButton createButton(String text, List<String> path, String pathSuffix) {
-
-        List<String> fullPath = new ArrayList<>();
-        fullPath.add(HEATING);
-        fullPath.addAll(path);
-        fullPath.add(pathSuffix);
-
-        String callbackData = "/" + String.join("/", fullPath);
-
-        return new InlineKeyboardButton()
-                .setText(text)
-                .setCallbackData(callbackData);
-    }
 }

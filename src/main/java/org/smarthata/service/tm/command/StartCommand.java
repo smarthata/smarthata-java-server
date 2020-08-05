@@ -9,13 +9,12 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 
 import java.util.List;
 
-import static java.util.Arrays.asList;
 
 @Service
 public class StartCommand extends AbstractCommand {
 
     private static final String START = "start";
-    private static final List<String> DEVICES = asList("/stats", "/temp", "/heating", "/hum");
+    private static final List<String> devices = List.of("/stats", "/temp", "/heating", "/light");
 
     public StartCommand() {
         super(START);
@@ -37,7 +36,7 @@ public class StartCommand extends AbstractCommand {
 
     private List<KeyboardRow> createKeyboardRows() {
         KeyboardRow row = new KeyboardRow();
-        DEVICES.forEach(device -> row.add(new KeyboardButton(device)));
+        devices.forEach(device -> row.add(new KeyboardButton(device)));
         return ImmutableList.of(row);
     }
 }
