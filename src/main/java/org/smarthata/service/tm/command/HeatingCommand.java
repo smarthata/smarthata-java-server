@@ -1,5 +1,6 @@
 package org.smarthata.service.tm.command;
 
+import org.smarthata.service.device.HeatingBedroomDevice;
 import org.smarthata.service.device.HeatingFloorDevice;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
@@ -7,6 +8,7 @@ import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 
 import java.util.List;
+import java.util.Map;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -16,13 +18,15 @@ import static java.util.Collections.singletonList;
 public class HeatingCommand extends AbstractCommand {
 
     private static final String HEATING = "heating";
-    private static final List<String> rooms = List.of("floor", "bedroom");
+    private static final String CELSIUS = "°C";
 
     private final HeatingFloorDevice heatingFloorDevice;
+    private final HeatingBedroomDevice heatingBedroomDevice;
 
-    public HeatingCommand(HeatingFloorDevice heatingFloorDevice) {
+    public HeatingCommand(HeatingFloorDevice heatingFloorDevice, HeatingBedroomDevice heatingBedroomDevice) {
         super(HEATING);
         this.heatingFloorDevice = heatingFloorDevice;
+        this.heatingBedroomDevice = heatingBedroomDevice;
     }
 
 
@@ -31,8 +35,9 @@ public class HeatingCommand extends AbstractCommand {
 
         if (path.isEmpty()) {
             String text = "Device:";
-            InlineKeyboardMarkup buttons = createButtons(path, rooms);
-            return createTmMessage(chatId, messageId, text, buttons);
+            Map<String, String> buttons = Map.of("floor", "floor: " + heatingFloorDevice.getFloorTemp() + CELSIUS,
+                    "bedroom", "bedroom: " + heatingBedroomDevice.getBedroomTemp() + CELSIUS);
+            return createTmMessage(chatId, messageId, text, createButtons(path, buttons));
         }
 
         String device = path.remove(0);
@@ -40,10 +45,9 @@ public class HeatingCommand extends AbstractCommand {
             case "floor":
                 return processFloorDevice(path, chatId, messageId);
             case "bedroom":
-                String text = "Bedroom is not ready";
-                return createTmMessage(chatId, messageId, text);
+                return processBedroomDevice(path, chatId, messageId);
             default:
-                text = "Unknown device";
+                String text = "Unknown device";
                 return createTmMessage(chatId, messageId, text);
         }
 
@@ -61,15 +65,37 @@ public class HeatingCommand extends AbstractCommand {
                     break;
                 case "back":
                     return answer(emptyList(), chatId, messageId);
-
                 default:
                     String text = "Unknown command: " + operation;
                     return createTmMessage(chatId, messageId, text);
             }
         }
 
-        String text = String.format("Base floor temp: %s°C", heatingFloorDevice.getFloorTemp());
+        String text = String.format("Base floor temp: %d°C", heatingFloorDevice.getFloorTemp());
         InlineKeyboardMarkup buttons = createButtons(singletonList("floor"), "inc", "dec", "back");
+        return createTmMessage(chatId, messageId, text, buttons);
+    }
+
+    private BotApiMethod<?> processBedroomDevice(List<String> path, String chatId, Integer messageId) {
+        if (!path.isEmpty()) {
+            String operation = path.remove(0);
+            switch (operation) {
+                case "inc":
+                    heatingBedroomDevice.incBedroomTemp();
+                    break;
+                case "dec":
+                    heatingBedroomDevice.decBedroomTemp();
+                    break;
+                case "back":
+                    return answer(emptyList(), chatId, messageId);
+                default:
+                    String text = "Unknown command: " + operation;
+                    return createTmMessage(chatId, messageId, text);
+            }
+        }
+
+        String text = String.format("Bedroom temp: %d°C", heatingBedroomDevice.getBedroomTemp());
+        InlineKeyboardMarkup buttons = createButtons(singletonList("bedroom"), "inc", "dec", "back");
         return createTmMessage(chatId, messageId, text, buttons);
     }
 
