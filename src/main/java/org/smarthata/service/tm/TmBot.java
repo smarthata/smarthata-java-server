@@ -105,17 +105,17 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
 
         text = text.replace("@" + username, "");
 
-        if (!text.isEmpty()) {
+        boolean messageProcessed = processMessage(chatId, text, messageId);
+
+        if (!messageProcessed && !text.isEmpty()) {
             broadcastSmarthataMessage(text);
         }
-
-        processMessage(chatId, text, messageId);
     }
 
-    private void processMessage(Long chatId, String text, Integer messageId) {
+    private boolean processMessage(Long chatId, String text, Integer messageId) {
         List<String> path = getPath(text);
         LOG.info("Process telegram message: path {}, text: {}", path, text);
-        if (path.isEmpty()) return;
+        if (path.isEmpty()) return false;
 
         String commandName = path.remove(0);
         Command command = commandsMap.get(commandName);
@@ -123,7 +123,9 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
             LOG.info("Found command: [{}]", commandName);
             BotApiMethod<?> botApiMethod = command.answer(path, chatId.toString(), messageId);
             sendMessageToTelegram(botApiMethod);
+            return true;
         }
+        return false;
     }
 
     private List<String> getPath(String text) {
