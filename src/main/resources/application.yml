@@ -4,9 +4,9 @@ server:
   tomcat.threads.max: 5
 
 application:
-  name: @project.artifactId@
+  name: '@project.artifactId@'
 build:
-  version: @project.version@
+  version: '@project.version@'
 
 spring:
   jpa.hibernate.ddl-auto: none
