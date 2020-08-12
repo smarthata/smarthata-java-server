@@ -1,5 +1,6 @@
 package org.smarthata.service.tm.command;
 
+import org.smarthata.service.device.BathroomDevice;
 import org.smarthata.service.device.HeatingBedroomDevice;
 import org.smarthata.service.device.HeatingFloorDevice;
 import org.springframework.core.annotation.Order;
@@ -22,11 +23,15 @@ public class HeatingCommand extends AbstractCommand {
 
     private final HeatingFloorDevice heatingFloorDevice;
     private final HeatingBedroomDevice heatingBedroomDevice;
+    private final BathroomDevice bathroomDevice;
 
-    public HeatingCommand(HeatingFloorDevice heatingFloorDevice, HeatingBedroomDevice heatingBedroomDevice) {
+    public HeatingCommand(HeatingFloorDevice heatingFloorDevice,
+                          HeatingBedroomDevice heatingBedroomDevice,
+                          BathroomDevice bathroomDevice) {
         super(HEATING);
         this.heatingFloorDevice = heatingFloorDevice;
         this.heatingBedroomDevice = heatingBedroomDevice;
+        this.bathroomDevice = bathroomDevice;
     }
 
 
@@ -34,9 +39,12 @@ public class HeatingCommand extends AbstractCommand {
     public BotApiMethod<?> answer(final List<String> path, final String chatId, final Integer messageId) {
 
         if (path.isEmpty()) {
-            String text = "Device:";
-            Map<String, String> buttons = Map.of("floor", "floor: " + heatingFloorDevice.getFloorTemp() + CELSIUS,
-                    "bedroom", "bedroom: " + heatingBedroomDevice.getBedroomTemp() + CELSIUS);
+            String text = "Выберите помещение:";
+            Map<String, String> buttons = Map.of(
+                    "floor", "Первый этаж: " + heatingFloorDevice.getTemp() + CELSIUS,
+                    "bedroom", "Второй этаж: " + heatingBedroomDevice.getTemp() + CELSIUS,
+                    "bathroom", "Ванная: " + bathroomDevice.getTemp() + CELSIUS
+            );
             return createTmMessage(chatId, messageId, text, createButtons(path, buttons));
         }
 
@@ -46,6 +54,8 @@ public class HeatingCommand extends AbstractCommand {
                 return processFloorDevice(path, chatId, messageId);
             case "bedroom":
                 return processBedroomDevice(path, chatId, messageId);
+            case "bathroom":
+                return processBathroomDevice(path, chatId, messageId);
             default:
                 String text = "Unknown device";
                 return createTmMessage(chatId, messageId, text);
@@ -58,10 +68,10 @@ public class HeatingCommand extends AbstractCommand {
             String operation = path.remove(0);
             switch (operation) {
                 case "inc":
-                    heatingFloorDevice.incFloorTemp();
+                    heatingFloorDevice.incTemp();
                     break;
                 case "dec":
-                    heatingFloorDevice.decFloorTemp();
+                    heatingFloorDevice.decTemp();
                     break;
                 case "back":
                     return answer(emptyList(), chatId, messageId);
@@ -71,7 +81,7 @@ public class HeatingCommand extends AbstractCommand {
             }
         }
 
-        String text = String.format("Base floor temp: %d°C", heatingFloorDevice.getFloorTemp());
+        String text = String.format("Температура первого этажа: %d°C", heatingFloorDevice.getTemp());
         InlineKeyboardMarkup buttons = createButtons(singletonList("floor"), "inc", "dec", "back");
         return createTmMessage(chatId, messageId, text, buttons);
     }
@@ -81,10 +91,10 @@ public class HeatingCommand extends AbstractCommand {
             String operation = path.remove(0);
             switch (operation) {
                 case "inc":
-                    heatingBedroomDevice.incBedroomTemp();
+                    heatingBedroomDevice.incTemp();
                     break;
                 case "dec":
-                    heatingBedroomDevice.decBedroomTemp();
+                    heatingBedroomDevice.decTemp();
                     break;
                 case "back":
                     return answer(emptyList(), chatId, messageId);
@@ -94,8 +104,31 @@ public class HeatingCommand extends AbstractCommand {
             }
         }
 
-        String text = String.format("Bedroom temp: %d°C", heatingBedroomDevice.getBedroomTemp());
+        String text = String.format("Температура второго этажа: %d°C", heatingBedroomDevice.getTemp());
         InlineKeyboardMarkup buttons = createButtons(singletonList("bedroom"), "inc", "dec", "back");
+        return createTmMessage(chatId, messageId, text, buttons);
+    }
+
+    private BotApiMethod<?> processBathroomDevice(List<String> path, String chatId, Integer messageId) {
+        if (!path.isEmpty()) {
+            String operation = path.remove(0);
+            switch (operation) {
+                case "inc":
+                    bathroomDevice.incTemp();
+                    break;
+                case "dec":
+                    bathroomDevice.decTemp();
+                    break;
+                case "back":
+                    return answer(emptyList(), chatId, messageId);
+                default:
+                    String text = "Unknown command: " + operation;
+                    return createTmMessage(chatId, messageId, text);
+            }
+        }
+
+        String text = String.format("Температура ванной: %d°C", bathroomDevice.getTemp());
+        InlineKeyboardMarkup buttons = createButtons(singletonList("bathroom"), "inc", "dec", "back");
         return createTmMessage(chatId, messageId, text, buttons);
     }
 

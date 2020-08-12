@@ -16,7 +16,7 @@ import java.util.Map;
 
 import static java.time.LocalDateTime.now;
 import static org.smarthata.service.message.EndpointType.SYSTEM;
-import static org.smarthata.service.message.EndpointType.TM;
+import static org.smarthata.service.message.EndpointType.USER;
 
 @Service
 public class DeviceHealthCheckService extends AbstractSmarthataMessageListener {
@@ -98,7 +98,7 @@ public class DeviceHealthCheckService extends AbstractSmarthataMessageListener {
     }
 
     private void sendMessage(String text) {
-        SmarthataMessage message = new SmarthataMessage("/messages", text, SYSTEM, TM);
+        SmarthataMessage message = new SmarthataMessage("/messages", text, SYSTEM, USER);
         messageBroker.broadcastSmarthataMessage(message);
     }
 }

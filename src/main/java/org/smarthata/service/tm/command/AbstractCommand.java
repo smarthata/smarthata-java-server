@@ -46,7 +46,7 @@ public abstract class AbstractCommand implements Command {
         List<List<InlineKeyboardButton>> lists = new ArrayList<>();
         Iterator<InlineKeyboardButton> iterator = keyboards.iterator();
         while (iterator.hasNext()) {
-            List<InlineKeyboardButton> line = new ArrayList<>();
+            List<InlineKeyboardButton> line = new ArrayList<>(BUTTONS_IN_ROW);
             while (iterator.hasNext() && line.size() < BUTTONS_IN_ROW) {
                 line.add(iterator.next());
             }

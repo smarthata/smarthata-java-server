@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static org.smarthata.service.message.EndpointType.TM;
+import static org.smarthata.service.message.EndpointType.USER;
 
 @Service
 public class TmBot extends TelegramLongPollingBot implements SmarthataMessageListener {
@@ -91,7 +91,7 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
 
     @Override
     public EndpointType getEndpointType() {
-        return TM;
+        return USER;
     }
 
     private void onMessageReceived(Long chatId, String text) {
@@ -145,9 +145,9 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
         SmarthataMessage message;
         if (text.matches("\\s")) {
             String[] split = text.split("\\s", 2);
-            message = new SmarthataMessage(split[0], split[1], TM);
+            message = new SmarthataMessage(split[0], split[1], USER);
         } else {
-            message = new SmarthataMessage(text, "", TM);
+            message = new SmarthataMessage(text, "", USER);
         }
         messageBroker.broadcastSmarthataMessage(message);
     }

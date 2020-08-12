@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.smarthata.service.message.EndpointType.ALICE;
+import static org.smarthata.service.message.EndpointType.USER;
 
 @Slf4j
 @Service
@@ -54,7 +54,7 @@ public class LightService extends AbstractSmarthataMessageListener {
     }
 
     private void sendToBroker(String text) {
-        SmarthataMessage message = new SmarthataMessage("/light/in", text, ALICE);
+        SmarthataMessage message = new SmarthataMessage("/light/in", text, USER);
         messageBroker.broadcastSmarthataMessage(message);
     }
 

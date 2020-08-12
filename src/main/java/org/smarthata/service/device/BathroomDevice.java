@@ -11,12 +11,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.smarthata.service.message.EndpointType.*;
 
 @Service
-public class HeatingBedroomDevice extends AbstractSmarthataMessageListener {
+public class BathroomDevice extends AbstractSmarthataMessageListener {
 
-    public static final String QUEUE_TEMP = "/bedroom/in";
-    private AtomicInteger temp = new AtomicInteger(22);
+    public static final String QUEUE_TEMP = "/bathroom/in";
+    private AtomicInteger temp = new AtomicInteger(23);
 
-    public HeatingBedroomDevice(SmarthataMessageBroker messageBroker) {
+    public BathroomDevice(SmarthataMessageBroker messageBroker) {
         super(messageBroker);
     }
 

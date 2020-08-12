@@ -32,4 +32,12 @@ public class SmarthataMessage {
         this.source = source;
         this.destination = destination;
     }
+
+    public SmarthataMessage(String path, String text, EndpointType source, EndpointType destination, boolean retained) {
+        this.path = path;
+        this.text = text;
+        this.source = source;
+        this.destination = destination;
+        this.retained = retained;
+    }
 }

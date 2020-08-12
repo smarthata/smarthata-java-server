@@ -1,7 +1,7 @@
 server:
   port: 8080
   servlet.context-path: /api
-  tomcat.max-threads: 5
+  tomcat.threads.max: 5
 
 application:
   name: @project.artifactId@
@@ -28,4 +28,4 @@ bot:
   adminChatId: ${bot.adminChatId}
 
 health:
-  devices: /bedroom, /bathroom, /heating, /hum
+  devices: /bedroom, /bathroom, /heating, /hum, /light
