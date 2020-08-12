@@ -38,10 +38,10 @@ public class LightCommand extends AbstractCommand {
     }
 
     private BotApiMethod<?> showRoomButtons(List<String> path, String chatId, Integer messageId) {
-        String text = "Room:";
+        String text = "Освещение в комнатах:";
         Map<String, String> rooms = LightCommand.rooms.stream()
-                .collect(Collectors.toMap(room -> room, room -> room + ": " + lightService.getLight(room)));
-        InlineKeyboardMarkup buttons = createButtons(path, rooms);
+                .collect(Collectors.toMap(room -> room, room -> room + ": " + (lightService.getLight(room) ? "on" : "off")));
+        InlineKeyboardMarkup buttons = createButtons(path, rooms, 2);
         return createTmMessage(chatId, messageId, text, buttons);
     }
 

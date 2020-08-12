@@ -39,13 +39,13 @@ public class HeatingCommand extends AbstractCommand {
     public BotApiMethod<?> answer(final List<String> path, final String chatId, final Integer messageId) {
 
         if (path.isEmpty()) {
-            String text = "Выберите помещение:";
+            String text = "Термоконтроль в помещениях:";
             Map<String, String> buttons = Map.of(
                     "floor", "Первый этаж: " + heatingFloorDevice.getTemp() + CELSIUS,
                     "bedroom", "Второй этаж: " + heatingBedroomDevice.getTemp() + CELSIUS,
                     "bathroom", "Ванная: " + bathroomDevice.getTemp() + CELSIUS
             );
-            return createTmMessage(chatId, messageId, text, createButtons(path, buttons));
+            return createTmMessage(chatId, messageId, text, createButtons(path, buttons, 2));
         }
 
         String device = path.remove(0);

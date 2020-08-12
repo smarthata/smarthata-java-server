@@ -32,22 +32,22 @@ public abstract class AbstractCommand implements Command {
         List<InlineKeyboardButton> keyboards = buttons.stream()
                 .map(button -> createButton(button, path, button))
                 .collect(Collectors.toList());
-        return new InlineKeyboardMarkup().setKeyboard(createKeyboard(keyboards));
+        return new InlineKeyboardMarkup().setKeyboard(createKeyboard(keyboards, BUTTONS_IN_ROW));
     }
 
-    protected InlineKeyboardMarkup createButtons(List<String> path, Map<String, String> buttons) {
+    protected InlineKeyboardMarkup createButtons(List<String> path, Map<String, String> buttons, int buttonsInRow) {
         List<InlineKeyboardButton> keyboards = buttons.entrySet().stream()
                 .map(button -> createButton(button.getValue(), path, button.getKey()))
                 .collect(Collectors.toList());
-        return new InlineKeyboardMarkup().setKeyboard(createKeyboard(keyboards));
+        return new InlineKeyboardMarkup().setKeyboard(createKeyboard(keyboards, buttonsInRow));
     }
 
-    private List<List<InlineKeyboardButton>> createKeyboard(List<InlineKeyboardButton> keyboards) {
+    private List<List<InlineKeyboardButton>> createKeyboard(List<InlineKeyboardButton> keyboards, int buttonsInRow) {
         List<List<InlineKeyboardButton>> lists = new ArrayList<>();
         Iterator<InlineKeyboardButton> iterator = keyboards.iterator();
         while (iterator.hasNext()) {
-            List<InlineKeyboardButton> line = new ArrayList<>(BUTTONS_IN_ROW);
-            while (iterator.hasNext() && line.size() < BUTTONS_IN_ROW) {
+            List<InlineKeyboardButton> line = new ArrayList<>(buttonsInRow);
+            while (iterator.hasNext() && line.size() < buttonsInRow) {
                 line.add(iterator.next());
             }
             lists.add(line);
