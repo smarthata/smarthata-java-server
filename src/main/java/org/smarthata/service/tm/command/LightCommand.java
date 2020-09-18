@@ -15,7 +15,7 @@ import static java.util.Collections.emptyList;
 public class LightCommand extends AbstractCommand {
 
     private static final String LIGHT = "light";
-    public static final List<String> rooms = List.of("bedroom", "stairs", "cabinet", "bathroom", "children");
+    public static final List<String> rooms = List.of("bedroom", "stairs", "cabinet", "bathroom", "children", "canopy");
 
     private final LightService lightService;
 
