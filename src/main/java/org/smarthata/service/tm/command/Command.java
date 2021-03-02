@@ -28,13 +28,14 @@ public interface Command {
         }
     }
 
-    default SendMessage aSimpleSendMessage(String chatId, String text) {
-        return new SendMessage(chatId, text);
+    default SendMessage.SendMessageBuilder aSimpleSendMessage(String chatId, String text) {
+        return SendMessage.builder()
+                .chatId(chatId).text(text);
     }
 
     default SendMessage aSimpleSendMessage(String chatId, String text, ReplyKeyboard keyboardMarkup) {
         return aSimpleSendMessage(chatId, text)
-                .setReplyMarkup(keyboardMarkup);
+                .replyMarkup(keyboardMarkup).build();
     }
 
     default BotApiMethod<?> anEditMessageText(String chatId, String text, InlineKeyboardMarkup inlineKeyboardMarkup, Integer messageId) {

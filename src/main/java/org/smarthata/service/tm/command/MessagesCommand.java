@@ -19,6 +19,6 @@ public class MessagesCommand extends AbstractCommand {
     @Override
     public BotApiMethod<?> answer(final List<String> path, final String chatId, final Integer messageId) {
         String text = Strings.join(path.iterator(), ',');
-        return aSimpleSendMessage(chatId, text);
+        return aSimpleSendMessage(chatId, text).build();
     }
 }

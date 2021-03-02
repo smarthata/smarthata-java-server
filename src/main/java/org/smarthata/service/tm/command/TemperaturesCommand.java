@@ -36,7 +36,7 @@ public class TemperaturesCommand extends AbstractCommand {
 
         String text = String.format("Street temp: %.1f°C (%d мин. назад)", measure.getValue(), getMinutesAgo(measure.getDate()));
 
-        return aSimpleSendMessage(chatId, text);
+        return aSimpleSendMessage(chatId, text).build();
     }
 
     private long getMinutesAgo(final Date date) {

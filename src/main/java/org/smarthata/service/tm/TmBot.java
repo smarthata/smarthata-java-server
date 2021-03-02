@@ -38,7 +38,7 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
     private String username;
 
     @Value("${bot.adminChatId}")
-    private Long adminChatId;
+    private String adminChatId;
 
     private final Map<String, Command> commandsMap;
 

@@ -32,14 +32,18 @@ public abstract class AbstractCommand implements Command {
         List<InlineKeyboardButton> keyboards = buttons.stream()
                 .map(button -> createButton(button, path, button))
                 .collect(Collectors.toList());
-        return new InlineKeyboardMarkup().setKeyboard(createKeyboard(keyboards, BUTTONS_IN_ROW));
+        return InlineKeyboardMarkup.builder()
+                .keyboard(createKeyboard(keyboards, BUTTONS_IN_ROW))
+                .build();
     }
 
     protected InlineKeyboardMarkup createButtons(List<String> path, Map<String, String> buttons, int buttonsInRow) {
         List<InlineKeyboardButton> keyboards = buttons.entrySet().stream()
                 .map(button -> createButton(button.getValue(), path, button.getKey()))
                 .collect(Collectors.toList());
-        return new InlineKeyboardMarkup().setKeyboard(createKeyboard(keyboards, buttonsInRow));
+        return InlineKeyboardMarkup.builder()
+                .keyboard(createKeyboard(keyboards, buttonsInRow))
+                .build();
     }
 
     private List<List<InlineKeyboardButton>> createKeyboard(List<InlineKeyboardButton> keyboards, int buttonsInRow) {
@@ -64,8 +68,9 @@ public abstract class AbstractCommand implements Command {
 
         String callbackData = "/" + String.join("/", fullPath);
 
-        return new InlineKeyboardButton()
-                .setText(text)
-                .setCallbackData(callbackData);
+        return InlineKeyboardButton.builder()
+                .text(text)
+                .callbackData(callbackData)
+                .build();
     }
 }
