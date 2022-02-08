@@ -1,18 +1,17 @@
 package org.smarthata.service.tm.command;
 
-import org.smarthata.service.device.BathroomDevice;
-import org.smarthata.service.device.HeatingBedroomDevice;
-import org.smarthata.service.device.HeatingFloorDevice;
+import org.smarthata.service.device.HeatingDevice;
+import org.smarthata.service.device.Room;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 
-import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
+import static org.smarthata.service.device.Room.*;
+
 
 @Order(1)
 @Service
@@ -21,115 +20,115 @@ public class HeatingCommand extends AbstractCommand {
     private static final String HEATING = "heating";
     private static final String CELSIUS = "°C";
 
-    private final HeatingFloorDevice heatingFloorDevice;
-    private final HeatingBedroomDevice heatingBedroomDevice;
-    private final BathroomDevice bathroomDevice;
+    private final HeatingDevice heatingDevice;
 
-    public HeatingCommand(HeatingFloorDevice heatingFloorDevice,
-                          HeatingBedroomDevice heatingBedroomDevice,
-                          BathroomDevice bathroomDevice) {
+    public HeatingCommand(HeatingDevice heatingDevice) {
         super(HEATING);
-        this.heatingFloorDevice = heatingFloorDevice;
-        this.heatingBedroomDevice = heatingBedroomDevice;
-        this.bathroomDevice = bathroomDevice;
+        this.heatingDevice = heatingDevice;
     }
 
 
     @Override
-    public BotApiMethod<?> answer(final List<String> path, final String chatId, final Integer messageId) {
+    public BotApiMethod<?> answer(CommandRequest request) {
 
-        if (path.isEmpty()) {
-            String text = "Термоконтроль в помещениях:";
-            Map<String, String> buttons = Map.of(
-                    "floor", "Первый этаж: " + heatingFloorDevice.getTemp() + CELSIUS,
-                    "bedroom", "Второй этаж: " + heatingBedroomDevice.getTemp() + CELSIUS,
-                    "bathroom", "Ванная: " + bathroomDevice.getTemp() + CELSIUS
-            );
-            return createTmMessage(chatId, messageId, text, createButtons(path, buttons, 2));
-        }
-
-        String device = path.remove(0);
-        switch (device) {
-            case "floor":
-                return processFloorDevice(path, chatId, messageId);
-            case "bedroom":
-                return processBedroomDevice(path, chatId, messageId);
-            case "bathroom":
-                return processBathroomDevice(path, chatId, messageId);
-            default:
-                String text = "Unknown device";
-                return createTmMessage(chatId, messageId, text);
-        }
-
-    }
-
-    private BotApiMethod<?> processFloorDevice(List<String> path, String chatId, Integer messageId) {
-        if (!path.isEmpty()) {
-            String operation = path.remove(0);
-            switch (operation) {
-                case "inc":
-                    heatingFloorDevice.incTemp();
-                    break;
-                case "dec":
-                    heatingFloorDevice.decTemp();
-                    break;
-                case "back":
-                    return answer(emptyList(), chatId, messageId);
+        if (request.hasNext()) {
+            String house = request.next();
+            switch (house) {
+                case "house":
+                    return processHouse(request);
+                case "garage":
+                    return processGarage(request);
                 default:
-                    String text = "Unknown command: " + operation;
-                    return createTmMessage(chatId, messageId, text);
+                    String text = "Unknown house";
+                    return createTmMessage(request.getChatId(), request.getMessageId(), text);
             }
         }
 
-        String text = String.format("Температура первого этажа: %d°C", heatingFloorDevice.getTemp());
-        InlineKeyboardMarkup buttons = createButtons(singletonList("floor"), "inc", "dec", "back");
-        return createTmMessage(chatId, messageId, text, buttons);
+        String text = "Выберите помещение:";
+        Map<String, String> buttons = Map.of(
+                "house", "Дом",
+                "garage", "Гараж",
+                "back", "back"
+        );
+        return createTmMessage(request.getChatId(), request.getMessageId(),
+                text, createButtons(request.getPath(), buttons, 2));
     }
 
-    private BotApiMethod<?> processBedroomDevice(List<String> path, String chatId, Integer messageId) {
-        if (!path.isEmpty()) {
-            String operation = path.remove(0);
-            switch (operation) {
-                case "inc":
-                    heatingBedroomDevice.incTemp();
-                    break;
-                case "dec":
-                    heatingBedroomDevice.decTemp();
-                    break;
-                case "back":
-                    return answer(emptyList(), chatId, messageId);
+    private BotApiMethod<?> processHouse(CommandRequest request) {
+
+        if (request.hasNext()) {
+            String room = request.next();
+            switch (room) {
+                case "floor":
+                    return processRoom(request, FLOOR);
+                case "bedroom":
+                    return processRoom(request, BEDROOM);
+                case "bathroom":
+                    return processRoom(request, BATHROOM);
                 default:
-                    String text = "Unknown command: " + operation;
-                    return createTmMessage(chatId, messageId, text);
+                    String text = "Unknown room";
+                    return createTmMessage(request.getChatId(), request.getMessageId(), text);
             }
         }
 
-        String text = String.format("Температура второго этажа: %d°C", heatingBedroomDevice.getTemp());
-        InlineKeyboardMarkup buttons = createButtons(singletonList("bedroom"), "inc", "dec", "back");
-        return createTmMessage(chatId, messageId, text, buttons);
+        String text = "Выберите помещение:";
+        String v1 = "Первый этаж: " + heatingDevice.getTemp(FLOOR) + CELSIUS;
+        String v2 = "Спальня: " + heatingDevice.getTemp(BEDROOM) + CELSIUS;
+        String v3 = "Ванная: " + heatingDevice.getTemp(BATHROOM) + CELSIUS;
+        Map<String, String> buttons = Map.of(
+                "floor", v1,
+                "bedroom", v2,
+                "bathroom", v3,
+                "back", "back"
+        );
+
+        return createTmMessage(request.getChatId(), request.getMessageId(),
+                text, createButtons(request.getPath(), buttons, 2));
     }
 
-    private BotApiMethod<?> processBathroomDevice(List<String> path, String chatId, Integer messageId) {
-        if (!path.isEmpty()) {
-            String operation = path.remove(0);
-            switch (operation) {
-                case "inc":
-                    bathroomDevice.incTemp();
-                    break;
-                case "dec":
-                    bathroomDevice.decTemp();
-                    break;
-                case "back":
-                    return answer(emptyList(), chatId, messageId);
+    private BotApiMethod<?> processGarage(CommandRequest request) {
+
+        if (request.hasNext()) {
+            String device = request.next();
+            switch (device) {
+                case "garage":
+                    return processRoom(request, GARAGE);
+                case "workshop":
+                    return processRoom(request, WORKSHOP);
                 default:
-                    String text = "Unknown command: " + operation;
-                    return createTmMessage(chatId, messageId, text);
+                    String text = "Unknown device";
+                    return createTmMessage(request.getChatId(), request.getMessageId(), text);
             }
         }
 
-        String text = String.format("Температура ванной: %d°C", bathroomDevice.getTemp());
-        InlineKeyboardMarkup buttons = createButtons(singletonList("bathroom"), "inc", "dec", "back");
-        return createTmMessage(chatId, messageId, text, buttons);
+        String text = "Выберите помещение:";
+        String v1 = "Гараж: " + heatingDevice.getTemp(GARAGE) + CELSIUS;
+        String v2 = "Мастерская: " + heatingDevice.getTemp(WORKSHOP) + CELSIUS;
+        Map<String, String> buttons = Map.of(
+                "garage", v1,
+                "workshop", v2,
+                "back", "back"
+        );
+        return createTmMessage(request.getChatId(), request.getMessageId(),
+                text, createButtons(request.getPath(), buttons, 2));
+    }
+
+    private BotApiMethod<?> processRoom(CommandRequest request, Room room) {
+
+        if (request.hasNext()) {
+            String next = request.next();
+            try {
+                heatingDevice.incTemp(room, Double.parseDouble(next));
+            } catch (NumberFormatException e) {
+                String text = "Unknown command: " + next;
+                return createTmMessage(request.getChatId(), request.getMessageId(), text);
+            }
+        }
+
+        String text = String.format("Temp %s: %1.1f°C", room.name().toLowerCase(Locale.ROOT),
+                heatingDevice.getTemp(room));
+        InlineKeyboardMarkup buttons = createButtons(request.getPathRemoving("-1", "-0.5", "+0.5", "+1"), "-1", "-0.5", "+0.5", "+1", "back");
+        return createTmMessage(request.getChatId(), request.getMessageId(), text, buttons);
     }
 
 }

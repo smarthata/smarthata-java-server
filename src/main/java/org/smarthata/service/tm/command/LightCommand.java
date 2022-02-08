@@ -25,24 +25,34 @@ public class LightCommand extends AbstractCommand {
     }
 
     @Override
-    public BotApiMethod<?> answer(final List<String> path, final String chatId, final Integer messageId) {
-        if (path.isEmpty()) {
-            return showRoomButtons(emptyList(), chatId, messageId);
+    public BotApiMethod<?> answer(CommandRequest request) {
+        if (request.hasNext()) {
+            String room = request.next();
+            if (request.hasNext()) {
+                String action = request.next();
+                switch (action) {
+                    case "on":
+                        lightService.setLight(room, "1");
+                        break;
+                    case "off":
+                        lightService.setLight(room, "2");
+                        break;
+                }
+            }
         }
 
-        String room = path.remove(0);
-        boolean isEnabled = lightService.getLight(room);
-        lightService.setLight(room, isEnabled ? "0" : "1");
-
-        return showRoomButtons(emptyList(), chatId, messageId);
+        return showRoomButtons(request);
     }
 
-    private BotApiMethod<?> showRoomButtons(List<String> path, String chatId, Integer messageId) {
+    private BotApiMethod<?> showRoomButtons(CommandRequest request) {
         String text = "Освещение в комнатах:";
         Map<String, String> rooms = LightCommand.rooms.stream()
-                .collect(Collectors.toMap(room -> room, room -> room + ": " + (lightService.getLight(room) ? "on" : "off")));
-        InlineKeyboardMarkup buttons = createButtons(path, rooms, 2);
-        return createTmMessage(chatId, messageId, text, buttons);
+                .collect(Collectors.toMap(
+                        room -> room + "/" + (lightService.getLight(room) ? "off" : "on"),
+                        room -> room + ": " + (lightService.getLight(room) ? "on" : "off")
+                ));
+        InlineKeyboardMarkup buttons = createButtons(emptyList(), rooms, 2);
+        return createTmMessage(request.getChatId(), request.getMessageId(), text, buttons);
     }
 
 }

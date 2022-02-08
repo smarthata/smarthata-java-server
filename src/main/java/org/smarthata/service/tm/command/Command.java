@@ -7,14 +7,12 @@ import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageTe
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 
-import java.util.List;
-
 @Order(1)
 public interface Command {
 
     String getCommand();
 
-    BotApiMethod<?> answer(List<String> path, String chatId, Integer messageId);
+    BotApiMethod<?> answer(CommandRequest request);
 
     default BotApiMethod<?> createTmMessage(String chatId, Integer messageId, String text) {
         return createTmMessage(chatId, messageId, text, null);

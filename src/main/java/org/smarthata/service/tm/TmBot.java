@@ -7,6 +7,7 @@ import org.smarthata.service.message.SmarthataMessage;
 import org.smarthata.service.message.SmarthataMessageBroker;
 import org.smarthata.service.message.SmarthataMessageListener;
 import org.smarthata.service.tm.command.Command;
+import org.smarthata.service.tm.command.CommandRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -121,7 +122,7 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
         Command command = commandsMap.get(commandName);
         if (command != null) {
             LOG.info("Found command: [{}]", commandName);
-            BotApiMethod<?> botApiMethod = command.answer(path, chatId.toString(), messageId);
+            BotApiMethod<?> botApiMethod = command.answer(new CommandRequest(path, chatId.toString(), messageId));
             sendMessageToTelegram(botApiMethod);
             return true;
         }

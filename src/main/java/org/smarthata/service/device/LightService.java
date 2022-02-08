@@ -9,8 +9,8 @@ import org.smarthata.service.message.SmarthataMessage;
 import org.smarthata.service.message.SmarthataMessageBroker;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.smarthata.service.message.EndpointType.USER;
 
@@ -20,7 +20,7 @@ public class LightService extends AbstractSmarthataMessageListener {
 
     private final ObjectMapper objectMapper;
 
-    private final Map<String, Boolean> lightState = new HashMap<>();
+    private final Map<String, Boolean> lightState = new ConcurrentHashMap<>();
 
     protected LightService(SmarthataMessageBroker messageBroker, ObjectMapper objectMapper) {
         super(messageBroker);
@@ -43,9 +43,7 @@ public class LightService extends AbstractSmarthataMessageListener {
         log.info("IN Switch light room = {}, action = {}, currentState = {}", room, action, lightState.get(room));
 
         boolean newState = "1".equals(action) || "true".equals(action);
-        synchronized (lightState) {
-            lightState.put(room, newState);
-        }
+        lightState.put(room, newState);
 
         Map<String, Object> map = Map.of("room", room, "state", newState);
         sendToBroker(objectMapper.writeValueAsString(map));
@@ -64,9 +62,7 @@ public class LightService extends AbstractSmarthataMessageListener {
     public void receiveSmarthataMessage(SmarthataMessage message) {
         if (message.getPath().equals("/light/state")) {
             Map<String, Boolean> map = objectMapper.readValue(message.getText(), Map.class);
-            synchronized (lightState) {
-                lightState.putAll(map);
-            }
+            lightState.putAll(map);
         }
     }
 

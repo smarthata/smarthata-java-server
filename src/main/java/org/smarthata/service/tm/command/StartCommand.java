@@ -21,8 +21,8 @@ public class StartCommand extends AbstractCommand {
     }
 
     @Override
-    public BotApiMethod<?> answer(final List<String> path, final String chatId, final Integer messageId) {
-        return aSimpleSendMessage(chatId, "Choose option:", createMainButtons());
+    public BotApiMethod<?> answer(CommandRequest request) {
+        return aSimpleSendMessage(request.getChatId(), "Choose option:", createMainButtons());
     }
 
     private ReplyKeyboardMarkup createMainButtons() {

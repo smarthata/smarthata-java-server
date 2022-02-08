@@ -1,6 +1,7 @@
 package org.smarthata.rest;
 
-import org.smarthata.service.device.HeatingFloorDevice;
+import org.smarthata.service.device.HeatingDevice;
+import org.smarthata.service.device.Room;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -11,20 +12,20 @@ import static java.util.Collections.singletonMap;
 @RequestMapping("/heating")
 public class HeatingController {
 
-    final HeatingFloorDevice heatingFloorDevice;
+    final HeatingDevice heatingDevice;
 
-    public HeatingController(HeatingFloorDevice heatingFloorDevice) {
-        this.heatingFloorDevice = heatingFloorDevice;
+    public HeatingController(HeatingDevice heatingDevice) {
+        this.heatingDevice = heatingDevice;
     }
 
     @GetMapping("/floor-temp")
-    public Map<String, Integer> getFloorTemp() {
-        return singletonMap("value", heatingFloorDevice.getTemp());
+    public Map<String, Double> getFloorTemp() {
+        return singletonMap("value", heatingDevice.getTemp(Room.FLOOR));
     }
 
     @PostMapping("/floor-temp")
-    public void setFloorTemp(@RequestParam Integer floorTemp) {
-        heatingFloorDevice.setTemp(floorTemp);
+    public void setFloorTemp(@RequestParam Double floorTemp) {
+        heatingDevice.setTemp(Room.FLOOR, floorTemp);
     }
 
 }
