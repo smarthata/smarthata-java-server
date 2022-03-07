@@ -72,9 +72,9 @@ public class HeatingCommand extends AbstractCommand {
         }
 
         String text = "Выберите помещение:";
-        String v1 = "Первый этаж: " + heatingDevice.getTemp(FLOOR) + CELSIUS;
-        String v2 = "Спальня: " + heatingDevice.getTemp(BEDROOM) + CELSIUS;
-        String v3 = "Ванная: " + heatingDevice.getTemp(BATHROOM) + CELSIUS;
+        String v1 = showTempInRoom("Первый этаж", FLOOR);
+        String v2 = showTempInRoom("Спальня", BEDROOM);
+        String v3 = showTempInRoom("Ванная", BATHROOM);
         Map<String, String> buttons = Map.of(
                 "floor", v1,
                 "bedroom", v2,
@@ -84,6 +84,14 @@ public class HeatingCommand extends AbstractCommand {
 
         return createTmMessage(request.getChatId(), request.getMessageId(),
                 text, createButtons(request.getPath(), buttons, 2));
+    }
+
+    private String showTempInRoom(String roomName, Room room) {
+        if (heatingDevice.isActualTempExists(room)) {
+            return String.format("%s: %.1f%s/%.1f%s", roomName, heatingDevice.getActualTemp(room), CELSIUS,
+                    heatingDevice.getExpectedTemp(room), CELSIUS);
+        }
+        return String.format("%s: %.1f%s", roomName, heatingDevice.getExpectedTemp(room), CELSIUS);
     }
 
     private BotApiMethod<?> processGarage(CommandRequest request) {
@@ -102,8 +110,8 @@ public class HeatingCommand extends AbstractCommand {
         }
 
         String text = "Выберите помещение:";
-        String v1 = "Гараж: " + heatingDevice.getTemp(GARAGE) + CELSIUS;
-        String v2 = "Мастерская: " + heatingDevice.getTemp(WORKSHOP) + CELSIUS;
+        String v1 = showTempInRoom("Гараж", GARAGE);
+        String v2 = showTempInRoom("Мастерская", WORKSHOP);
         Map<String, String> buttons = Map.of(
                 "garage", v1,
                 "workshop", v2,
@@ -118,7 +126,7 @@ public class HeatingCommand extends AbstractCommand {
         if (request.hasNext()) {
             String next = request.next();
             try {
-                heatingDevice.incTemp(room, Double.parseDouble(next));
+                heatingDevice.incExpectedTemp(room, Double.parseDouble(next));
             } catch (NumberFormatException e) {
                 String text = "Unknown command: " + next;
                 return createTmMessage(request.getChatId(), request.getMessageId(), text);
@@ -126,7 +134,7 @@ public class HeatingCommand extends AbstractCommand {
         }
 
         String text = String.format("Temp %s: %1.1f°C", room.name().toLowerCase(Locale.ROOT),
-                heatingDevice.getTemp(room));
+                heatingDevice.getExpectedTemp(room));
         InlineKeyboardMarkup buttons = createButtons(request.getPathRemoving("-1", "-0.5", "+0.5", "+1"), "-1", "-0.5", "+0.5", "+1", "back");
         return createTmMessage(request.getChatId(), request.getMessageId(), text, buttons);
     }

@@ -20,12 +20,12 @@ public class HeatingController {
 
     @GetMapping("/floor-temp")
     public Map<String, Double> getFloorTemp() {
-        return singletonMap("value", heatingDevice.getTemp(Room.FLOOR));
+        return singletonMap("value", heatingDevice.getExpectedTemp(Room.FLOOR));
     }
 
     @PostMapping("/floor-temp")
     public void setFloorTemp(@RequestParam Double floorTemp) {
-        heatingDevice.setTemp(Room.FLOOR, floorTemp);
+        heatingDevice.setExpectedTemp(Room.FLOOR, floorTemp);
     }
 
 }
