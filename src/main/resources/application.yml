@@ -23,6 +23,7 @@ mqtt:
 #logging.level.root: DEBUG
 
 bot:
+  enabled: true
   username: smarthatabot
   token: ${bot.token}
   adminChatId: ${bot.adminChatId}

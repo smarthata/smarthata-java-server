@@ -10,6 +10,7 @@ import org.smarthata.service.tm.command.Command;
 import org.smarthata.service.tm.command.CommandRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
 import static org.smarthata.service.message.EndpointType.USER;
 
 @Service
+@ConditionalOnProperty(value = "bot.enabled", matchIfMissing = true)
 public class TmBot extends TelegramLongPollingBot implements SmarthataMessageListener {
 
     private static final Logger LOG = LoggerFactory.getLogger(TmBot.class);
