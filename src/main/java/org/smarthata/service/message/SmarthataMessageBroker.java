@@ -18,6 +18,7 @@ public class SmarthataMessageBroker {
         message.setRetained(true);
         broadcastSmarthataMessage(message);
     }
+
     public void broadcastSmarthataMessage(SmarthataMessage message) {
         LOG.debug("Broadcasting message: {}", message);
 
