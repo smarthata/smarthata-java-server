@@ -26,21 +26,14 @@ public class CronMqttUpdater {
     @Scheduled(cron = "0 * * * * *")
     public void sendSecondOfDay() {
         int secondOfDay = getSecondOfDay();
-        SmarthataMessage message = new SmarthataMessage("/second-of-day", Integer.toString(secondOfDay), SYSTEM, MQTT);
+        SmarthataMessage message = new SmarthataMessage("/time/second-of-day", Integer.toString(secondOfDay), SYSTEM, MQTT);
         messageBroker.broadcastSmarthataMessageRetained(message);
     }
 
     @Scheduled(cron = "0 * * * * *")
     public void sendMinuteOfDay() {
         int minuteOfDay = getSecondOfDay() / 60;
-        SmarthataMessage message = new SmarthataMessage("/minute-of-day", Integer.toString(minuteOfDay), SYSTEM, MQTT);
-        messageBroker.broadcastSmarthataMessageRetained(message);
-    }
-
-    @Scheduled(cron = "0 0 * * * *")
-    public void sendHourOfDay() {
-        int hourOfDay = getSecondOfDay() / 3600;
-        SmarthataMessage message = new SmarthataMessage("/hour-of-day", Integer.toString(hourOfDay), SYSTEM, MQTT);
+        SmarthataMessage message = new SmarthataMessage("/time/minute-of-day", Integer.toString(minuteOfDay), SYSTEM, MQTT);
         messageBroker.broadcastSmarthataMessageRetained(message);
     }
 
