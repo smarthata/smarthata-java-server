@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -38,6 +40,8 @@ public class HeatingCommand extends AbstractCommand {
                     return processHouse(request);
                 case "garage":
                     return processGarage(request);
+                case "config":
+                    return processConfig(request);
                 default:
                     String text = "Unknown house";
                     return createTmMessage(request.getChatId(), request.getMessageId(), text);
@@ -45,11 +49,11 @@ public class HeatingCommand extends AbstractCommand {
         }
 
         String text = "Выберите помещение:";
-        Map<String, String> buttons = Map.of(
-                "house", "Дом",
-                "garage", "Гараж",
-                "back", "back"
-        );
+        Map<String, String> buttons = new LinkedHashMap<>();
+        buttons.put("house", "Дом");
+        buttons.put("garage", "Гараж");
+        buttons.put("config", "Настройка");
+        buttons.put("back", "Назад");
         return createTmMessage(request.getChatId(), request.getMessageId(),
                 text, createButtons(request.getPath(), buttons, 2));
     }
@@ -75,22 +79,21 @@ public class HeatingCommand extends AbstractCommand {
         String v1 = showTempInRoom("Первый этаж", FLOOR);
         String v2 = showTempInRoom("Спальня", BEDROOM);
         String v3 = showTempInRoom("Ванная", BATHROOM);
-        Map<String, String> buttons = Map.of(
-                "floor", v1,
-                "bedroom", v2,
-                "bathroom", v3,
-                "back", "back"
-        );
+        Map<String, String> buttons = new LinkedHashMap<>();
+        buttons.put("floor", v1);
+        buttons.put("bedroom", v2);
+        buttons.put("bathroom", v3);
+        buttons.put("back", "Назад");
 
         return createTmMessage(request.getChatId(), request.getMessageId(),
-                text, createButtons(request.getPath(), buttons, 2));
+                text, createButtons(request.getPath(), buttons));
     }
 
     private String showTempInRoom(String roomName, Room room) {
-        if (heatingDevice.isActualTempExists(room)) {
-            return String.format("%s: %.1f%s/%.1f%s", roomName, heatingDevice.getActualTemp(room), CELSIUS,
-                    heatingDevice.getExpectedTemp(room), CELSIUS);
-        }
+//        if (heatingDevice.isActualTempExists(room)) {
+//            return String.format("%s: %.1f%s/%.1f%s", roomName, heatingDevice.getActualTemp(room), CELSIUS,
+//                    heatingDevice.getExpectedTemp(room), CELSIUS);
+//        }
         return String.format("%s: %.1f%s", roomName, heatingDevice.getExpectedTemp(room), CELSIUS);
     }
 
@@ -112,13 +115,12 @@ public class HeatingCommand extends AbstractCommand {
         String text = "Выберите помещение:";
         String v1 = showTempInRoom("Гараж", GARAGE);
         String v2 = showTempInRoom("Мастерская", WORKSHOP);
-        Map<String, String> buttons = Map.of(
-                "garage", v1,
-                "workshop", v2,
-                "back", "back"
-        );
+        Map<String, String> buttons = new LinkedHashMap<>();
+        buttons.put("garage", v1);
+        buttons.put("workshop", v2);
+        buttons.put("back", "Назад");
         return createTmMessage(request.getChatId(), request.getMessageId(),
-                text, createButtons(request.getPath(), buttons, 2));
+                text, createButtons(request.getPath(), buttons));
     }
 
     private BotApiMethod<?> processRoom(CommandRequest request, Room room) {
@@ -133,10 +135,25 @@ public class HeatingCommand extends AbstractCommand {
             }
         }
 
-        String text = String.format("Temp %s: %1.1f°C", room.name().toLowerCase(Locale.ROOT),
-                heatingDevice.getExpectedTemp(room));
-        InlineKeyboardMarkup buttons = createButtons(request.getPathRemoving("-1", "-0.5", "+0.5", "+1"), "-1", "-0.5", "+0.5", "+1", "back");
+        String roomName = room.name().toLowerCase(Locale.ROOT);
+        String text = String.format("Temp %s: %1.1f%s", roomName, heatingDevice.getExpectedTemp(room), CELSIUS);
+        InlineKeyboardMarkup buttons = createButtons(
+                request.getPathRemoving("-0.5", "+0.5", "-1", "+1"),
+                List.of("-0.5", "+0.5", "-1", "+1", "set", "back"),
+                2
+        );
         return createTmMessage(request.getChatId(), request.getMessageId(), text, buttons);
+    }
+
+
+    private BotApiMethod<?> processConfig(CommandRequest request) {
+
+        String text = "Настройки:";
+
+        Map<String, String> buttons = new LinkedHashMap<>();
+        buttons.put("mixer", heatingDevice.mixerPosition.toString());
+        buttons.put("back", "Назад");
+        return createTmMessage(request.getChatId(), request.getMessageId(), text, createButtons(request.getPath(), buttons));
     }
 
 }

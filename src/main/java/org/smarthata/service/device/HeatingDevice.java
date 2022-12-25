@@ -45,6 +45,8 @@ public class HeatingDevice extends AbstractSmarthataMessageListener {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    public final AtomicInteger mixerPosition = new AtomicInteger(0);
+
     public HeatingDevice(SmarthataMessageBroker messageBroker) {
         super(messageBroker);
     }
@@ -120,6 +122,8 @@ public class HeatingDevice extends AbstractSmarthataMessageListener {
             parseActualTemp(message, room, device);
         } else if (path.equals(device.getQueueEnabled())) {
             device.getEnabled().set(Integer.parseInt(message.getText()));
+        } else if (path.equals("/heating/floor/mixer-position")) {
+            mixerPosition.set(Integer.parseInt(message.getText()));
         }
     }
 

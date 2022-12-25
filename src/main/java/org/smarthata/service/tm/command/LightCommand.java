@@ -5,9 +5,9 @@ import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
 
@@ -46,12 +46,12 @@ public class LightCommand extends AbstractCommand {
 
     private BotApiMethod<?> showRoomButtons(CommandRequest request) {
         String text = "Освещение в комнатах:";
-        Map<String, String> rooms = LightCommand.rooms.stream()
-                .collect(Collectors.toMap(
-                        room -> room + "/" + (lightService.getLight(room) ? "off" : "on"),
-                        room -> room + ": " + (lightService.getLight(room) ? "on" : "off")
-                ));
-        InlineKeyboardMarkup buttons = createButtons(emptyList(), rooms, 2);
+        Map<String, String> rooms = new LinkedHashMap<>();
+        LightCommand.rooms.forEach(room -> {
+            rooms.put(room + "/" + (lightService.getLight(room) ? "off" : "on"),
+                    room + ": " + (lightService.getLight(room) ? "on" : "off"));
+        });
+        InlineKeyboardMarkup buttons = createButtons(emptyList(), rooms);
         return createTmMessage(request.getChatId(), request.getMessageId(), text, buttons);
     }
 

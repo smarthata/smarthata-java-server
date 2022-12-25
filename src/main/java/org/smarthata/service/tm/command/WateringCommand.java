@@ -75,7 +75,7 @@ public class WateringCommand extends AbstractCommand {
         map.put("start", "start times (h): " + wateringService.getStartTimes());
         map.put("duration", "duration times (min): " + wateringService.getDurations());
 
-        InlineKeyboardMarkup keyboard = createButtons(emptyList(), map, 1);
+        InlineKeyboardMarkup keyboard = createButtons(emptyList(), map);
         return createTmMessage(request.getChatId(), request.getMessageId(), text, keyboard);
     }
 

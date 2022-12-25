@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 public abstract class AbstractCommand implements Command {
 
-    public static final int BUTTONS_IN_ROW = 3;
+    public static final int BUTTONS_IN_ROW = 1;
     private final String command;
 
     public AbstractCommand(@NotNull String command) {
@@ -24,16 +24,16 @@ public abstract class AbstractCommand implements Command {
         return command;
     }
 
-    protected InlineKeyboardMarkup createButtons(List<String> path, String... buttons) {
-        return createButtons(path, List.of(buttons));
+    protected InlineKeyboardMarkup createButtons(List<String> path, List<String> buttons) {
+        return createButtons(path, buttons, 1);
     }
 
-    protected InlineKeyboardMarkup createButtons(List<String> path, List<String> buttons) {
+    protected InlineKeyboardMarkup createButtons(List<String> path, List<String> buttons, int buttonsInRow) {
         List<InlineKeyboardButton> keyboards = buttons.stream()
                 .map(button -> createButton(button, path, button))
                 .collect(Collectors.toList());
         return InlineKeyboardMarkup.builder()
-                .keyboard(createKeyboard(keyboards, BUTTONS_IN_ROW))
+                .keyboard(createKeyboard(keyboards, buttonsInRow))
                 .build();
     }
 
@@ -43,7 +43,6 @@ public abstract class AbstractCommand implements Command {
 
     protected InlineKeyboardMarkup createButtons(List<String> path, Map<String, String> buttons, int buttonsInRow) {
         List<InlineKeyboardButton> keyboards = buttons.entrySet().stream()
-                .sorted(Map.Entry.comparingByKey())
                 .map(button -> createButton(button.getValue(), path, button.getKey()))
                 .collect(Collectors.toList());
         return InlineKeyboardMarkup.builder()
