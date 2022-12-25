@@ -37,6 +37,10 @@ public abstract class AbstractCommand implements Command {
                 .build();
     }
 
+    protected InlineKeyboardMarkup createButtons(List<String> path, Map<String, String> buttons) {
+        return createButtons(path, buttons, BUTTONS_IN_ROW);
+    }
+
     protected InlineKeyboardMarkup createButtons(List<String> path, Map<String, String> buttons, int buttonsInRow) {
         List<InlineKeyboardButton> keyboards = buttons.entrySet().stream()
                 .sorted(Map.Entry.comparingByKey())

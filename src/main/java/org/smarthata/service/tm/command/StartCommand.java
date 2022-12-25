@@ -14,7 +14,7 @@ import java.util.List;
 public class StartCommand extends AbstractCommand {
 
     private static final String START = "start";
-    private static final List<String> devices = List.of("/stats", "/temp", "/heating", "/light");
+    private static final List<String> devices = List.of("/temp", "/heating", "/light", "/watering");
 
     public StartCommand() {
         super(START);
