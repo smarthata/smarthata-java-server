@@ -28,4 +28,14 @@ public class HeatingController {
         heatingDevice.setExpectedTemp(Room.FLOOR, floorTemp);
     }
 
+    @GetMapping("/floor-pomp")
+    public Map<String, Integer> getFloorPomp() {
+        return singletonMap("value", heatingDevice.getFloorPomp(Room.FLOOR));
+    }
+
+    @PostMapping("/floor-pomp")
+    public void setFloorPomp(@RequestParam String floorPomp, @RequestParam(required = false) String in) {
+        heatingDevice.setFloorPomp(Room.FLOOR, floorPomp);
+    }
+
 }
