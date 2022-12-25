@@ -19,6 +19,6 @@ public class DeviceHealth {
 
     public DeviceHealth(String devicePath) {
         this.devicePath = devicePath;
-        this.status = DeviceStatus.OFFLINE;
+        this.status = DeviceStatus.ACTIVE;
     }
 }

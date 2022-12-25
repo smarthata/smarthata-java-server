@@ -29,4 +29,4 @@ bot:
   adminChatId: ${bot.adminChatId}
 
 health:
-  devices: /bedroom, /bathroom, /heating, /hum, /light
+  devices: /bedroom, /bathroom, /heating, /heating/garage, /light, /watering
