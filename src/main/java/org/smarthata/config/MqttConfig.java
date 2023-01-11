@@ -27,7 +27,7 @@ public class MqttConfig {
         IMqttClient publisher = new MqttClient(serverURI, clientId, new MemoryPersistence());
 
         MqttConnectOptions options = new MqttConnectOptions();
-        options.setAutomaticReconnect(true);
+        options.setAutomaticReconnect(false);
         options.setCleanSession(true);
         options.setConnectionTimeout(10);
         options.setUserName(username);
