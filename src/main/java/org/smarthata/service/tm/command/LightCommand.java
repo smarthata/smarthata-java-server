@@ -5,9 +5,8 @@ import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import static java.util.Collections.emptyList;
 
@@ -15,7 +14,7 @@ import static java.util.Collections.emptyList;
 public class LightCommand extends AbstractCommand {
 
     private static final String LIGHT = "light";
-    public static final List<String> rooms = List.of("bedroom", "stairs", "cabinet", "bathroom", "children", "canopy");
+    private static final Map<String, String> translations = Map.of("bathroom", "Ванная", "bedroom", "Спальня", "canopy", "Навес", "room-egor", "Детская Егора", "room-liza", "Детская Лизы", "stairs-night", "Ночник на лестнице", "stairs", "Свет на лестнице");
 
     private final LightService lightService;
 
@@ -46,11 +45,10 @@ public class LightCommand extends AbstractCommand {
 
     private BotApiMethod<?> showRoomButtons(CommandRequest request) {
         String text = "Освещение в комнатах:";
-        Map<String, String> rooms = new LinkedHashMap<>();
-        LightCommand.rooms.forEach(room -> {
-            rooms.put(room + "/" + (lightService.getLight(room) ? "off" : "on"),
-                    room + ": " + (lightService.getLight(room) ? "on" : "off"));
-        });
+        Map<String, String> rooms = new TreeMap<>();
+        lightService.getLightState().forEach(
+                (room, state) -> rooms.put(room + "/" + (state ? "off" : "on"),
+                        translations.getOrDefault(room, room) + ": " + (state ? "on" : "off")));
         InlineKeyboardMarkup buttons = createButtons(emptyList(), rooms);
         return createTmMessage(request.getChatId(), request.getMessageId(), text, buttons);
     }
