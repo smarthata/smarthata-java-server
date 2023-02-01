@@ -51,6 +51,19 @@ public class LightService extends AbstractSmarthataMessageListener {
         log.info("OUT Switch light room = {}, newState = {}", room, newState);
     }
 
+    @SneakyThrows
+    public void enableLightTemporary(String room, long seconds) {
+        log.info("IN enable light temporary room = {}", room);
+
+        Map<String, Object> map = Map.of(
+                "room", room,
+                "state", true,
+                "time", seconds);
+        sendToBroker(objectMapper.writeValueAsString(map));
+
+        log.info("OUT enable light temporary room = {}", room);
+    }
+
     private void sendToBroker(String text) {
         SmarthataMessage message = new SmarthataMessage("/light/in", text, USER);
         messageBroker.broadcastSmarthataMessage(message);
