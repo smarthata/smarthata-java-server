@@ -69,11 +69,14 @@ public class WateringCommand extends AbstractCommand {
         Mode next = Mode.values()[nextIndex];
 
         Map<String, String> map = new LinkedHashMap<>();
-        map.put("mode/" + next.getMode(), "mode: " + currentMode.name());
-        map.put("channel", "channels: " + wateringService.getChannelStates().values());
-        map.put("wave/start", "Start wave");
-        map.put("start", "start times (h): " + wateringService.getStartTimes());
-        map.put("duration", "duration times (min): " + wateringService.getDurations());
+        map.put("mode/" + next.getMode(), "режим: " + currentMode.name());
+        map.put("channel", "каналы: " + wateringService.getChannelStates().values());
+        if(currentMode != Mode.OFF) map.put("wave/start", "Запустить полив");
+        if(currentMode == Mode.AUTO) {
+            map.put("start", "Время начала (ч): " + wateringService.getStartTimes());
+            map.put("duration", "Продолжительность (мин): " + wateringService.getDurations());
+        }
+        map.put("back", "Назад");
 
         InlineKeyboardMarkup keyboard = createButtons(emptyList(), map);
         return createTmMessage(request.getChatId(), request.getMessageId(), text, keyboard);

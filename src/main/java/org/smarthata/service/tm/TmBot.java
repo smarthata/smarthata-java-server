@@ -116,7 +116,7 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
     private boolean processMessage(Long chatId, String text, Integer messageId) {
         List<String> path = getPath(text);
         log.info("Process telegram message: path {}, text: {}", path, text);
-        if (path.isEmpty()) return false;
+        if (path.isEmpty()) path.add("");
 
         String commandName = path.remove(0);
         Command command = commandsMap.get(commandName);

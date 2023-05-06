@@ -148,12 +148,43 @@ public class HeatingCommand extends AbstractCommand {
 
     private BotApiMethod<?> processConfig(CommandRequest request) {
 
-        String text = "Настройки:";
+        if (request.hasNext()) {
+            String config = request.next();
+            switch (config) {
+                case "restart" -> heatingDevice.sendAction("restart", 0);
+                case "mixer" -> {
+                    return processMixer(request);
+                }
+            }
+        }
+
+        String text = "Настройки:\n";
 
         Map<String, String> buttons = new LinkedHashMap<>();
-        buttons.put("mixer", heatingDevice.mixerPosition.toString());
+        buttons.put("restart", "restart");
+        buttons.put("mixer", "mixer: " + heatingDevice.mixerPosition);
         buttons.put("back", "Назад");
-        return createTmMessage(request.getChatId(), request.getMessageId(), text, createButtons(request.getPath(), buttons));
+        return createTmMessage(request.getChatId(), request.getMessageId(), text, createButtons(List.of("config"), buttons));
+    }
+
+    private BotApiMethod<?> processMixer(CommandRequest request) {
+
+        List<Integer> values = List.of(-120, -60, -30, -15, 15, 30);
+
+        if (request.hasNext()) {
+            String command = request.next();
+            Integer value = values.stream().filter(integer -> command.equals(integer.toString())).findFirst().orElse(0);
+            heatingDevice.sendAction("mixer-move", value);
+        }
+
+        String text = "Mixer: " + heatingDevice.mixerPosition;
+
+        Map<String, String> buttons = new LinkedHashMap<>();
+        for (Integer value : values) {
+            buttons.put(value.toString(), value.toString());
+        }
+        buttons.put("back", "Назад");
+        return createTmMessage(request.getChatId(), request.getMessageId(), text, createButtons(List.of("config", "mixer"), buttons));
     }
 
 }

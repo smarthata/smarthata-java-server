@@ -70,9 +70,6 @@ public abstract class AbstractCommand implements Command {
         fullPath.addAll(path);
         if ("back".equals(pathSuffix)) {
             fullPath.remove(fullPath.size() - 1);
-            if (fullPath.isEmpty()) {
-                fullPath.add("start");
-            }
         } else {
             fullPath.add(pathSuffix);
         }

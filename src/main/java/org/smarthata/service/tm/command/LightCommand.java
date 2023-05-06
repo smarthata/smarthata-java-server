@@ -7,17 +7,21 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
-
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
 
 @Service
 public class LightCommand extends AbstractCommand {
 
     private static final String LIGHT = "light";
-    private static final Map<String, String> translations = Map.of("bathroom", "Ванная", "bedroom", "Спальня", "canopy", "Навес", "room-egor", "Детская Егора", "room-liza", "Детская Лизы", "stairs-night", "Ночник на лестнице", "stairs", "Свет на лестнице");
+    private static final Map<String, String> translations = Map.of(
+            "all", "Везде",
+            "bathroom", "Ванная",
+            "bedroom", "Спальня",
+            "canopy", "Навес",
+            "room-egor", "Детская Егора",
+            "room-liza", "Детская Лизы",
+            "stairs-night", "Ночник на лестнице",
+            "stairs", "Свет на лестнице");
 
     private final LightService lightService;
 
@@ -28,56 +32,50 @@ public class LightCommand extends AbstractCommand {
 
     @Override
     public BotApiMethod<?> answer(CommandRequest request) {
+        // /light/room/action
+        int temporary = 0;
         if (request.hasNext()) {
-            String room = request.next();
+            String part = request.next();
+            switch (part) {
+                case "1min" -> temporary = 1;
+                case "5min" -> temporary = 5;
+            }
             if (request.hasNext()) {
-                String action = request.next();
-                switch (action) {
-                    case "on":
-                        lightService.setLight(room, "1");
-                        break;
-                    case "off":
-                        lightService.setLight(room, "0");
-                        break;
-                    case "5min":
-                        lightService.enableLightTemporary(room, TimeUnit.MINUTES.toSeconds(5));
-                        break;
-                    case "1min":
-                        lightService.enableLightTemporary(room, TimeUnit.MINUTES.toSeconds(1));
-                        break;
+                if (temporary > 0) {
+                    String room = request.next();
+                    lightService.enableLightTemporary(room, TimeUnit.MINUTES.toSeconds(temporary));
+                } else {
+                    String action = request.next();
+                    switch (action) {
+                        case "on" -> lightService.setLight(part, "1");
+                        case "off" -> lightService.setLight(part, "0");
+                    }
                 }
             }
-            return showRoom(request, room);
         }
 
-        return showRoomButtons(request);
+        return showMainView(request, temporary);
     }
 
-    private BotApiMethod<?> showRoomButtons(CommandRequest request) {
+    private BotApiMethod<?> showMainView(CommandRequest request, int temporary) {
+        // /light
         String text = "Освещение в комнатах:";
-        Map<String, String> rooms = new TreeMap<>();
-        lightService.getLightState().forEach(
-                (room, state) -> rooms.put(room,
-                        translations.getOrDefault(room, room) + ": " + (state ? "on" : "off")));
-        InlineKeyboardMarkup buttons = createButtons(emptyList(), rooms);
-        return createTmMessage(request.getChatId(), request.getMessageId(), text, buttons);
-    }
 
-    private BotApiMethod<?> showRoom(CommandRequest request, String room) {
-        Boolean state = lightService.getLight(room);
-        String text = "Освещение в комнате " + room + ": " + (state ? "on" : "off");
+        if (temporary > 0) text = "Включить на %d мин:".formatted(temporary);
 
-        Map<String, String> keys = new LinkedHashMap<>();
-        keys.put("1min", "1 мин");
-        keys.put("5min", "5 мин");
-        if (state) {
-            keys.put("off", "Выключить");
-        } else {
-            keys.put("on", "Включить");
+        Map<String, String> rooms = new LinkedHashMap<>();
+        lightService.getLightState().forEach((room, roomState) -> {
+            String currentStatus = roomState ? "on" : "off";
+            rooms.put(room,
+                    translations.getOrDefault(room, room) + ": " + currentStatus);
+        });
+
+        if (temporary == 0) {
+            rooms.put("1min", "1 мин");
+            rooms.put("5min", "5 мин");
         }
-        keys.put("back", "Назад");
-
-        InlineKeyboardMarkup buttons = createButtons(singletonList(room), keys, 2);
+        rooms.put("back", "Назад");
+        InlineKeyboardMarkup buttons = createButtons(request.getPath(), rooms);
         return createTmMessage(request.getChatId(), request.getMessageId(), text, buttons);
     }
 

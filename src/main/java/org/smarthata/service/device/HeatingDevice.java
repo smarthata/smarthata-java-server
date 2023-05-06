@@ -1,8 +1,8 @@
 package org.smarthata.service.device;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.smarthata.service.message.AbstractSmarthataMessageListener;
 import org.smarthata.service.message.EndpointType;
@@ -53,11 +53,11 @@ public class HeatingDevice extends AbstractSmarthataMessageListener {
 
     private HashMap<Room, Device> createMap() {
         return new HashMap<>() {{
-            put(FLOOR, new Device("/heating/floor", new AtomicReference<Double>(30.0)));
-            put(BEDROOM, new Device("/bedroom", new AtomicReference<Double>(23.0)));
-            put(BATHROOM, new Device("/bathroom", new AtomicReference<Double>(23.0)));
-            put(GARAGE, new Device("/heating/garage/garage", new AtomicReference<Double>(15.0)));
-            put(WORKSHOP, new Device("/heating/garage/workshop", new AtomicReference<Double>(20.0)));
+            put(FLOOR, new Device("/heating/floor", new AtomicReference<>(30.0)));
+            put(BEDROOM, new Device("/bedroom", new AtomicReference<>(23.0)));
+            put(BATHROOM, new Device("/bathroom", new AtomicReference<>(23.0)));
+            put(GARAGE, new Device("/heating/garage/garage", new AtomicReference<>(15.0)));
+            put(WORKSHOP, new Device("/heating/garage/workshop", new AtomicReference<>(20.0)));
         }};
     }
 
@@ -127,21 +127,28 @@ public class HeatingDevice extends AbstractSmarthataMessageListener {
         }
     }
 
+    @SneakyThrows
+    @SuppressWarnings("unchecked")
     private void parseActualTemp(SmarthataMessage message, Room room, Device device) {
-        try {
-            Map<Object, Object> map = objectMapper.readValue(message.getText(), Map.class);
-            if (map.containsKey("temp")) {
-                Double newActualTemp = (Double) map.get("temp");
-                log.trace("Update room [{}] set actual temp [{}]", room, newActualTemp);
-                device.getActualTemp().set(newActualTemp);
-            }
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
+        Map<Object, Object> map = objectMapper.readValue(message.getText(), Map.class);
+        if (map.containsKey("temp")) {
+            Double newActualTemp = (Double) map.get("temp");
+            log.trace("Update room [{}] set actual temp [{}]", room, newActualTemp);
+            device.getActualTemp().set(newActualTemp);
         }
     }
 
     @Override
     public EndpointType getEndpointType() {
         return SYSTEM;
+    }
+
+    @SneakyThrows
+    public void sendAction(String action, int value) {
+        Map<String, Object> map = Map.of("action", action, "value", value);
+        String text = objectMapper.writeValueAsString(map);
+
+        SmarthataMessage message = new SmarthataMessage("/heating/in/json", text, USER);
+        messageBroker.broadcastSmarthataMessage(message);
     }
 }
