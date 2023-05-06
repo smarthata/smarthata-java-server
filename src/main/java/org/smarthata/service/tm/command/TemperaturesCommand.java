@@ -30,12 +30,20 @@ public class TemperaturesCommand extends AbstractCommand {
     @Override
     public BotApiMethod<?> answer(CommandRequest request) {
 
-        Sensor sensor = sensorRepository.findByIdOrElseThrow(13);
-        Measure measure = measureRepository.findTopBySensorOrderByDateDesc(sensor);
-
-        String text = String.format("Street temp: %.1f°C (%d мин. назад)", measure.getValue(), getMinutesAgo(measure.getDate()));
+        String text = getTextLineForSensor(13, "Улица")
+                + getTextLineForSensor(2000239, "Спальня")
+                + getTextLineForSensor(7, "Первый этаж")
+                + getTextLineForSensor(4379072, "Ванная")
+                + getTextLineForSensor(83720510, "Гараж")
+                + getTextLineForSensor(85948634, "Мастерская");
 
         return aSimpleSendMessage(request.getChatId(), text).build();
+    }
+
+    private String getTextLineForSensor(int sensorId, String name) {
+        Sensor sensor = sensorRepository.findByIdOrElseThrow(sensorId);
+        Measure measure = measureRepository.findTopBySensorOrderByDateDesc(sensor);
+        return String.format(name + " : %.1f°C (%d мин. назад)\n", measure.getValue(), getMinutesAgo(measure.getDate()));
     }
 
     private long getMinutesAgo(final Date date) {
