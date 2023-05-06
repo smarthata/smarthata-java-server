@@ -28,7 +28,7 @@ public class WateringService extends AbstractSmarthataMessageListener {
     private List<Double> startTimes;
     private List<Integer> durations;
 
-    private Map<Integer, Integer> channelStates = new HashMap<>(5);
+    private final Map<Integer, Integer> channelStates = new HashMap<>();
 
     protected WateringService(SmarthataMessageBroker messageBroker, ObjectMapper objectMapper) {
         super(messageBroker);
@@ -93,7 +93,6 @@ public class WateringService extends AbstractSmarthataMessageListener {
                 channelStates.put(4, map.get("k"));
                 channelStates.put(5, map.get("o"));
 
-                log.info("Watering durations {}", durations);
                 break;
         }
     }

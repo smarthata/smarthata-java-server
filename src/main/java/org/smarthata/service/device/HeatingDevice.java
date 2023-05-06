@@ -2,7 +2,6 @@ package org.smarthata.service.device;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.util.concurrent.AtomicDouble;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.smarthata.service.message.AbstractSmarthataMessageListener;
@@ -14,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.smarthata.service.device.Room.*;
 import static org.smarthata.service.message.EndpointType.*;
@@ -24,11 +24,11 @@ class Device {
     private final String queueActualTemp;
     private final String queueExpectedTemp;
     private final String queueEnabled;
-    private final AtomicDouble actualTemp = new AtomicDouble(0);
-    private final AtomicDouble expectedTemp;
+    private final AtomicReference<Double> actualTemp = new AtomicReference<>(0.0);
+    private final AtomicReference<Double> expectedTemp;
     private final AtomicInteger enabled = new AtomicInteger(1);
 
-    Device(String baseQueue, AtomicDouble expectedTemp) {
+    Device(String baseQueue, AtomicReference<Double> expectedTemp) {
         this.queueActualTemp = baseQueue;
         this.queueExpectedTemp = baseQueue + "/in";
         this.queueEnabled = baseQueue + "/enabled";
@@ -53,11 +53,11 @@ public class HeatingDevice extends AbstractSmarthataMessageListener {
 
     private HashMap<Room, Device> createMap() {
         return new HashMap<>() {{
-            put(FLOOR, new Device("/heating/floor", new AtomicDouble(30)));
-            put(BEDROOM, new Device("/bedroom", new AtomicDouble(23)));
-            put(BATHROOM, new Device("/bathroom", new AtomicDouble(23)));
-            put(GARAGE, new Device("/heating/garage/garage", new AtomicDouble(15)));
-            put(WORKSHOP, new Device("/heating/garage/workshop", new AtomicDouble(20)));
+            put(FLOOR, new Device("/heating/floor", new AtomicReference<Double>(30.0)));
+            put(BEDROOM, new Device("/bedroom", new AtomicReference<Double>(23.0)));
+            put(BATHROOM, new Device("/bathroom", new AtomicReference<Double>(23.0)));
+            put(GARAGE, new Device("/heating/garage/garage", new AtomicReference<Double>(15.0)));
+            put(WORKSHOP, new Device("/heating/garage/workshop", new AtomicReference<Double>(20.0)));
         }};
     }
 
@@ -80,10 +80,10 @@ public class HeatingDevice extends AbstractSmarthataMessageListener {
         sendTempToBroker(device);
     }
 
-    public void incExpectedTemp(Room room, double delta) {
+    public synchronized void incExpectedTemp(Room room, double delta) {
         log.info("Inc temp [{}] for room [{}]", delta, room);
         Device device = map.get(room);
-        device.getExpectedTemp().addAndGet(delta);
+        device.getExpectedTemp().getAndUpdate(value -> value + delta);
         sendTempToBroker(device);
     }
 

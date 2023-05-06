@@ -26,7 +26,7 @@ update:
 	git reset --hard origin/master
 release:
 	mvn -B release:prepare release:perform
-deploy:
+deploy-local:
 	sudo systemctl stop smarthata
 	cp ./target/smarthata.jar /app/smarthata/
 	sudo systemctl start smarthata

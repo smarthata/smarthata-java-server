@@ -1,12 +1,12 @@
 package org.smarthata.service.tm.command;
 
-import com.google.common.collect.ImmutableList;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 
+import java.util.Collections;
 import java.util.List;
 
 
@@ -37,6 +37,6 @@ public class StartCommand extends AbstractCommand {
     private List<KeyboardRow> createKeyboardRows() {
         KeyboardRow row = new KeyboardRow();
         devices.forEach(device -> row.add(new KeyboardButton(device)));
-        return ImmutableList.of(row);
+        return Collections.singletonList(row);
     }
 }
