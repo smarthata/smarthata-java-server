@@ -1,16 +1,15 @@
 package org.smarthata.service.message;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 public class SmarthataMessageBroker {
 
-    private static final Logger LOG = LoggerFactory.getLogger(SmarthataMessageBroker.class);
 
     private final List<SmarthataMessageListener> listeners = new ArrayList<>();
 
@@ -20,7 +19,7 @@ public class SmarthataMessageBroker {
     }
 
     public void broadcastSmarthataMessage(SmarthataMessage message) {
-        LOG.debug("Broadcasting message: {}", message);
+        log.debug("Broadcasting message: {}", message);
 
         listeners.stream()
                 .filter(listener -> isNeedSendMessage(message, listener.getEndpointType()))

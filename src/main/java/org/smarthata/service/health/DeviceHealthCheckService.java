@@ -1,8 +1,10 @@
 package org.smarthata.service.health;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.smarthata.service.message.*;
+import lombok.extern.slf4j.Slf4j;
+import org.smarthata.service.message.AbstractSmarthataMessageListener;
+import org.smarthata.service.message.EndpointType;
+import org.smarthata.service.message.SmarthataMessage;
+import org.smarthata.service.message.SmarthataMessageBroker;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -18,10 +20,9 @@ import static java.time.LocalDateTime.now;
 import static org.smarthata.service.message.EndpointType.SYSTEM;
 import static org.smarthata.service.message.EndpointType.USER;
 
+@Slf4j
 @Service
 public class DeviceHealthCheckService extends AbstractSmarthataMessageListener {
-
-    private static final Logger LOG = LoggerFactory.getLogger(DeviceHealthCheckService.class);
 
     private static final Duration OFFLINE_DURATION = Duration.ofMinutes(30);
     private static final Duration NOTIFICATION_DURATION = Duration.ofHours(6);
@@ -68,7 +69,7 @@ public class DeviceHealthCheckService extends AbstractSmarthataMessageListener {
     @Scheduled(cron = "0 * * * * *")
     public void check() {
         List<DeviceHealth> offlineDevices = getOfflineDevices();
-        LOG.debug("offlineDevices = " + offlineDevices);
+        log.debug("offlineDevices = " + offlineDevices);
         sendNotifications(offlineDevices);
     }
 
