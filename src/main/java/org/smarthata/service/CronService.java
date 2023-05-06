@@ -28,4 +28,9 @@ public class CronService {
         messageBroker.broadcastSmarthataMessageRetained(message);
     }
 
+    @Scheduled(cron = "0 */5 * * * *")
+    public void sendDataToNarodmon() {
+        weatherService.sendDataToNarodmon();
+    }
+
 }

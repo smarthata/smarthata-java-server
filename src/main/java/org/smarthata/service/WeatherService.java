@@ -1,17 +1,24 @@
 package org.smarthata.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.smarthata.model.Measure;
 import org.smarthata.model.Sensor;
 import org.smarthata.repository.MeasureRepository;
 import org.smarthata.repository.SensorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class WeatherService {
 
@@ -21,10 +28,18 @@ public class WeatherService {
     private final SensorRepository sensorRepository;
     private final MeasureRepository measureRepository;
 
+    private final RestTemplate restTemplate;
+
+    @Value("${narodmon.mac}")
+    private String mac;
+
     @Autowired
-    public WeatherService(SensorRepository sensorRepository, MeasureRepository measureRepository) {
+    public WeatherService(SensorRepository sensorRepository,
+                          MeasureRepository measureRepository,
+                          RestTemplateBuilder restTemplateBuilder) {
         this.sensorRepository = sensorRepository;
         this.measureRepository = measureRepository;
+        this.restTemplate = restTemplateBuilder.build();
     }
 
     public double calcAverageDailyStreetTemperature() {
@@ -41,6 +56,31 @@ public class WeatherService {
         return dailyAverage;
     }
 
+    public void sendDataToNarodmon() {
+
+        Sensor streetSensor = sensorRepository.findByIdOrElseThrow(STREET_TEMP_SENSOR_ID);
+
+        Measure lastMeasure = measureRepository.findTopBySensorOrderByDateDesc(streetSensor);
+
+        long aLittleBitAgo = new Date().getTime() - TimeUnit.MINUTES.toMillis(2);
+        if (lastMeasure.getDate().before(new Date(aLittleBitAgo))) {
+            log.error("Does not have time to publish into narodmon");
+            return;
+        }
+
+        Double temp = lastMeasure.getValue();
+        try {
+            String url = String.format("http://narodmon.ru/get?ID=%s&street=%s", mac, round(temp));
+
+            String result = this.restTemplate.getForObject(url, String.class);
+
+            log.info("Temp {} sent to narodmon.ru result: {}", temp, result);
+        } catch (RestClientException e) {
+            log.error("Failed to send street temp {} to narodmon.ru", temp, e);
+        }
+
+    }
+
     private double round(double number) {
         return Math.floor(number * 10) / 10;
     }
@@ -49,5 +89,4 @@ public class WeatherService {
         LocalDateTime yesterday = LocalDateTime.now().minusDays(1);
         return Date.from(yesterday.atZone(ZoneId.systemDefault()).toInstant());
     }
-
 }

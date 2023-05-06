@@ -5,6 +5,7 @@ import org.eclipse.paho.client.mqttv3.IMqttClient;
 import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.smarthata.service.DateUtils;
 import org.smarthata.service.message.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -36,7 +37,7 @@ public class MqttService extends AbstractSmarthataMessageListener implements IMq
     }
 
     @Override
-    public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
+    public void messageArrived(String topic, MqttMessage mqttMessage) {
         String text = new String(mqttMessage.getPayload());
         log.debug("messageArrived: [{}], [{}]", topic, text);
         SmarthataMessage message = new SmarthataMessage(topic, text, MQTT);

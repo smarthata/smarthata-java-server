@@ -30,3 +30,5 @@ bot:
 
 health:
   devices: /bedroom, /bathroom, /heating, /heating/garage, /light, /watering
+
+narodmon.mac: 0.0.0.0
