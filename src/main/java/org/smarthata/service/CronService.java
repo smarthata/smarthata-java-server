@@ -13,11 +13,13 @@ public class CronService {
 
     private final SmarthataMessageBroker messageBroker;
     private final WeatherService weatherService;
+    private final SensorCleaner sensorCleaner;
 
     @Autowired
-    public CronService(SmarthataMessageBroker messageBroker, WeatherService weatherService) {
+    public CronService(SmarthataMessageBroker messageBroker, WeatherService weatherService, SensorCleaner sensorCleaner) {
         this.messageBroker = messageBroker;
         this.weatherService = weatherService;
+        this.sensorCleaner = sensorCleaner;
     }
 
     @Scheduled(cron = "0 */5 * * * *")
@@ -31,6 +33,12 @@ public class CronService {
     @Scheduled(cron = "0 */5 * * * *")
     public void sendDataToNarodmon() {
         weatherService.sendDataToNarodmon();
+    }
+
+    @Scheduled(cron = "0 0 4 * * *")
+    public void cleanSensorsData() {
+        sensorCleaner.cleanAllDevices();
+
     }
 
 }
