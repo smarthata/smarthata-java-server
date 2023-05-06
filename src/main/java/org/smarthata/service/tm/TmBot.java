@@ -135,13 +135,15 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
                 .collect(Collectors.toList());
     }
 
-    public void sendMessageToTelegram(BotApiMethod<?> botApiMethod) {
+    public boolean sendMessageToTelegram(BotApiMethod<?> botApiMethod) {
         try {
             super.execute(botApiMethod);
             log.debug("Message to telegram sent: {}", botApiMethod);
+            return true;
         } catch (TelegramApiException e) {
             log.error("Telegram Api Exception: {}", e.getMessage(), e);
         }
+        return false;
     }
 
     private void broadcastSmarthataMessage(String text) {
