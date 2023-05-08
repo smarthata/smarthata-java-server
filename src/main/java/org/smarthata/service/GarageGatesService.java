@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.text.MessageFormat;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -44,7 +43,7 @@ public class GarageGatesService {
     private LocalDateTime lastNotificationTime;
 
 
-    @Scheduled(fixedRate = 60, timeUnit = SECONDS)
+    @Scheduled(fixedDelay = 60, timeUnit = SECONDS)
     public void checkGarage() {
         try {
             log.debug("Check garage heating");
@@ -57,8 +56,8 @@ public class GarageGatesService {
                 GarageGateAction action = getGarageGateWarmingAction(streetTemp, garageTemp);
                 if (action != GarageGateAction.NOTHING) {
                     log.debug("Temp is good to {} gates", action.name());
-                    if (DateUtils.isDateAfter(lastNotificationTime, Duration.ofHours(1))) {
-                        sendMessage(streetTemp, garageTemp, action);
+                    if (DateUtils.isDateAfter(lastNotificationTime, Duration.ofMinutes(30))) {
+                        sendMessage(action);
                     } else {
                         log.debug("Notification was sent recently");
                     }
@@ -77,9 +76,8 @@ public class GarageGatesService {
         return GarageGateAction.NOTHING;
     }
 
-    private void sendMessage(double streetTemp, double garageTemp, GarageGateAction action) {
-        String text = MessageFormat.format("Можно {0} гаражные ворота для прогрева (улица {1}°C, гараж {2}°C)",
-                action.text, streetTemp, garageTemp);
+    private void sendMessage(GarageGateAction action) {
+        String text = String.format("Можно %s гаражные ворота для прогрева", action.text);
 
         CommandRequest commandRequest = new CommandRequest(List.of(text), garageCommand.adminChatId, null);
 

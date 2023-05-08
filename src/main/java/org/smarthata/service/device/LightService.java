@@ -55,6 +55,8 @@ public class LightService extends AbstractSmarthataMessageListener {
     public void enableLightTemporary(String room, long seconds) {
         log.info("IN enable light temporary room = {}", room);
 
+        lightState.put(room, true);
+
         Map<String, Object> map = Map.of(
                 "room", room,
                 "state", true,

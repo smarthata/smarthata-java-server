@@ -66,7 +66,7 @@ public abstract class AbstractCommand implements Command {
     protected InlineKeyboardButton createButton(String text, List<String> path, String pathSuffix) {
 
         List<String> fullPath = new ArrayList<>(path.size() + 2);
-        fullPath.add(command);
+        if (!command.isEmpty()) fullPath.add(command);
         fullPath.addAll(path);
         if ("back".equals(pathSuffix)) {
             fullPath.remove(fullPath.size() - 1);

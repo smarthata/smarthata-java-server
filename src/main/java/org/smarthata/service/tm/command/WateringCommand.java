@@ -46,7 +46,7 @@ public class WateringCommand extends AbstractCommand {
                 case "start":
                     return showStartTimes(request);
                 case "wave":
-                    return showWave(request);
+                    return startWave(request);
                 case "channel":
                     return showChannel(request);
                 default:
@@ -55,7 +55,7 @@ public class WateringCommand extends AbstractCommand {
 
         }
 
-        return showMainButtons(request, "Watering:");
+        return showMainButtons(request, "Автополив:");
     }
 
     private BotApiMethod<?> showMainButtons(CommandRequest request, String text) {
@@ -69,12 +69,14 @@ public class WateringCommand extends AbstractCommand {
         Mode next = Mode.values()[nextIndex];
 
         Map<String, String> map = new LinkedHashMap<>();
-        map.put("mode/" + next.getMode(), "режим: " + currentMode.name());
-        map.put("channel", "каналы: " + wateringService.getChannelStates().values());
-        if(currentMode != Mode.OFF) map.put("wave/start", "Запустить полив");
-        if(currentMode == Mode.AUTO) {
+        map.put("mode/" + next.getMode(), "Режим: " + currentMode.name());
+        if (currentMode != Mode.OFF) {
+            map.put("channel", "Каналы: " + wateringService.getChannelStates().values());
+            map.put("wave/start", "Запустить полив");
+            map.put("duration", "Продолжительность каналов (мин): " + wateringService.getDurations());
+        }
+        if (currentMode == Mode.AUTO) {
             map.put("start", "Время начала (ч): " + wateringService.getStartTimes());
-            map.put("duration", "Продолжительность (мин): " + wateringService.getDurations());
         }
         map.put("back", "Назад");
 
@@ -83,7 +85,7 @@ public class WateringCommand extends AbstractCommand {
     }
 
     private BotApiMethod<?> showDurations(CommandRequest request) {
-        String text = "Watering durations (minute): " + wateringService.getDurations();
+        String text = "Продолжительность (минуты): " + wateringService.getDurations();
 
         List<String> buttons = List.of("change", "back");
         InlineKeyboardMarkup keyboard = createButtons(singletonList("duration"), buttons);
@@ -92,7 +94,7 @@ public class WateringCommand extends AbstractCommand {
     }
 
     private BotApiMethod<?> showStartTimes(CommandRequest request) {
-        String text = "Watering start times (hours): " + wateringService.getStartTimes();
+        String text = "Время начала полива (часы): " + wateringService.getStartTimes();
 
         List<String> buttons = List.of("add", "remove", "back");
         InlineKeyboardMarkup keyboard = createButtons(singletonList("start"), buttons);
@@ -101,12 +103,16 @@ public class WateringCommand extends AbstractCommand {
     }
 
 
-    private BotApiMethod<?> showWave(CommandRequest request) {
-        String text = "Wave started";
+    private BotApiMethod<?> startWave(CommandRequest request) {
+        String text = "Полив запущен";
 
         wateringService.wave();
 
-        InlineKeyboardMarkup keyboard = createButtons(singletonList("watering"), singletonList("back"));
+        Map<String, String> map = new LinkedHashMap<>();
+        map.put("disable", "Выключить");
+        map.put("back", "Назад");
+
+        InlineKeyboardMarkup keyboard = createButtons(singletonList("watering"), map);
 
         return createTmMessage(request.getChatId(), request.getMessageId(), text, keyboard);
     }
@@ -129,15 +135,15 @@ public class WateringCommand extends AbstractCommand {
             }
         }
 
-        String text = "Channels: ";
+        String text = "Каналы: ";
 
         Map<String, String> out = new LinkedHashMap<>();
         wateringService.getChannelStates().forEach((key, value) -> out.put(
                 key + "/" + (1 - value),
                 key + ":" + (value == 1 ? "On" : "Off")
         ));
-        out.put("disable", "disable");
-        out.put("back", "back");
+        out.put("disable", "Выключить");
+        out.put("back", "Назад");
 
         InlineKeyboardMarkup keyboard = createButtons(singletonList("channel"), out);
 

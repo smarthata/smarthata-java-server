@@ -68,7 +68,7 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
     @Override
     public void onUpdateReceived(final Update update) {
 
-        log.info("Received update: {}", update);
+        log.debug("Received update: {}", update);
 
         if (update.hasMessage()) {
             Message message = update.getMessage();

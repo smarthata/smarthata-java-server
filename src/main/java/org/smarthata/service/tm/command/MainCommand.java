@@ -4,7 +4,7 @@ import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 
-import java.util.List;
+import java.util.Map;
 
 import static java.util.Collections.emptyList;
 
@@ -13,7 +13,13 @@ import static java.util.Collections.emptyList;
 public class MainCommand extends AbstractCommand {
 
     private static final String START = "";
-    private static final List<String> devices = List.of("temp", "heating", "light", "watering", "start");
+    private static final Map<String, String> devices =
+            Map.of("temp", "Температура",
+                    "heating", "Отопление",
+                    "light", "Освещение",
+                    "watering", "Автополив",
+                    "garage", "Гараж",
+                    "start", "Старт");
 
     public MainCommand() {
         super(START);
@@ -22,7 +28,8 @@ public class MainCommand extends AbstractCommand {
     @Override
     public BotApiMethod<?> answer(CommandRequest request) {
         InlineKeyboardMarkup buttons = createButtons(emptyList(), devices);
-        return createTmMessage(request.getChatId(), request.getMessageId(), "Smarthata bot", buttons);
+        BotApiMethod<?> smarthataBot = createTmMessage(request.getChatId(), request.getMessageId(), "Smarthata bot", buttons);
+        return smarthataBot;
     }
 
 }
