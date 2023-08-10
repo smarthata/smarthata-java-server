@@ -171,13 +171,15 @@ public class HeatingCommand extends AbstractCommand {
 
         List<Integer> values = List.of(-120, -60, -30, -15, 15, 30);
 
+        String commandText = "";
         if (request.hasNext()) {
             String command = request.next();
             Integer value = values.stream().filter(integer -> command.equals(integer.toString())).findFirst().orElse(0);
             heatingDevice.sendAction("mixer-move", value);
+            commandText = "Принято " + command + "! ";
         }
 
-        String text = "Mixer: " + heatingDevice.mixerPosition;
+        String text = commandText + "Mixer: " + heatingDevice.mixerPosition;
 
         Map<String, String> buttons = new LinkedHashMap<>();
         for (Integer value : values) {
