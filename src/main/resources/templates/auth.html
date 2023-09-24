@@ -1,0 +1,58 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Smarthata Auth page</title>
+    <style>
+        * {
+            font-size: 20px;
+            font-family: Tahoma, serif;
+        }
+
+        body {
+            padding-top: 20px;
+            padding-bottom: 20px;
+            background-color: gray;
+        }
+
+        .container {
+            padding: 10px;
+            border: 1px rgba(133, 133, 133, 0.42) solid;
+            text-align: center;
+            background-color: white;
+        }
+
+        #header {
+            background-color: #cecece;
+            padding: 10px;
+            text-align: center;
+        }
+
+        #submit {
+            background-color: rgba(104, 255, 104, 0.45);
+            padding: 5px 30px;
+        }
+    </style>
+</head>
+<body>
+
+<div>
+    <div id="header">Smarthata</div>
+
+    <div class="container">Please grant access</div>
+
+    <form action="#" th:action="${loginInfo.makeRedirectUri()}" th:object="${loginInfo}" method="post">
+        <div class="container">
+            Scope: <span th:text="*{scope}" style="text-weight: bold" />
+        </div>
+        <div class="container">
+            <input id="submit" type="submit" value="Grant" />
+        </div>
+    </form>
+
+</div>
+
+</body>
+</html>

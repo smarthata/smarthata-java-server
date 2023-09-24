@@ -34,7 +34,7 @@ public class GarageGatesService {
     private MqttService mqttService;
     @Autowired
     private GarageCommand garageCommand;
-    @Autowired
+    @Autowired(required = false)
     private TmBot tmBot;
 
     @Autowired

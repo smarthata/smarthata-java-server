@@ -29,7 +29,14 @@ release:
 deploy-local:
 	sudo systemctl stop smarthata
 	cp ./target/smarthata.jar /app/smarthata/
-	sudo systemctl start smarthata
+	systemctl start smarthata
+deploy-pi: build
+	ssh pi@192.168.1.30 sudo systemctl stop smarthata
+	scp ./target/smarthata.jar pi@192.168.1.30:/app/smarthata
+	ssh pi@192.168.1.30 sudo systemctl start smarthata
+
+scp-chart.html:
+	scp src/main/resources/static/chart.html valery@smarthata.org:/var/www/smarthata.org/
 
 
 # Docker build
@@ -83,3 +90,6 @@ mysql-stop:
 
 mysql-rm: mysql-stop
 	-docker rm smarthata-mysql
+
+mysql-tunnel:
+	ssh -f -C -q -N -L 3306:localhost:3306 pi@192.168.1.30

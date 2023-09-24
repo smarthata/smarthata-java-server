@@ -14,15 +14,6 @@ import java.util.concurrent.TimeUnit;
 public class LightCommand extends AbstractCommand {
 
     private static final String LIGHT = "light";
-    private static final Map<String, String> translations = Map.of(
-            "all", "Везде",
-            "bathroom", "Ванная",
-            "bedroom", "Спальня",
-            "canopy", "Навес",
-            "room-egor", "Детская Егора",
-            "room-liza", "Детская Лизы",
-            "stairs-night", "Ночник на лестнице",
-            "stairs", "Свет на лестнице");
 
     private final LightService lightService;
 
@@ -76,7 +67,7 @@ public class LightCommand extends AbstractCommand {
             String action = !roomState ? "on" : "off";
             String currentStatus = roomState ? "on" : "off";
             rooms.put(room + "/" + action,
-                    translations.getOrDefault(room, room) + ": " + currentStatus);
+                    LightService.translations.getOrDefault(room, room) + ": " + currentStatus);
         });
 
         rooms.put("1min", "1 мин");
@@ -94,7 +85,7 @@ public class LightCommand extends AbstractCommand {
         lightService.getLightState().forEach((room, roomState) -> {
             String currentStatus = roomState ? "on" : "off";
             rooms.put(room,
-                    translations.getOrDefault(room, room) + ": " + currentStatus);
+                    LightService.translations.getOrDefault(room, room) + ": " + currentStatus);
         });
         rooms.put("back", "Назад");
         List<String> path = request.getPath();

@@ -3,12 +3,16 @@ server:
   servlet.context-path: /api
   tomcat.threads.max: 5
 
+spring.profiles.active: dev
+
 application:
   name: '@project.artifactId@'
 build:
   version: '@project.version@'
 
 spring:
+  jackson:
+    property-naming-strategy: SNAKE_CASE
   jpa.hibernate.ddl-auto: none
   datasource:
     url: jdbc:mysql://127.0.0.1:3306/smarthata
@@ -16,14 +20,15 @@ spring:
     password: password
 
 mqtt:
-  server-uri: tcp://iot.eclipse.org:1883
+  server-uri: tcp://127.0.0.1:1883
   user: user
   password: password
 
-#logging.level.root: DEBUG
+logging.level.root: WARN
+logging.level.org.smarthata: INFO
 
 bot:
-  enabled: true
+  enabled: false
   username: smarthatabot
   token: ${bot.token}
   adminChatId: ${bot.adminChatId}
@@ -31,4 +36,10 @@ bot:
 health:
   devices: /bedroom, /bathroom, /heating, /heating/garage, /light, /watering
 
-narodmon.mac: 0.0.0.0
+narodmon:
+  enabled: false
+  mac: 00:00:00:00:00:00
+
+
+oauth2.0:
+  password: pass

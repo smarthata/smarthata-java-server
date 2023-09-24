@@ -1,5 +1,6 @@
 package org.smarthata.service.device;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +18,15 @@ import static org.smarthata.service.message.EndpointType.USER;
 @Slf4j
 @Service
 public class LightService extends AbstractSmarthataMessageListener {
+    public static final Map<String, String> translations = Map.of(
+            "all", "Везде",
+            "bathroom", "Ванная",
+            "bedroom", "Спальня",
+            "canopy", "Навес",
+            "room-egor", "Детская Егора",
+            "room-liza", "Детская Лизы",
+            "stairs-night", "Ночник на лестнице",
+            "stairs", "Лестница");
 
     private final ObjectMapper objectMapper;
 
@@ -38,17 +48,21 @@ public class LightService extends AbstractSmarthataMessageListener {
         return state;
     }
 
-    @SneakyThrows
     public synchronized void setLight(String room, String action) {
         log.info("IN Switch light room = {}, action = {}, currentState = {}", room, action, lightState.get(room));
 
         boolean newState = "1".equals(action) || "true".equals(action);
+        setLight(room, newState);
+
+        log.info("OUT Switch light room = {}, newState = {}", room, newState);
+    }
+
+    @SneakyThrows
+    public synchronized void setLight(String room, boolean newState) {
         lightState.put(room, newState);
 
         Map<String, Object> map = Map.of("room", room, "state", newState);
         sendToBroker(objectMapper.writeValueAsString(map));
-
-        log.info("OUT Switch light room = {}, newState = {}", room, newState);
     }
 
     @SneakyThrows
