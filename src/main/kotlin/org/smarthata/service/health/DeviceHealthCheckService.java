@@ -18,7 +18,7 @@ import java.util.Map;
 
 import static java.time.LocalDateTime.now;
 import static org.smarthata.service.message.EndpointType.SYSTEM;
-import static org.smarthata.service.message.EndpointType.USER;
+import static org.smarthata.service.message.EndpointType.TELEGRAM;
 
 @Slf4j
 @Service
@@ -99,7 +99,7 @@ public class DeviceHealthCheckService extends AbstractSmarthataMessageListener {
     }
 
     private void sendMessage(String text) {
-        SmarthataMessage message = new SmarthataMessage("/messages", text, SYSTEM, USER);
+        SmarthataMessage message = new SmarthataMessage("/messages", text, SYSTEM, TELEGRAM);
         messageBroker.broadcastSmarthataMessage(message);
     }
 }

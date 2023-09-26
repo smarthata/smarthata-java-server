@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import static org.smarthata.service.message.EndpointType.TELEGRAM;
+
 @Service
 public class LightCommand extends AbstractCommand {
 
@@ -37,17 +39,17 @@ public class LightCommand extends AbstractCommand {
             if (request.hasNext()) {
                 if (temporary > 0) {
                     String room = request.next();
-                    lightService.enableLightTemporary(room, TimeUnit.MINUTES.toSeconds(temporary));
+                    lightService.enableLightTemporary(room, TimeUnit.MINUTES.toSeconds(temporary), TELEGRAM);
                     text = "Принято " + room + "!";
                 } else {
                     String action = request.next();
                     switch (action) {
                         case "on" -> {
-                            lightService.setLight(part, "1");
+                            lightService.setLight(part, true, TELEGRAM);
                             text = "Включено\n" + text;
                         }
                         case "off" -> {
-                            lightService.setLight(part, "0");
+                            lightService.setLight(part, false, TELEGRAM);
                             text = "Выключено\n" + text;
                         }
                     }

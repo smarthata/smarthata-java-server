@@ -13,6 +13,7 @@ import java.util.Map;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static org.smarthata.service.message.EndpointType.TELEGRAM;
 
 @Slf4j
 @Service
@@ -37,7 +38,7 @@ public class WateringCommand extends AbstractCommand {
                     if (request.hasNext()) {
                         String newModeIndex = request.next();
                         Mode newMode = Mode.valueOf(Integer.parseInt(newModeIndex));
-                        wateringService.setMode(newMode);
+                        wateringService.setMode(newMode, TELEGRAM);
                         log.info("Mode has been changed to {}", newMode);
                     }
                     break;
@@ -106,7 +107,7 @@ public class WateringCommand extends AbstractCommand {
     private BotApiMethod<?> startWave(CommandRequest request) {
         String text = "Полив запущен";
 
-        wateringService.wave();
+        wateringService.wave(TELEGRAM);
 
         Map<String, String> map = new LinkedHashMap<>();
         map.put("disable", "Выключить");
@@ -123,14 +124,14 @@ public class WateringCommand extends AbstractCommand {
             String part = request.next();
             if (part.equals("disable")) {
                 wateringService.getChannelStates().keySet()
-                        .forEach(ch -> wateringService.updateChannel(ch, 0));
+                        .forEach(ch -> wateringService.updateChannel(ch, 0, TELEGRAM));
             } else {
                 int channel = Integer.parseInt(part);
                 log.info("channel {}", channel);
                 if (request.hasNext()) {
                     int newState = Integer.parseInt(request.next());
                     log.info("newState {}", newState);
-                    wateringService.updateChannel(channel, newState);
+                    wateringService.updateChannel(channel, newState, TELEGRAM);
                 }
             }
         }

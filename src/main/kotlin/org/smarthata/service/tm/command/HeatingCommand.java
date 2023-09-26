@@ -1,6 +1,6 @@
 package org.smarthata.service.tm.command;
 
-import org.smarthata.service.device.HeatingDevice;
+import org.smarthata.service.device.HeatingService;
 import org.smarthata.service.device.Room;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
@@ -22,11 +22,11 @@ public class HeatingCommand extends AbstractCommand {
     private static final String HEATING = "heating";
     private static final String CELSIUS = "°C";
 
-    private final HeatingDevice heatingDevice;
+    private final HeatingService heatingService;
 
-    public HeatingCommand(HeatingDevice heatingDevice) {
+    public HeatingCommand(HeatingService heatingService) {
         super(HEATING);
-        this.heatingDevice = heatingDevice;
+        this.heatingService = heatingService;
     }
 
 
@@ -94,7 +94,7 @@ public class HeatingCommand extends AbstractCommand {
 //            return String.format("%s: %.1f%s/%.1f%s", roomName, heatingDevice.getActualTemp(room), CELSIUS,
 //                    heatingDevice.getExpectedTemp(room), CELSIUS);
 //        }
-        return String.format("%s: %.1f%s", roomName, heatingDevice.getExpectedTemp(room), CELSIUS);
+        return String.format("%s: %.1f%s", roomName, heatingService.getExpectedTemp(room), CELSIUS);
     }
 
     private BotApiMethod<?> processGarage(CommandRequest request) {
@@ -128,7 +128,7 @@ public class HeatingCommand extends AbstractCommand {
         if (request.hasNext()) {
             String next = request.next();
             try {
-                heatingDevice.incExpectedTemp(room, Double.parseDouble(next));
+                heatingService.incExpectedTemp(room, Double.parseDouble(next));
             } catch (NumberFormatException e) {
                 String text = "Unknown command: " + next;
                 return createTmMessage(request.getChatId(), request.getMessageId(), text);
@@ -136,7 +136,7 @@ public class HeatingCommand extends AbstractCommand {
         }
 
         String roomName = room.name().toLowerCase(Locale.ROOT);
-        String text = String.format("Temp %s: %1.1f%s", roomName, heatingDevice.getExpectedTemp(room), CELSIUS);
+        String text = String.format("Temp %s: %1.1f%s", roomName, heatingService.getExpectedTemp(room), CELSIUS);
         InlineKeyboardMarkup buttons = createButtons(
                 request.getPathRemoving("-0.5", "+0.5", "-1", "+1"),
                 List.of("-0.5", "+0.5", "-1", "+1", "set", "back"),
@@ -151,7 +151,7 @@ public class HeatingCommand extends AbstractCommand {
         if (request.hasNext()) {
             String config = request.next();
             switch (config) {
-                case "restart" -> heatingDevice.sendAction("restart", 0);
+                case "restart" -> heatingService.sendAction("restart", 0);
                 case "mixer" -> {
                     return processMixer(request);
                 }
@@ -162,7 +162,7 @@ public class HeatingCommand extends AbstractCommand {
 
         Map<String, String> buttons = new LinkedHashMap<>();
         buttons.put("restart", "restart");
-        buttons.put("mixer", "mixer: " + heatingDevice.mixerPosition);
+        buttons.put("mixer", "mixer: " + heatingService.mixerPosition);
         buttons.put("back", "Назад");
         return createTmMessage(request.getChatId(), request.getMessageId(), text, createButtons(List.of("config"), buttons));
     }
@@ -175,11 +175,11 @@ public class HeatingCommand extends AbstractCommand {
         if (request.hasNext()) {
             String command = request.next();
             Integer value = values.stream().filter(integer -> command.equals(integer.toString())).findFirst().orElse(0);
-            heatingDevice.sendAction("mixer-move", value);
+            heatingService.sendAction("mixer-move", value);
             commandText = "Принято " + command + "! ";
         }
 
-        String text = commandText + "Mixer: " + heatingDevice.mixerPosition;
+        String text = commandText + "Mixer: " + heatingService.mixerPosition;
 
         Map<String, String> buttons = new LinkedHashMap<>();
         for (Integer value : values) {

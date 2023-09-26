@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.smarthata.service.message.EndpointType.MQTT;
-import static org.smarthata.service.message.EndpointType.USER;
 
 @Slf4j
 @Service
@@ -35,34 +34,34 @@ public class WateringService extends AbstractSmarthataMessageListener {
         this.objectMapper = objectMapper;
     }
 
-    private void sendModeToBroker(String text) {
-        SmarthataMessage message = new SmarthataMessage("/watering/mode/in", text, USER, MQTT, true);
+    private void sendModeToBroker(String text, EndpointType source) {
+        SmarthataMessage message = new SmarthataMessage("/watering/mode/in", text, source, MQTT, true);
         messageBroker.broadcastSmarthataMessage(message);
     }
 
-    public void wave() {
-        sendActionToBroker("wave");
+    public void wave(EndpointType source) {
+        sendActionToBroker("wave", source);
         log.info("Wave to broker sent");
     }
 
     @SneakyThrows
-    private void sendActionToBroker(String action) {
+    private void sendActionToBroker(String action, EndpointType source) {
         String text = objectMapper.writeValueAsString(Map.of("action", action));
-        SmarthataMessage message = new SmarthataMessage("/watering/in/json", text, USER, MQTT, false);
+        SmarthataMessage message = new SmarthataMessage("/watering/in/json", text, source, MQTT, false);
         messageBroker.broadcastSmarthataMessage(message);
     }
 
-    public Map<Integer, Integer> updateChannel(int channel, int state) {
+    public Map<Integer, Integer> updateChannel(int channel, int state, EndpointType source) {
         channelStates.put(channel, state);
-        sendChangeChannelBroker(channel - 1, state);
+        sendChangeChannelBroker(channel - 1, state, source);
         return channelStates;
     }
 
     @SneakyThrows
-    private void sendChangeChannelBroker(int channel, int state) {
+    private void sendChangeChannelBroker(int channel, int state, EndpointType source) {
         String text = objectMapper.writeValueAsString(Map.of("channel", channel, "state", state));
 
-        SmarthataMessage message = new SmarthataMessage("/watering/in/json", text, USER, MQTT, false);
+        SmarthataMessage message = new SmarthataMessage("/watering/in/json", text, source, MQTT, false);
         messageBroker.broadcastSmarthataMessage(message);
     }
 
@@ -107,9 +106,9 @@ public class WateringService extends AbstractSmarthataMessageListener {
         return mode;
     }
 
-    public void setMode(Mode mode) {
+    public void setMode(Mode mode, EndpointType source) {
         this.mode = mode;
-        sendModeToBroker(Integer.toString(mode.ordinal()));
+        sendModeToBroker(Integer.toString(mode.ordinal()), source);
     }
 
     public List<Double> getStartTimes() {

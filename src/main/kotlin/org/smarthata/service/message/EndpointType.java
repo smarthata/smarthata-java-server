@@ -1,5 +1,5 @@
 package org.smarthata.service.message;
 
 public enum EndpointType {
-    MQTT, USER, SYSTEM
+    MQTT, ALICE, HTTP, TELEGRAM, SYSTEM
 }

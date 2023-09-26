@@ -1,5 +1,11 @@
 package org.smarthata.service.tm;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import lombok.extern.slf4j.Slf4j;
 import org.smarthata.service.message.EndpointType;
 import org.smarthata.service.message.SmarthataMessage;
@@ -19,21 +25,12 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static org.smarthata.service.message.EndpointType.USER;
+import static org.smarthata.service.message.EndpointType.TELEGRAM;
 
 @Service
 @Slf4j
 @ConditionalOnProperty(value = "bot.enabled", matchIfMissing = true)
 public class TmBot extends TelegramLongPollingBot implements SmarthataMessageListener {
-
-    @Value("${bot.token}")
-    private String token;
 
     @Value("${bot.username}")
     private String username;
@@ -46,18 +43,17 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
     private final SmarthataMessageBroker messageBroker;
 
     @Autowired
-    public TmBot(List<Command> commands, SmarthataMessageBroker messageBroker) {
+    public TmBot(
+            @Value("${bot.token}") String token,
+            List<Command> commands,
+            SmarthataMessageBroker messageBroker
+    ) {
+        super(token);
         this.messageBroker = messageBroker;
         this.messageBroker.register(this);
 
         commandsMap = commands.stream()
                 .collect(Collectors.toMap(Command::getCommand, Function.identity()));
-    }
-
-
-    @Override
-    public String getBotToken() {
-        return token;
     }
 
     @Override
@@ -77,7 +73,8 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
 
         if (update.hasCallbackQuery()) {
             CallbackQuery callback = update.getCallbackQuery();
-            onMessageReceived(callback.getMessage().getChatId(), callback.getData(), callback.getMessage().getMessageId());
+            onMessageReceived(callback.getMessage().getChatId(), callback.getData(),
+                    callback.getMessage().getMessageId());
         }
 
     }
@@ -92,7 +89,7 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
 
     @Override
     public EndpointType getEndpointType() {
-        return USER;
+        return TELEGRAM;
     }
 
     private void onMessageReceived(Long chatId, String text) {
@@ -102,7 +99,9 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
     private void onMessageReceived(Long chatId, String text, Integer messageId) {
 
         log.info("text: [{}], messageId {}", text, messageId);
-        if (text == null) return;
+        if (text == null) {
+            return;
+        }
 
         text = text.replace("@" + username, "");
 
@@ -116,7 +115,9 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
     private boolean processMessage(Long chatId, String text, Integer messageId) {
         List<String> path = getPath(text);
         log.info("Process telegram message: path {}, text: {}", path, text);
-        if (path.isEmpty()) path.add("");
+        if (path.isEmpty()) {
+            path.add("");
+        }
 
         String commandName = path.remove(0);
         Command command = commandsMap.get(commandName);
@@ -150,9 +151,9 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
         SmarthataMessage message;
         if (text.matches("\\s")) {
             String[] split = text.split("\\s", 2);
-            message = new SmarthataMessage(split[0], split[1], USER);
+            message = new SmarthataMessage(split[0], split[1], TELEGRAM);
         } else {
-            message = new SmarthataMessage(text, "", USER);
+            message = new SmarthataMessage(text, "", TELEGRAM);
         }
         messageBroker.broadcastSmarthataMessage(message);
     }

@@ -20,7 +20,7 @@ import static org.smarthata.service.message.EndpointType.*;
 
 
 @Data
-class Device {
+class HeatingDevice {
     private final String queueActualTemp;
     private final String queueExpectedTemp;
     private final String queueEnabled;
@@ -28,7 +28,7 @@ class Device {
     private final AtomicReference<Double> expectedTemp;
     private final AtomicInteger enabled = new AtomicInteger(1);
 
-    Device(String baseQueue, AtomicReference<Double> expectedTemp) {
+    HeatingDevice(String baseQueue, AtomicReference<Double> expectedTemp) {
         this.queueActualTemp = baseQueue;
         this.queueExpectedTemp = baseQueue + "/in";
         this.queueEnabled = baseQueue + "/enabled";
@@ -39,25 +39,25 @@ class Device {
 
 @Service
 @Slf4j
-public class HeatingDevice extends AbstractSmarthataMessageListener {
+public class HeatingService extends AbstractSmarthataMessageListener {
 
-    private final Map<Room, Device> map = createMap();
+    private final Map<Room, HeatingDevice> map = createMap();
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public final AtomicInteger mixerPosition = new AtomicInteger(0);
 
-    public HeatingDevice(SmarthataMessageBroker messageBroker) {
+    public HeatingService(SmarthataMessageBroker messageBroker) {
         super(messageBroker);
     }
 
-    private HashMap<Room, Device> createMap() {
+    private HashMap<Room, HeatingDevice> createMap() {
         return new HashMap<>() {{
-            put(FLOOR, new Device("/heating/floor", new AtomicReference<>(30.0)));
-            put(BEDROOM, new Device("/bedroom", new AtomicReference<>(23.0)));
-            put(BATHROOM, new Device("/bathroom", new AtomicReference<>(23.0)));
-            put(GARAGE, new Device("/heating/garage/garage", new AtomicReference<>(15.0)));
-            put(WORKSHOP, new Device("/heating/garage/workshop", new AtomicReference<>(20.0)));
+            put(FLOOR, new HeatingDevice("/heating/floor", new AtomicReference<>(30.0)));
+            put(BEDROOM, new HeatingDevice("/bedroom", new AtomicReference<>(23.0)));
+            put(BATHROOM, new HeatingDevice("/bathroom", new AtomicReference<>(23.0)));
+            put(GARAGE, new HeatingDevice("/heating/garage/garage", new AtomicReference<>(15.0)));
+            put(WORKSHOP, new HeatingDevice("/heating/garage/workshop", new AtomicReference<>(20.0)));
         }};
     }
 
@@ -75,14 +75,14 @@ public class HeatingDevice extends AbstractSmarthataMessageListener {
 
     public void setExpectedTemp(Room room, Double temp) {
         log.info("Set temp [{}] for room [{}]", temp, room);
-        Device device = map.get(room);
+        HeatingDevice device = map.get(room);
         device.getExpectedTemp().set(temp);
         sendTempToBroker(device);
     }
 
     public synchronized void incExpectedTemp(Room room, double delta) {
         log.info("Inc temp [{}] for room [{}]", delta, room);
-        Device device = map.get(room);
+        HeatingDevice device = map.get(room);
         device.getExpectedTemp().getAndUpdate(value -> value + delta);
         sendTempToBroker(device);
     }
@@ -94,18 +94,18 @@ public class HeatingDevice extends AbstractSmarthataMessageListener {
 
     public void setFloorPomp(Room room, String floorPomp) {
         log.info("Set floor pomp [{}] for room {}", floorPomp, room);
-        Device device = map.get(room);
+        HeatingDevice device = map.get(room);
         device.getEnabled().set(Integer.parseInt(floorPomp));
         sendEnabledToBroker(device);
     }
 
-    private void sendTempToBroker(Device device) {
-        SmarthataMessage message = new SmarthataMessage(device.getQueueExpectedTemp(), device.getExpectedTemp().toString(), USER, MQTT, true);
+    private void sendTempToBroker(HeatingDevice device) {
+        SmarthataMessage message = new SmarthataMessage(device.getQueueExpectedTemp(), device.getExpectedTemp().toString(), TELEGRAM, MQTT, true);
         messageBroker.broadcastSmarthataMessage(message);
     }
 
-    private void sendEnabledToBroker(Device device) {
-        SmarthataMessage message = new SmarthataMessage(device.getQueueEnabled(), device.getEnabled().toString(), USER, MQTT, true);
+    private void sendEnabledToBroker(HeatingDevice device) {
+        SmarthataMessage message = new SmarthataMessage(device.getQueueEnabled(), device.getEnabled().toString(), TELEGRAM, MQTT, true);
         messageBroker.broadcastSmarthataMessage(message);
     }
 
@@ -114,7 +114,7 @@ public class HeatingDevice extends AbstractSmarthataMessageListener {
         map.forEach((room, device) -> readInputMessage(message, room, device));
     }
 
-    private void readInputMessage(SmarthataMessage message, Room room, Device device) {
+    private void readInputMessage(SmarthataMessage message, Room room, HeatingDevice device) {
         String path = message.getPath();
         if (path.equals(device.getQueueExpectedTemp())) {
             device.getExpectedTemp().set(Double.parseDouble(message.getText()));
@@ -129,7 +129,7 @@ public class HeatingDevice extends AbstractSmarthataMessageListener {
 
     @SneakyThrows
     @SuppressWarnings("unchecked")
-    private void parseActualTemp(SmarthataMessage message, Room room, Device device) {
+    private void parseActualTemp(SmarthataMessage message, Room room, HeatingDevice device) {
         Map<Object, Object> map = objectMapper.readValue(message.getText(), Map.class);
         if (map.containsKey("temp")) {
             Double newActualTemp = (Double) map.get("temp");
@@ -148,7 +148,7 @@ public class HeatingDevice extends AbstractSmarthataMessageListener {
         Map<String, Object> map = Map.of("action", action, "value", value);
         String text = objectMapper.writeValueAsString(map);
 
-        SmarthataMessage message = new SmarthataMessage("/heating/in/json", text, USER);
+        SmarthataMessage message = new SmarthataMessage("/heating/in/json", text, TELEGRAM);
         messageBroker.broadcastSmarthataMessage(message);
     }
 }

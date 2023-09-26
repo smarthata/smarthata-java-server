@@ -6,6 +6,7 @@ import org.smarthata.alice.model.smarthome.Device
 import org.smarthata.alice.model.smarthome.OnOffCapability
 import org.smarthata.alice.model.smarthome.State
 import org.smarthata.service.device.LightService
+import org.smarthata.service.message.EndpointType.ALICE
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -36,7 +37,7 @@ class AliceLightDevices {
         return if (onOff?.state?.value != null) {
             val value = onOff.state!!.value!!
             logger.info("Changing light $room to state $value")
-            lightService.setLight(room, value)
+            lightService.setLight(room, value, ALICE)
 
             getDeviceForRoom(room, actionResult = ActionResult(status = "DONE"))
         } else {

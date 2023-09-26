@@ -1,6 +1,5 @@
 package org.smarthata.service.device;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -12,8 +11,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import static org.smarthata.service.message.EndpointType.USER;
 
 @Slf4j
 @Service
@@ -48,25 +45,18 @@ public class LightService extends AbstractSmarthataMessageListener {
         return state;
     }
 
-    public synchronized void setLight(String room, String action) {
-        log.info("IN Switch light room = {}, action = {}, currentState = {}", room, action, lightState.get(room));
+    @SneakyThrows
+    public synchronized void setLight(String room, boolean newState, EndpointType source) {
+        log.info("IN Switch light room = {}, newState = {}, currentState = {}", room, newState, lightState.get(room));
+        lightState.put(room, newState);
 
-        boolean newState = "1".equals(action) || "true".equals(action);
-        setLight(room, newState);
-
+        Map<String, Object> map = Map.of("room", room, "state", newState);
+        sendToBroker(objectMapper.writeValueAsString(map), source);
         log.info("OUT Switch light room = {}, newState = {}", room, newState);
     }
 
     @SneakyThrows
-    public synchronized void setLight(String room, boolean newState) {
-        lightState.put(room, newState);
-
-        Map<String, Object> map = Map.of("room", room, "state", newState);
-        sendToBroker(objectMapper.writeValueAsString(map));
-    }
-
-    @SneakyThrows
-    public void enableLightTemporary(String room, long seconds) {
+    public void enableLightTemporary(String room, long seconds, EndpointType source) {
         log.info("IN enable light temporary room = {}", room);
 
         lightState.put(room, true);
@@ -75,13 +65,13 @@ public class LightService extends AbstractSmarthataMessageListener {
                 "room", room,
                 "state", true,
                 "time", seconds);
-        sendToBroker(objectMapper.writeValueAsString(map));
+        sendToBroker(objectMapper.writeValueAsString(map), source);
 
         log.info("OUT enable light temporary room = {}", room);
     }
 
-    private void sendToBroker(String text) {
-        SmarthataMessage message = new SmarthataMessage("/light/in", text, USER);
+    private void sendToBroker(String text, EndpointType source) {
+        SmarthataMessage message = new SmarthataMessage("/light/in", text, source);
         messageBroker.broadcastSmarthataMessage(message);
     }
 
