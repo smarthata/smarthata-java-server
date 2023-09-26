@@ -1,9 +1,9 @@
-package org.smarthata.service.device;
+package org.smarthata.service.device.heating;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.smarthata.service.device.Room;
 import org.smarthata.service.message.AbstractSmarthataMessageListener;
 import org.smarthata.service.message.EndpointType;
 import org.smarthata.service.message.SmarthataMessage;
@@ -17,24 +17,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.smarthata.service.device.Room.*;
 import static org.smarthata.service.message.EndpointType.*;
-
-
-@Data
-class HeatingDevice {
-    private final String queueActualTemp;
-    private final String queueExpectedTemp;
-    private final String queueEnabled;
-    private final AtomicReference<Double> actualTemp = new AtomicReference<>(0.0);
-    private final AtomicReference<Double> expectedTemp;
-    private final AtomicInteger enabled = new AtomicInteger(1);
-
-    HeatingDevice(String baseQueue, AtomicReference<Double> expectedTemp) {
-        this.queueActualTemp = baseQueue;
-        this.queueExpectedTemp = baseQueue + "/in";
-        this.queueEnabled = baseQueue + "/enabled";
-        this.expectedTemp = expectedTemp;
-    }
-}
 
 
 @Service

@@ -1,6 +1,6 @@
 package org.smarthata.service.tm.command;
 
-import org.smarthata.service.device.HeatingService;
+import org.smarthata.service.device.heating.HeatingService;
 import org.smarthata.service.device.Room;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
