@@ -1,7 +1,7 @@
 package org.smarthata.service.device.heating;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthata.service.device.Room;
@@ -110,14 +110,17 @@ public class HeatingService extends AbstractSmarthataMessageListener {
         }
     }
 
-    @SneakyThrows
     @SuppressWarnings("unchecked")
     private void parseActualTemp(SmarthataMessage message, Room room, HeatingDevice device) {
-        Map<Object, Object> map = objectMapper.readValue(message.text, Map.class);
-        if (map.containsKey("temp")) {
-            Double newActualTemp = (Double) map.get("temp");
-            logger.trace("Update room [{}] set actual temp [{}]", room, newActualTemp);
-            device.actualTemp.set(newActualTemp);
+        try {
+            Map<Object, Object> map = objectMapper.readValue(message.text, Map.class);
+            if (map.containsKey("temp")) {
+                Double newActualTemp = (Double) map.get("temp");
+                logger.trace("Update room [{}] set actual temp [{}]", room, newActualTemp);
+                device.actualTemp.set(newActualTemp);
+            }
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -126,12 +129,15 @@ public class HeatingService extends AbstractSmarthataMessageListener {
         return SYSTEM;
     }
 
-    @SneakyThrows
     public void sendAction(String action, int value) {
-        Map<String, Object> map = Map.of("action", action, "value", value);
-        String text = objectMapper.writeValueAsString(map);
+        try {
+            Map<String, Object> map = Map.of("action", action, "value", value);
+            String text = objectMapper.writeValueAsString(map);
 
-        SmarthataMessage message = new SmarthataMessage("/heating/in/json", text, TELEGRAM);
-        messageBroker.broadcastSmarthataMessage(message);
+            SmarthataMessage message = new SmarthataMessage("/heating/in/json", text, TELEGRAM);
+            messageBroker.broadcastSmarthataMessage(message);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

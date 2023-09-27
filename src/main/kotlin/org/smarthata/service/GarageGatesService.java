@@ -73,9 +73,9 @@ public class GarageGatesService {
     }
 
     private GarageGateAction findGarageGateWarmingAction(double streetTemp, double garageTemp) {
-        if (streetTemp > garageTemp + 0.2 && !garageCommand.gatesOpen.get())
+        if (streetTemp > garageTemp + 0.5 && !garageCommand.gatesOpen.get())
             return GarageGateAction.OPEN;
-        if (streetTemp + 0.2 < garageTemp && garageCommand.gatesOpen.get())
+        if (streetTemp + 0.5 < garageTemp && garageCommand.gatesOpen.get())
             return GarageGateAction.CLOSE;
         return GarageGateAction.NOTHING;
     }

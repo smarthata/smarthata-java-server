@@ -1,7 +1,7 @@
 package org.smarthata.service.device;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthata.service.message.AbstractSmarthataMessageListener;
@@ -40,29 +40,35 @@ public class LightService extends AbstractSmarthataMessageListener {
         return lightState.getOrDefault(room, false);
     }
 
-    @SneakyThrows
     public synchronized void updateLight(String room, boolean newState, EndpointType source) {
-        logger.info("IN Switch light room = {}, newState = {}, currentState = {}", room, newState, lightState.get(room));
-        lightState.put(room, newState);
+        try {
+            logger.info("IN Switch light room = {}, newState = {}, currentState = {}", room, newState, lightState.get(room));
+            lightState.put(room, newState);
 
-        Map<String, Object> map = Map.of("room", room, "state", newState);
-        sendToBroker(objectMapper.writeValueAsString(map), source);
-        logger.info("OUT Switch light room = {}, newState = {}", room, newState);
+            Map<String, Object> map = Map.of("room", room, "state", newState);
+            sendToBroker(objectMapper.writeValueAsString(map), source);
+            logger.info("OUT Switch light room = {}, newState = {}", room, newState);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    @SneakyThrows
     public void enableLightTemporary(String room, long seconds, EndpointType source) {
-        logger.info("IN enable light temporary room = {}", room);
+        try {
+            logger.info("IN enable light temporary room = {}", room);
 
-        lightState.put(room, true);
+            lightState.put(room, true);
 
-        Map<String, Object> map = Map.of(
-                "room", room,
-                "state", true,
-                "time", seconds);
-        sendToBroker(objectMapper.writeValueAsString(map), source);
+            Map<String, Object> map = Map.of(
+                    "room", room,
+                    "state", true,
+                    "time", seconds);
+            sendToBroker(objectMapper.writeValueAsString(map), source);
 
-        logger.info("OUT enable light temporary room = {}", room);
+            logger.info("OUT enable light temporary room = {}", room);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void sendToBroker(String text, EndpointType source) {
@@ -70,13 +76,16 @@ public class LightService extends AbstractSmarthataMessageListener {
         messageBroker.broadcastSmarthataMessage(message);
     }
 
-    @SneakyThrows
     @Override
     @SuppressWarnings("unchecked")
     public void receiveSmarthataMessage(SmarthataMessage message) {
         if (message.path.equals("/light/state")) {
-            Map<String, Boolean> map = objectMapper.readValue(message.text, Map.class);
-            lightState.putAll(map);
+            try {
+                Map<String, Boolean> map = objectMapper.readValue(message.text, Map.class);
+                lightState.putAll(map);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 

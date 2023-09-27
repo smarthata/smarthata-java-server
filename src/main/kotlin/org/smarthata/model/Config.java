@@ -3,9 +3,7 @@ package org.smarthata.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.NoArgsConstructor;
 
-@NoArgsConstructor
 @Table(
         uniqueConstraints = @UniqueConstraint(columnNames = {"name", "device_id"})
 )

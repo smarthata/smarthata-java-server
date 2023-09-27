@@ -1,8 +1,6 @@
 package org.smarthata.service.message;
 
-import lombok.NoArgsConstructor;
 
-@NoArgsConstructor
 public class SmarthataMessage {
 
     public String path;

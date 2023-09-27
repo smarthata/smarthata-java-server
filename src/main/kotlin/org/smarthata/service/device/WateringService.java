@@ -1,7 +1,11 @@
 package org.smarthata.service.device;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthata.model.Mode;
@@ -10,10 +14,6 @@ import org.smarthata.service.message.EndpointType;
 import org.smarthata.service.message.SmarthataMessage;
 import org.smarthata.service.message.SmarthataMessageBroker;
 import org.springframework.stereotype.Service;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import static org.smarthata.service.message.EndpointType.MQTT;
 
@@ -46,11 +46,14 @@ public class WateringService extends AbstractSmarthataMessageListener {
         logger.info("Wave to broker sent");
     }
 
-    @SneakyThrows
-    private void sendActionToBroker(String action, EndpointType source) {
-        String text = objectMapper.writeValueAsString(Map.of("action", action));
-        SmarthataMessage message = new SmarthataMessage("/watering/in/json", text, source, MQTT, false);
-        messageBroker.broadcastSmarthataMessage(message);
+    private void sendActionToBroker(String action, EndpointType source){
+        try {
+            String text = objectMapper.writeValueAsString(Map.of("action", action));
+            SmarthataMessage message = new SmarthataMessage("/watering/in/json", text, source, MQTT, false);
+            messageBroker.broadcastSmarthataMessage(message);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public Map<Integer, Integer> updateChannel(int channel, int state, EndpointType source) {
@@ -59,39 +62,44 @@ public class WateringService extends AbstractSmarthataMessageListener {
         return channelStates;
     }
 
-    @SneakyThrows
     private void sendChangeChannelBroker(int channel, int state, EndpointType source) {
-        String text = objectMapper.writeValueAsString(Map.of("channel", channel, "state", state));
-
-        SmarthataMessage message = new SmarthataMessage("/watering/in/json", text, source, MQTT, false);
-        messageBroker.broadcastSmarthataMessage(message);
+        try {
+            String text = objectMapper.writeValueAsString(Map.of("channel", channel, "state", state));
+            SmarthataMessage message = new SmarthataMessage("/watering/in/json", text, source, MQTT, false);
+            messageBroker.broadcastSmarthataMessage(message);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    @SneakyThrows
     @Override
     @SuppressWarnings("unchecked")
     public void receiveSmarthataMessage(SmarthataMessage message) {
-        switch (message.path) {
-            case "/watering/mode/in" -> {
-                mode = Mode.valueOf(Integer.parseInt(message.text));
-                logger.info("Watering mode changed to {}", mode);
+        try {
+            switch (message.path) {
+                case "/watering/mode/in" -> {
+                    mode = Mode.valueOf(Integer.parseInt(message.text));
+                    logger.info("Watering mode changed to {}", mode);
+                }
+                case "/watering/start/in" -> {
+                    startTimes = objectMapper.readValue(message.text, List.class);
+                    logger.info("Watering startTimes {}", startTimes);
+                }
+                case "/watering/duration/in" -> {
+                    durations = objectMapper.readValue(message.text, List.class);
+                    logger.info("Watering durations {}", durations);
+                }
+                case "/watering" -> {
+                    Map<String, Integer> map = objectMapper.readValue(message.text, Map.class);
+                    channelStates.put(1, map.get("g1"));
+                    channelStates.put(2, map.get("g2"));
+                    channelStates.put(3, map.get("g3"));
+                    channelStates.put(4, map.get("k"));
+                    channelStates.put(5, map.get("o"));
+                }
             }
-            case "/watering/start/in" -> {
-                startTimes = objectMapper.readValue(message.text, List.class);
-                logger.info("Watering startTimes {}", startTimes);
-            }
-            case "/watering/duration/in" -> {
-                durations = objectMapper.readValue(message.text, List.class);
-                logger.info("Watering durations {}", durations);
-            }
-            case "/watering" -> {
-                Map<String, Integer> map = objectMapper.readValue(message.text, Map.class);
-                channelStates.put(1, map.get("g1"));
-                channelStates.put(2, map.get("g2"));
-                channelStates.put(3, map.get("g3"));
-                channelStates.put(4, map.get("k"));
-                channelStates.put(5, map.get("o"));
-            }
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         }
     }
 

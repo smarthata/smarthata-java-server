@@ -1,11 +1,9 @@
 package org.smarthata.model;
 
-import lombok.NoArgsConstructor;
 
 import jakarta.persistence.*;
 import java.util.List;
 
-@NoArgsConstructor
 @Entity
 public class Device {
 

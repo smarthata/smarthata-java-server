@@ -2,14 +2,12 @@ package org.smarthata.model;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.NoArgsConstructor;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.Date;
 
-@NoArgsConstructor
 @Entity
 public class Measure {
 
@@ -34,4 +32,6 @@ public class Measure {
         this.date = date;
     }
 
+    public Measure() {
+    }
 }

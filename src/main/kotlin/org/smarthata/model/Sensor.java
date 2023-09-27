@@ -4,10 +4,8 @@ package org.smarthata.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.NoArgsConstructor;
 
 
-@NoArgsConstructor
 @Entity
 public class Sensor {
 
@@ -28,5 +26,8 @@ public class Sensor {
     public Sensor(@NotNull Device device, String name) {
         this.name = name;
         this.device = device;
+    }
+
+    public Sensor() {
     }
 }
