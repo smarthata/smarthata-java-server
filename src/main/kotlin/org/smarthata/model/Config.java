@@ -1,12 +1,11 @@
 package org.smarthata.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 
 @Getter
 @Setter
@@ -19,20 +18,20 @@ public class Config {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Integer id;
+    public Integer id;
 
     @NotNull
-    private String name;
+    public String name;
 
     @NotNull
-    private String value;
+    public String value;
 
-    private Units units;
+    public Units units;
 
     @JsonIgnore
     @NotNull
     @ManyToOne
     @JoinColumn(name = "device_id")
-    private Device device;
+    public Device device;
 
 }

@@ -1,7 +1,6 @@
 package org.smarthata.alice.rest
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import lombok.extern.slf4j.Slf4j
 import org.slf4j.LoggerFactory
 import org.smarthata.alice.model.smarthome.DeviceAction
 import org.smarthata.alice.model.smarthome.DeviceQuery
@@ -14,7 +13,6 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.util.*
 
-@Slf4j
 @RestController
 @RequestMapping("/alice/home/v1.0")
 class AliceSmartHomeController {

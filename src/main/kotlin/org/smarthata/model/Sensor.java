@@ -19,17 +19,17 @@ public class Sensor {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Integer id;
+    public Integer id;
 
-    private String name;
+    public String name;
 
-    private Units units;
+    public Units units;
 
     @JsonIgnore
     @NotNull
     @ManyToOne
     @JoinColumn(name = "device_id")
-    private Device device;
+    public Device device;
 
     public Sensor(@NotNull Device device, String name) {
         this.name = name;

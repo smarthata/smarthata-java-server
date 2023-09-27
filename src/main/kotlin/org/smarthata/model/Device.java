@@ -15,14 +15,14 @@ public class Device {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Integer id;
+    public Integer id;
 
-    private String name;
-
-    @OneToMany(mappedBy = "device", cascade = CascadeType.ALL)
-    private List<Sensor> sensors;
+    public String name;
 
     @OneToMany(mappedBy = "device", cascade = CascadeType.ALL)
-    private List<Config> configs;
+    public List<Sensor> sensors;
+
+    @OneToMany(mappedBy = "device", cascade = CascadeType.ALL)
+    public List<Config> configs;
 
 }

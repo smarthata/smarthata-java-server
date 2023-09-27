@@ -36,10 +36,6 @@ public class GarageGatesService {
     private GarageCommand garageCommand;
     @Autowired(required = false)
     private TmBot tmBot;
-
-    @Autowired
-    private SmarthataMessageBroker messageBroker;
-
     private LocalDateTime lastNotificationTime;
 
 
@@ -51,7 +47,7 @@ public class GarageGatesService {
             double streetTemp = getStreetTemp();
             double garageTemp = getGarageTemp();
 
-            if (getStreetAverageTemp() <= 15) {
+            if (getStreetAverageTemp() <= 18) {
                 log.debug("Check for heating garage");
                 GarageGateAction action = getGarageGateWarmingAction(streetTemp, garageTemp);
                 if (action != GarageGateAction.NOTHING) {
