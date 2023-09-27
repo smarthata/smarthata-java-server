@@ -1,47 +1,32 @@
 package org.smarthata.service.mqtt;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.paho.client.mqttv3.IMqttClient;
 import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthata.service.DateUtils;
-import org.smarthata.service.message.*;
+import org.smarthata.service.message.AbstractSmarthataMessageListener;
+import org.smarthata.service.message.EndpointType;
+import org.smarthata.service.message.SmarthataMessage;
+import org.smarthata.service.message.SmarthataMessageBroker;
+import org.smarthata.service.message.SmarthataMessageListener;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-
 import static org.smarthata.service.message.EndpointType.MQTT;
 
-record LastMessage(
-        String message,
-        LocalDateTime dateTime
-) {
-}
-
 @Service
-public class MqttService extends AbstractSmarthataMessageListener implements IMqttMessageListener, SmarthataMessageListener {
+public class MqttService extends AbstractSmarthataMessageListener implements IMqttMessageListener,
+        SmarthataMessageListener {
 
     private final IMqttClient mqttClient;
 
-
-    private final ObjectMapper objectMapper;
-    public MqttService(IMqttClient mqttClient, SmarthataMessageBroker messageBroker, ObjectMapper objectMapper) {
+    public MqttService(IMqttClient mqttClient, SmarthataMessageBroker messageBroker) {
         super(messageBroker);
         this.mqttClient = mqttClient;
-        this.objectMapper = objectMapper;
     }
-
-    private final Map<String, LastMessage> lastMessages = new ConcurrentHashMap<>();
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -51,7 +36,7 @@ public class MqttService extends AbstractSmarthataMessageListener implements IMq
         try {
             mqttClient.subscribe("/#", 1, this);
         } catch (MqttException e) {
-            e.printStackTrace();
+            logger.error("Error on mqtt subscribe", e);
         }
     }
 
@@ -60,7 +45,6 @@ public class MqttService extends AbstractSmarthataMessageListener implements IMq
         String text = new String(mqttMessage.getPayload());
         logger.debug("messageArrived: [{}], [{}]", topic, text);
         messageBroker.broadcast(new SmarthataMessage(topic, text, MQTT));
-        lastMessages.put(topic, new LastMessage(text, LocalDateTime.now()));
     }
 
     @Override
@@ -73,41 +57,6 @@ public class MqttService extends AbstractSmarthataMessageListener implements IMq
         return MQTT;
     }
 
-    public Optional<String> findLastMessage(String topic) {
-        LastMessage lastMessage = lastMessages.get(topic);
-        if (lastMessage == null || DateUtils.isDateAfter(lastMessage.dateTime(), Duration.ofMinutes(5))) {
-            return Optional.empty();
-        }
-        return Optional.of(lastMessage.message());
-    }
-
-    public Optional<Double> findLastMessageAsDouble(String topic) {
-        return findLastMessage(topic).map(Double::parseDouble);
-    }
-
-    @SuppressWarnings("unchecked")
-    public Optional<Map<String, Object>> findLastMessageAsMap(String topic) {
-
-        Optional<String> json = findLastMessage(topic);
-        if (json.isEmpty()) return Optional.empty();
-
-        try {
-            return Optional.of(objectMapper.readValue(json.get(), Map.class));
-        } catch (JsonProcessingException e) {
-            logger.error("Failed to parse json: {}", json, e);
-            throw new RuntimeException(e);
-        }
-    }
-    public Optional<Object> findLastMessageFieldFromJson(String topic, String field) {
-        Optional<Map<String, Object>> optional = findLastMessageAsMap(topic);
-        if (optional.isPresent()) {
-            Map<String, Object> map = optional.get();
-            if (map.containsKey(field)) {
-                return Optional.ofNullable(map.get(field));
-            }
-        }
-        return Optional.empty();
-    }
 
     private void publishMessageToMqtt(String topic, String message, boolean retained) {
         try {

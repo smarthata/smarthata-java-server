@@ -2,7 +2,7 @@ package org.smarthata.service.tm.command;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthata.service.mqtt.MqttService;
+import org.smarthata.service.mqtt.MqttMessagesCache;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
@@ -19,19 +19,19 @@ public class GarageCommand extends AbstractCommand {
 
     public final String adminChatId;
 
-    private final MqttService mqttService;
+    private final MqttMessagesCache mqttMessagesCache;
 
     public AtomicBoolean gatesOpen = new AtomicBoolean(false);
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     public GarageCommand(
-            MqttService mqttService,
+            MqttMessagesCache mqttMessagesCache,
             @Value("${bot.adminChatId}") String adminChatId
     ) {
         super(GARAGE);
         this.adminChatId = adminChatId;
-        this.mqttService = mqttService;
+        this.mqttMessagesCache = mqttMessagesCache;
     }
 
     @Override
@@ -74,11 +74,11 @@ public class GarageCommand extends AbstractCommand {
 
 
     private Optional<Double> findStreetTemp() {
-        return mqttService.findLastMessageAsDouble("/street/temp");
+        return mqttMessagesCache.findLastMessageAsDouble("/street/temp");
     }
 
     private Optional<Object> findGarageTemp() {
-        return mqttService.findLastMessageFieldFromJson("/heating/garage/garage", "temp");
+        return mqttMessagesCache.findLastMessageFieldFromJson("/heating/garage/garage", "temp");
     }
 
 }

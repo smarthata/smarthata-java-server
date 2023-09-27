@@ -2,7 +2,7 @@ package org.smarthata.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthata.service.mqtt.MqttService;
+import org.smarthata.service.mqtt.MqttMessagesCache;
 import org.smarthata.service.tm.TmBot;
 import org.smarthata.service.tm.command.CommandRequest;
 import org.smarthata.service.tm.command.GarageCommand;
@@ -30,18 +30,18 @@ enum GarageGateAction {
 @Service
 public class GarageGatesService {
 
-    private final MqttService mqttService;
+    private final MqttMessagesCache mqttMessagesCache;
     private final GarageCommand garageCommand;
     private final TmBot tmBot;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private LocalDateTime lastNotificationTime;
 
     public GarageGatesService(
-            MqttService mqttService,
+            MqttMessagesCache mqttMessagesCache,
             GarageCommand garageCommand,
             @Autowired(required = false) TmBot tmBot
     ) {
-        this.mqttService = mqttService;
+        this.mqttMessagesCache = mqttMessagesCache;
         this.garageCommand = garageCommand;
         this.tmBot = tmBot;
     }
@@ -91,21 +91,21 @@ public class GarageGatesService {
     }
 
     private double findStreetTemp() {
-        double streetTemp = mqttService.findLastMessageAsDouble("/street/temp")
+        double streetTemp = mqttMessagesCache.findLastMessageAsDouble("/street/temp")
                 .orElseThrow(() -> new RuntimeException("Street temp is not populated"));
         logger.debug("Street temp: {}", streetTemp);
         return streetTemp;
     }
 
     private double findStreetAverageTemp() {
-        double streetAverageTemp = mqttService.findLastMessageAsDouble("/street/temp-average")
+        double streetAverageTemp = mqttMessagesCache.findLastMessageAsDouble("/street/temp-average")
                 .orElseThrow(() -> new RuntimeException("Average temp is not populated"));
         logger.debug("Street average temp: {}", streetAverageTemp);
         return streetAverageTemp;
     }
 
     private double findGarageTemp() {
-        Double garageTemp = (Double) mqttService.findLastMessageFieldFromJson("/heating/garage/garage", "temp")
+        Double garageTemp = (Double) mqttMessagesCache.findLastMessageFieldFromJson("/heating/garage/garage", "temp")
                 .orElseThrow(() -> new RuntimeException("Garage data is not populated"));
         logger.debug("Garage temp: {}", garageTemp);
         return garageTemp;
