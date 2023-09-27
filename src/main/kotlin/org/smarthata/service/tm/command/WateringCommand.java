@@ -70,7 +70,7 @@ public class WateringCommand extends AbstractCommand {
         Mode next = Mode.values()[nextIndex];
 
         Map<String, String> map = new LinkedHashMap<>();
-        map.put("mode/" + next.getMode(), "Режим: " + currentMode.name());
+        map.put("mode/" + next.mode, "Режим: " + currentMode.name());
         if (currentMode != Mode.OFF) {
             map.put("channel", "Каналы: " + wateringService.getChannelStates().values());
             map.put("wave/start", "Запустить полив");

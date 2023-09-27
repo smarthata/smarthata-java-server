@@ -79,8 +79,8 @@ public class LightService extends AbstractSmarthataMessageListener {
     @Override
     @SuppressWarnings("unchecked")
     public void receiveSmarthataMessage(SmarthataMessage message) {
-        if (message.getPath().equals("/light/state")) {
-            Map<String, Boolean> map = objectMapper.readValue(message.getText(), Map.class);
+        if (message.path.equals("/light/state")) {
+            Map<String, Boolean> map = objectMapper.readValue(message.text, Map.class);
             lightState.putAll(map);
         }
     }

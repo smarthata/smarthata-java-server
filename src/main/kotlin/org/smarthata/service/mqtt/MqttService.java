@@ -65,7 +65,7 @@ public class MqttService extends AbstractSmarthataMessageListener implements IMq
 
     @Override
     public void receiveSmarthataMessage(SmarthataMessage message) {
-        publishMessageToMqtt(message.getPath(), message.getText(), message.isRetained());
+        publishMessageToMqtt(message.path, message.text, message.retained);
     }
 
     @Override

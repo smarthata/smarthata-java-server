@@ -22,7 +22,7 @@ public class WateringService extends AbstractSmarthataMessageListener {
 
     private final ObjectMapper objectMapper;
 
-    private Mode mode = null;
+    private Mode mode = Mode.UNDEFINED;
 
     private List<Double> startTimes;
     private List<Integer> durations;
@@ -69,30 +69,27 @@ public class WateringService extends AbstractSmarthataMessageListener {
     @Override
     @SuppressWarnings("unchecked")
     public void receiveSmarthataMessage(SmarthataMessage message) {
-        switch (message.getPath()) {
-            case "/watering/mode/in":
-                mode = Mode.valueOf(Integer.parseInt(message.getText()));
+        switch (message.path) {
+            case "/watering/mode/in" -> {
+                mode = Mode.valueOf(Integer.parseInt(message.text));
                 log.info("Watering mode changed to {}", mode);
-                break;
-            case "/watering/start/in":
-                startTimes = objectMapper.readValue(message.getText(), List.class);
+            }
+            case "/watering/start/in" -> {
+                startTimes = objectMapper.readValue(message.text, List.class);
                 log.info("Watering startTimes {}", startTimes);
-                break;
-            case "/watering/duration/in":
-                durations = objectMapper.readValue(message.getText(), List.class);
+            }
+            case "/watering/duration/in" -> {
+                durations = objectMapper.readValue(message.text, List.class);
                 log.info("Watering durations {}", durations);
-                break;
-            case "/watering":
-                Map<String, Integer> map = objectMapper.readValue(message.getText(), Map.class);
-//                /watering {"g1":0,"g2":0,"g3":0,"k":0,"o":0,"hours":1}
-
+            }
+            case "/watering" -> {
+                Map<String, Integer> map = objectMapper.readValue(message.text, Map.class);
                 channelStates.put(1, map.get("g1"));
                 channelStates.put(2, map.get("g2"));
                 channelStates.put(3, map.get("g3"));
                 channelStates.put(4, map.get("k"));
                 channelStates.put(5, map.get("o"));
-
-                break;
+            }
         }
     }
 

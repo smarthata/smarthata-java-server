@@ -30,7 +30,7 @@ public class SensorCleaner {
 
     @Async
     public void cleanAllDevices() {
-        deviceRepository.findAll().forEach(device -> cleanDevice(device.getId()));
+        deviceRepository.findAll().forEach(device -> cleanDevice(device.id));
     }
 
     @Async
@@ -69,12 +69,12 @@ public class SensorCleaner {
 
         Long totalRemoved = 0L;
         do {
-            log.debug("Sensor {} date {} / {}  total removed {}", sensor.getName(), periodEndDate.toLocalDate(), earliestDate.toLocalDate(), totalRemoved);
+            log.debug("Sensor {} date {} / {}  total removed {}", sensor.name, periodEndDate.toLocalDate(), earliestDate.toLocalDate(), totalRemoved);
             LocalDateTime periodStartDate = periodEndDate.minus(stepCount, stepUnit);
             totalRemoved += measureCleaner.cleanPeriod(sensor, periodStartDate, periodEndDate);
             periodEndDate = periodStartDate;
         } while (periodEndDate.isAfter(earliestDate));
-        log.debug("Sensor {} total removed {}", sensor.getName(), totalRemoved);
+        log.debug("Sensor {} total removed {}", sensor.name, totalRemoved);
         return totalRemoved;
 
     }

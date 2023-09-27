@@ -81,8 +81,8 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
 
     @Override
     public void receiveSmarthataMessage(SmarthataMessage message) {
-        if (message.getPath().equals("/messages")) {
-            BotApiMethod<?> botApiMethod = new SendMessage(adminChatId, message.getText());
+        if (message.path.equals("/messages")) {
+            BotApiMethod<?> botApiMethod = new SendMessage(adminChatId, message.text);
             sendMessageToTelegram(botApiMethod);
         }
     }

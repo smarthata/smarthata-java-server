@@ -47,7 +47,7 @@ public class WeatherService {
         Sensor streetSensor = sensorRepository.findByIdOrElseThrow(STREET_TEMP_SENSOR_ID);
 
         double dailyAverage = round(measureRepository.findBySensorAndDateAfter(streetSensor, aDayAgo()).stream()
-                .collect(Collectors.averagingDouble(Measure::getValue)));
+                .collect(Collectors.averagingDouble( it -> it.value)));
 
         Sensor dailyAverageSensor = sensorRepository.findByIdOrElseThrow(STREET_AVG_TEMP_SENSOR_ID);
         Measure measure = new Measure(dailyAverageSensor, dailyAverage, new Date());
@@ -63,12 +63,12 @@ public class WeatherService {
         Measure lastMeasure = measureRepository.findTopBySensorOrderByDateDesc(streetSensor);
 
         long aLittleBitAgo = new Date().getTime() - TimeUnit.MINUTES.toMillis(2);
-        if (lastMeasure.getDate().before(new Date(aLittleBitAgo))) {
+        if (lastMeasure.date.before(new Date(aLittleBitAgo))) {
             log.error("Does not have time to publish into narodmon");
             return;
         }
 
-        Double temp = lastMeasure.getValue();
+        Double temp = lastMeasure.value;
         try {
             String url = String.format("http://narodmon.ru/get?ID=%s&street=%s", mac, round(temp));
 

@@ -1,5 +1,12 @@
 package org.smarthata.service.health;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import lombok.extern.slf4j.Slf4j;
 import org.smarthata.service.message.AbstractSmarthataMessageListener;
 import org.smarthata.service.message.EndpointType;
@@ -8,13 +15,6 @@ import org.smarthata.service.message.SmarthataMessageBroker;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import static java.time.LocalDateTime.now;
 import static org.smarthata.service.message.EndpointType.SYSTEM;
@@ -30,7 +30,8 @@ public class DeviceHealthCheckService extends AbstractSmarthataMessageListener {
     private final Map<String, DeviceHealth> deviceTimeMap;
     private final List<String> devices;
 
-    public DeviceHealthCheckService(SmarthataMessageBroker messageBroker, @Value("${health.devices}") List<String> devices) {
+    public DeviceHealthCheckService(SmarthataMessageBroker messageBroker,
+                                    @Value("${health.devices}") List<String> devices) {
         super(messageBroker);
 
         this.devices = devices;
@@ -48,16 +49,16 @@ public class DeviceHealthCheckService extends AbstractSmarthataMessageListener {
 
     @Override
     public void receiveSmarthataMessage(SmarthataMessage message) {
-        DeviceHealth deviceHealth = deviceTimeMap.get(message.getPath());
+        DeviceHealth deviceHealth = deviceTimeMap.get(message.path);
         if (deviceHealth != null) {
 
-            if (deviceHealth.getStatus() != DeviceStatus.ACTIVE) {
-                deviceHealth.setLastNotificationTime(null);
-                sendMessage("Device is active: " + deviceHealth.getDevicePath());
+            if (deviceHealth.status != DeviceStatus.ACTIVE) {
+                deviceHealth.lastNotificationTime = null;
+                sendMessage("Device is active: " + deviceHealth.devicePath);
             }
 
-            deviceHealth.setUpdateTime(now());
-            deviceHealth.setStatus(DeviceStatus.ACTIVE);
+            deviceHealth.updateTime = now();
+            deviceHealth.status = DeviceStatus.ACTIVE;
         }
     }
 
@@ -77,8 +78,8 @@ public class DeviceHealthCheckService extends AbstractSmarthataMessageListener {
         List<DeviceHealth> offlineDevices = new ArrayList<>();
         for (String device : devices) {
             DeviceHealth deviceHealth = deviceTimeMap.get(device);
-            if (isDateAfter(deviceHealth.getUpdateTime(), OFFLINE_DURATION)) {
-                deviceHealth.setStatus(DeviceStatus.OFFLINE);
+            if (isDateAfter(deviceHealth.updateTime, OFFLINE_DURATION)) {
+                deviceHealth.status = DeviceStatus.OFFLINE;
                 offlineDevices.add(deviceHealth);
             }
         }
@@ -87,9 +88,9 @@ public class DeviceHealthCheckService extends AbstractSmarthataMessageListener {
 
     private void sendNotifications(List<DeviceHealth> offlineDevices) {
         for (DeviceHealth offlineDevice : offlineDevices) {
-            if (isDateAfter(offlineDevice.getLastNotificationTime(), NOTIFICATION_DURATION)) {
-                offlineDevice.setLastNotificationTime(now());
-                sendMessage("Device is offline: " + offlineDevice.getDevicePath());
+            if (isDateAfter(offlineDevice.lastNotificationTime, NOTIFICATION_DURATION)) {
+                offlineDevice.lastNotificationTime = now();
+                sendMessage("Device is offline: " + offlineDevice.devicePath);
             }
         }
     }

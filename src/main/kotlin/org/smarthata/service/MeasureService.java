@@ -31,9 +31,9 @@ public class MeasureService {
 
     public Map<String, Measure> findTopByDevice(Integer deviceId) {
         Device device = deviceRepository.findByIdOrElseThrow(deviceId);
-        return device.getSensors().stream()
+        return device.sensors.stream()
                 .map(measureRepository::findTopBySensorOrderByDateDesc)
-                .collect(Collectors.toMap(measure -> measure.getSensor().getName(), Function.identity()));
+                .collect(Collectors.toMap(measure -> measure.sensor.name, Function.identity()));
     }
 
     public List<Measure> save(Integer deviceId, Map<String, String> params) {
@@ -60,9 +60,9 @@ public class MeasureService {
     }
 
     private Sensor findOrCreateSensor(final Device device, final String name) {
-        return device.getSensors()
+        return device.sensors
                 .stream()
-                .filter(s -> s.getName().equals(name))
+                .filter(s -> s.name.equals(name))
                 .findAny()
                 .orElseGet(() -> sensorRepository.save(new Sensor(device, name)));
     }

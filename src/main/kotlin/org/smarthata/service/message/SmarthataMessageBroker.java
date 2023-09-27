@@ -14,7 +14,7 @@ public class SmarthataMessageBroker {
     private final List<SmarthataMessageListener> listeners = new ArrayList<>();
 
     public void broadcastSmarthataMessageRetained(SmarthataMessage message) {
-        message.setRetained(true);
+        message.retained = true;
         broadcastSmarthataMessage(message);
     }
 
@@ -31,8 +31,8 @@ public class SmarthataMessageBroker {
     }
 
     private boolean isNeedSendMessage(SmarthataMessage message, EndpointType endpointType) {
-        EndpointType destination = message.getDestination();
-        return endpointType != message.getSource() && (endpointType == destination || destination == null);
+        EndpointType destination = message.destination;
+        return endpointType != message.source && (endpointType == destination || destination == null);
     }
 
 }

@@ -43,7 +43,7 @@ public class TemperaturesCommand extends AbstractCommand {
     private String getTextLineForSensor(int sensorId, String name) {
         Sensor sensor = sensorRepository.findByIdOrElseThrow(sensorId);
         Measure measure = measureRepository.findTopBySensorOrderByDateDesc(sensor);
-        return String.format(name + " : %.1f°C (%d мин. назад)\n", measure.getValue(), getMinutesAgo(measure.getDate()));
+        return String.format(name + " : %.1f°C (%d мин. назад)\n", measure.value, getMinutesAgo(measure.date));
     }
 
     private long getMinutesAgo(final Date date) {

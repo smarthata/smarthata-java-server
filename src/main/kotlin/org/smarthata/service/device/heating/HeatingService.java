@@ -97,22 +97,22 @@ public class HeatingService extends AbstractSmarthataMessageListener {
     }
 
     private void readInputMessage(SmarthataMessage message, Room room, HeatingDevice device) {
-        String path = message.getPath();
+        String path = message.path;
         if (path.equals(device.getQueueExpectedTemp())) {
-            device.getExpectedTemp().set(Double.parseDouble(message.getText()));
+            device.getExpectedTemp().set(Double.parseDouble(message.text));
         } else if (path.equals(device.getQueueActualTemp())) {
             parseActualTemp(message, room, device);
         } else if (path.equals(device.getQueueEnabled())) {
-            device.getEnabled().set(Integer.parseInt(message.getText()));
+            device.getEnabled().set(Integer.parseInt(message.text));
         } else if (path.equals("/heating/floor/mixer-position")) {
-            mixerPosition.set(Integer.parseInt(message.getText()));
+            mixerPosition.set(Integer.parseInt(message.text));
         }
     }
 
     @SneakyThrows
     @SuppressWarnings("unchecked")
     private void parseActualTemp(SmarthataMessage message, Room room, HeatingDevice device) {
-        Map<Object, Object> map = objectMapper.readValue(message.getText(), Map.class);
+        Map<Object, Object> map = objectMapper.readValue(message.text, Map.class);
         if (map.containsKey("temp")) {
             Double newActualTemp = (Double) map.get("temp");
             log.trace("Update room [{}] set actual temp [{}]", room, newActualTemp);

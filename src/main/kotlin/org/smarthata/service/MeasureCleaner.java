@@ -38,7 +38,7 @@ public class MeasureCleaner {
         long mid = (endDate.getTime() - startDate.getTime()) / 2;
         Date mediumDate = new Date(startDate.getTime() + mid);
 
-        Double avg = measureRepository.avgValueBySensorAndDateBetween(sensor.getId(), startDate, endDate);
+        Double avg = measureRepository.avgValueBySensorAndDateBetween(sensor.id, startDate, endDate);
 
         Measure measure = new Measure(sensor, avg, mediumDate);
         log.debug("count = {} values avg = {}  medDate = {}, measure = {}", count, avg, mediumDate, measure);
