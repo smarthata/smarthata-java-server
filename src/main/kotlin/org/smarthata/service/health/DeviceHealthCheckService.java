@@ -7,7 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.smarthata.service.message.AbstractSmarthataMessageListener;
 import org.smarthata.service.message.EndpointType;
 import org.smarthata.service.message.SmarthataMessage;
@@ -20,7 +21,6 @@ import static java.time.LocalDateTime.now;
 import static org.smarthata.service.message.EndpointType.SYSTEM;
 import static org.smarthata.service.message.EndpointType.TELEGRAM;
 
-@Slf4j
 @Service
 public class DeviceHealthCheckService extends AbstractSmarthataMessageListener {
 
@@ -37,6 +37,7 @@ public class DeviceHealthCheckService extends AbstractSmarthataMessageListener {
         this.devices = devices;
         deviceTimeMap = createMap(devices);
     }
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private static Map<String, DeviceHealth> createMap(List<String> devices) {
         Map<String, DeviceHealth> map = new HashMap<>();
@@ -70,7 +71,7 @@ public class DeviceHealthCheckService extends AbstractSmarthataMessageListener {
     @Scheduled(cron = "0 * * * * *")
     public void check() {
         List<DeviceHealth> offlineDevices = getOfflineDevices();
-        log.debug("offlineDevices = " + offlineDevices);
+        logger.debug("offlineDevices = " + offlineDevices);
         sendNotifications(offlineDevices);
     }
 

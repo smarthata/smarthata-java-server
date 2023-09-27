@@ -1,6 +1,7 @@
 package org.smarthata.service;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.smarthata.model.Measure;
 import org.smarthata.model.Sensor;
 import org.smarthata.repository.MeasureRepository;
@@ -18,7 +19,6 @@ import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-@Slf4j
 @Service
 public class WeatherService {
 
@@ -29,6 +29,8 @@ public class WeatherService {
     private final MeasureRepository measureRepository;
 
     private final RestTemplate restTemplate;
+
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Value("${narodmon.mac}")
     private String mac;
@@ -64,7 +66,7 @@ public class WeatherService {
 
         long aLittleBitAgo = new Date().getTime() - TimeUnit.MINUTES.toMillis(2);
         if (lastMeasure.date.before(new Date(aLittleBitAgo))) {
-            log.error("Does not have time to publish into narodmon");
+            logger.error("Does not have time to publish into narodmon");
             return;
         }
 
@@ -74,9 +76,9 @@ public class WeatherService {
 
             String result = this.restTemplate.getForObject(url, String.class);
 
-            log.info("Temp {} sent to narodmon.ru result: {}", temp, result);
+            logger.info("Temp {} sent to narodmon.ru result: {}", temp, result);
         } catch (RestClientException e) {
-            log.error("Failed to send street temp {} to narodmon.ru", temp, e);
+            logger.error("Failed to send street temp {} to narodmon.ru", temp, e);
         }
 
     }

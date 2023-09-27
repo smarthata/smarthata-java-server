@@ -1,6 +1,7 @@
 package org.smarthata.service.tm.command;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.smarthata.service.mqtt.MqttService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,7 +12,6 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-@Slf4j
 
 @Service
 public class GarageCommand extends AbstractCommand {
@@ -26,6 +26,8 @@ public class GarageCommand extends AbstractCommand {
 
     public AtomicBoolean gatesOpen = new AtomicBoolean(false);
 
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
     public GarageCommand() {
         super(GARAGE);
     }
@@ -33,7 +35,7 @@ public class GarageCommand extends AbstractCommand {
     @Override
     public BotApiMethod<?> answer(CommandRequest request) {
 
-        log.info("Garage request: {}", request);
+        logger.info("Garage request: {}", request);
 
 
         String text = "Ворота " + (gatesOpen.get() ? "открыты" : "закрыты");

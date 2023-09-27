@@ -2,7 +2,8 @@ package org.smarthata.service.device.heating;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.smarthata.service.device.Room;
 import org.smarthata.service.message.AbstractSmarthataMessageListener;
 import org.smarthata.service.message.EndpointType;
@@ -20,18 +21,18 @@ import static org.smarthata.service.message.EndpointType.*;
 
 
 @Service
-@Slf4j
 public class HeatingService extends AbstractSmarthataMessageListener {
 
+    private final ObjectMapper objectMapper;
+    public HeatingService(SmarthataMessageBroker messageBroker, ObjectMapper objectMapper) {
+        super(messageBroker);
+        this.objectMapper = objectMapper;
+    }
+
     private final Map<Room, HeatingDevice> map = createMap();
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
     public final AtomicInteger mixerPosition = new AtomicInteger(0);
 
-    public HeatingService(SmarthataMessageBroker messageBroker) {
-        super(messageBroker);
-    }
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private HashMap<Room, HeatingDevice> createMap() {
         return new HashMap<>() {{
@@ -56,26 +57,26 @@ public class HeatingService extends AbstractSmarthataMessageListener {
     }
 
     public void setExpectedTemp(Room room, Double temp) {
-        log.info("Set temp [{}] for room [{}]", temp, room);
+        logger.info("Set temp [{}] for room [{}]", temp, room);
         HeatingDevice device = map.get(room);
         device.getExpectedTemp().set(temp);
         sendTempToBroker(device);
     }
 
     public synchronized void incExpectedTemp(Room room, double delta) {
-        log.info("Inc temp [{}] for room [{}]", delta, room);
+        logger.info("Inc temp [{}] for room [{}]", delta, room);
         HeatingDevice device = map.get(room);
         device.getExpectedTemp().getAndUpdate(value -> value + delta);
         sendTempToBroker(device);
     }
 
     public int getFloorPomp(Room room) {
-        log.info("Get floor pomp for room {}", room);
+        logger.info("Get floor pomp for room {}", room);
         return map.get(room).getEnabled().get();
     }
 
     public void setFloorPomp(Room room, String floorPomp) {
-        log.info("Set floor pomp [{}] for room {}", floorPomp, room);
+        logger.info("Set floor pomp [{}] for room {}", floorPomp, room);
         HeatingDevice device = map.get(room);
         device.getEnabled().set(Integer.parseInt(floorPomp));
         sendEnabledToBroker(device);
@@ -115,7 +116,7 @@ public class HeatingService extends AbstractSmarthataMessageListener {
         Map<Object, Object> map = objectMapper.readValue(message.text, Map.class);
         if (map.containsKey("temp")) {
             Double newActualTemp = (Double) map.get("temp");
-            log.trace("Update room [{}] set actual temp [{}]", room, newActualTemp);
+            logger.trace("Update room [{}] set actual temp [{}]", room, newActualTemp);
             device.getActualTemp().set(newActualTemp);
         }
     }

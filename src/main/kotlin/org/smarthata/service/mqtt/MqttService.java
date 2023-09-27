@@ -2,11 +2,12 @@ package org.smarthata.service.mqtt;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
 import org.eclipse.paho.client.mqttv3.IMqttClient;
 import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.smarthata.service.DateUtils;
 import org.smarthata.service.message.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,16 +29,13 @@ record LastMessage(
 ) {
 }
 
-@Slf4j
 @Service
 public class MqttService extends AbstractSmarthataMessageListener implements IMqttMessageListener, SmarthataMessageListener {
 
     private final IMqttClient mqttClient;
 
-    private final Map<String, LastMessage> lastMessages = new ConcurrentHashMap<>();
 
     private final ObjectMapper objectMapper;
-
     @Autowired
     public MqttService(IMqttClient mqttClient, SmarthataMessageBroker messageBroker, ObjectMapper objectMapper) {
         super(messageBroker);
@@ -45,9 +43,13 @@ public class MqttService extends AbstractSmarthataMessageListener implements IMq
         this.objectMapper = objectMapper;
     }
 
+    private final Map<String, LastMessage> lastMessages = new ConcurrentHashMap<>();
+
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
     @EventListener(ApplicationReadyEvent.class)
     public void subscribe() {
-        log.info("Subscribing");
+        logger.info("Subscribing");
         try {
             mqttClient.subscribe("/#", 1, this);
         } catch (MqttException e) {
@@ -58,7 +60,7 @@ public class MqttService extends AbstractSmarthataMessageListener implements IMq
     @Override
     public void messageArrived(String topic, MqttMessage mqttMessage) {
         String text = new String(mqttMessage.getPayload());
-        log.debug("messageArrived: [{}], [{}]", topic, text);
+        logger.debug("messageArrived: [{}], [{}]", topic, text);
         messageBroker.broadcastSmarthataMessage(new SmarthataMessage(topic, text, MQTT));
         lastMessages.put(topic, new LastMessage(text, LocalDateTime.now()));
     }
@@ -94,7 +96,7 @@ public class MqttService extends AbstractSmarthataMessageListener implements IMq
         try {
             return Optional.of(objectMapper.readValue(json.get(), Map.class));
         } catch (JsonProcessingException e) {
-            log.error("Failed to parse json: {}", json, e);
+            logger.error("Failed to parse json: {}", json, e);
             throw new RuntimeException(e);
         }
     }
@@ -116,20 +118,20 @@ public class MqttService extends AbstractSmarthataMessageListener implements IMq
             checkConnection();
             if (mqttClient.isConnected()) {
                 mqttClient.publish(topic, mqttMessage);
-                log.debug("Message sent to mqtt: topic [{}], message [{}]", topic, message);
+                logger.debug("Message sent to mqtt: topic [{}], message [{}]", topic, message);
             } else {
-                log.warn("Message is not sent, MQTT is not connected");
+                logger.warn("Message is not sent, MQTT is not connected");
             }
         } catch (MqttException e) {
-            log.error("Failed to send message: {}", e.getMessage(), e);
+            logger.error("Failed to send message: {}", e.getMessage(), e);
         }
     }
 
     private void checkConnection() throws MqttException {
         if (!mqttClient.isConnected()) {
-            log.warn("Mqtt is not connected. Trying to reconnect");
+            logger.warn("Mqtt is not connected. Trying to reconnect");
             mqttClient.connect();
-            log.warn("Mqtt connected: {}", mqttClient.isConnected());
+            logger.warn("Mqtt connected: {}", mqttClient.isConnected());
             if (mqttClient.isConnected()) {
                 subscribe();
             }

@@ -1,6 +1,7 @@
 package org.smarthata.service;
 
-import lombok.extern.log4j.Log4j2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.smarthata.model.Device;
 import org.smarthata.model.Sensor;
 import org.smarthata.repository.DeviceRepository;
@@ -14,7 +15,6 @@ import java.time.temporal.ChronoUnit;
 import static java.time.temporal.ChronoUnit.*;
 
 @Service
-@Log4j2
 public class SensorCleaner {
 
     private final MeasureCleaner measureCleaner;
@@ -27,6 +27,8 @@ public class SensorCleaner {
         this.sensorRepository = sensorRepository;
         this.deviceRepository = deviceRepository;
     }
+
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Async
     public void cleanAllDevices() {
@@ -49,7 +51,7 @@ public class SensorCleaner {
 
 
     private void cleanSensor(Sensor sensor) {
-        log.info("Start sensor clean = {}", sensor);
+        logger.info("Start sensor clean = {}", sensor);
 
         LocalDateTime now = LocalDateTime.now().truncatedTo(HOURS);
 
@@ -60,7 +62,7 @@ public class SensorCleaner {
         totalRemoved += cleanSensorByStep(sensor, now.minus(1, MONTHS), MINUTES, 5);
         totalRemoved += cleanSensorByStep(sensor, now.minus(1, WEEKS), MINUTES, 1);
 
-        log.info("Finish sensor clean = {} totalRemoved = {}", sensor, totalRemoved);
+        logger.info("Finish sensor clean = {} totalRemoved = {}", sensor, totalRemoved);
     }
 
     private Long cleanSensorByStep(Sensor sensor, LocalDateTime periodEndDate, ChronoUnit stepUnit, int stepCount) {
@@ -69,12 +71,12 @@ public class SensorCleaner {
 
         Long totalRemoved = 0L;
         do {
-            log.debug("Sensor {} date {} / {}  total removed {}", sensor.name, periodEndDate.toLocalDate(), earliestDate.toLocalDate(), totalRemoved);
+            logger.debug("Sensor {} date {} / {}  total removed {}", sensor.name, periodEndDate.toLocalDate(), earliestDate.toLocalDate(), totalRemoved);
             LocalDateTime periodStartDate = periodEndDate.minus(stepCount, stepUnit);
             totalRemoved += measureCleaner.cleanPeriod(sensor, periodStartDate, periodEndDate);
             periodEndDate = periodStartDate;
         } while (periodEndDate.isAfter(earliestDate));
-        log.debug("Sensor {} total removed {}", sensor.name, totalRemoved);
+        logger.debug("Sensor {} total removed {}", sensor.name, totalRemoved);
         return totalRemoved;
 
     }

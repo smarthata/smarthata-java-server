@@ -1,6 +1,7 @@
 package org.smarthata.service.tm.command;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.smarthata.model.Mode;
 import org.smarthata.service.device.WateringService;
 import org.springframework.stereotype.Service;
@@ -15,12 +16,13 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.smarthata.service.message.EndpointType.TELEGRAM;
 
-@Slf4j
 @Service
 public class WateringCommand extends AbstractCommand {
 
     private static final String WATERING = "watering";
     private final WateringService wateringService;
+
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 
     public WateringCommand(WateringService wateringService) {
@@ -32,14 +34,14 @@ public class WateringCommand extends AbstractCommand {
     public BotApiMethod<?> answer(CommandRequest request) {
         if (request.hasNext()) {
             String part = request.next();
-            log.debug("part {}", part);
+            logger.debug("part {}", part);
             switch (part) {
                 case "mode":
                     if (request.hasNext()) {
                         String newModeIndex = request.next();
                         Mode newMode = Mode.valueOf(Integer.parseInt(newModeIndex));
                         wateringService.setMode(newMode, TELEGRAM);
-                        log.info("Mode has been changed to {}", newMode);
+                        logger.info("Mode has been changed to {}", newMode);
                     }
                     break;
                 case "duration":
@@ -127,10 +129,10 @@ public class WateringCommand extends AbstractCommand {
                         .forEach(ch -> wateringService.updateChannel(ch, 0, TELEGRAM));
             } else {
                 int channel = Integer.parseInt(part);
-                log.info("channel {}", channel);
+                logger.info("channel {}", channel);
                 if (request.hasNext()) {
                     int newState = Integer.parseInt(request.next());
-                    log.info("newState {}", newState);
+                    logger.info("newState {}", newState);
                     wateringService.updateChannel(channel, newState, TELEGRAM);
                 }
             }

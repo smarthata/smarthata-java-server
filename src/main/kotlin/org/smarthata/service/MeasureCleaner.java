@@ -1,7 +1,8 @@
 package org.smarthata.service;
 
 import jakarta.transaction.Transactional;
-import lombok.extern.log4j.Log4j2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.smarthata.model.Measure;
 import org.smarthata.model.Sensor;
 import org.smarthata.repository.MeasureRepository;
@@ -12,7 +13,6 @@ import java.time.ZoneId;
 import java.util.Date;
 
 @Service
-@Log4j2
 public class MeasureCleaner {
 
     private final MeasureRepository measureRepository;
@@ -21,9 +21,11 @@ public class MeasureCleaner {
         this.measureRepository = measureRepository;
     }
 
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
     @Transactional
     public Long cleanPeriod(Sensor sensor, LocalDateTime start, LocalDateTime end) {
-        log.debug("Period {} - {}", start, end);
+        logger.debug("Period {} - {}", start, end);
 
         Date startDate = convertToDateViaInstant(start);
         Date endDate = convertToDateViaInstant(end);
@@ -31,7 +33,7 @@ public class MeasureCleaner {
         Long count = measureRepository.countBySensorAndDateBetween(sensor, startDate, endDate);
 
         if (count <= 1) {
-            log.debug("Skip due to small count {}", count);
+            logger.debug("Skip due to small count {}", count);
             return 0L;
         }
 
@@ -41,7 +43,7 @@ public class MeasureCleaner {
         Double avg = measureRepository.avgValueBySensorAndDateBetween(sensor.id, startDate, endDate);
 
         Measure measure = new Measure(sensor, avg, mediumDate);
-        log.debug("count = {} values avg = {}  medDate = {}, measure = {}", count, avg, mediumDate, measure);
+        logger.debug("count = {} values avg = {}  medDate = {}, measure = {}", count, avg, mediumDate, measure);
 
         Long removed = measureRepository.deleteBySensorAndDateBetween(sensor, startDate, endDate);
 

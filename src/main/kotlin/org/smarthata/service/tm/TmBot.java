@@ -6,7 +6,8 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.smarthata.service.message.EndpointType;
 import org.smarthata.service.message.SmarthataMessage;
 import org.smarthata.service.message.SmarthataMessageBroker;
@@ -28,9 +29,10 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import static org.smarthata.service.message.EndpointType.TELEGRAM;
 
 @Service
-@Slf4j
 @ConditionalOnProperty(value = "bot.enabled", matchIfMissing = true)
 public class TmBot extends TelegramLongPollingBot implements SmarthataMessageListener {
+
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Value("${bot.username}")
     private String username;
@@ -64,7 +66,7 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
     @Override
     public void onUpdateReceived(final Update update) {
 
-        log.debug("Received update: {}", update);
+        logger.debug("Received update: {}", update);
 
         if (update.hasMessage()) {
             Message message = update.getMessage();
@@ -98,7 +100,7 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
 
     private void onMessageReceived(Long chatId, String text, Integer messageId) {
 
-        log.info("text: [{}], messageId {}", text, messageId);
+        logger.info("text: [{}], messageId {}", text, messageId);
         if (text == null) {
             return;
         }
@@ -114,7 +116,7 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
 
     private boolean processMessage(Long chatId, String text, Integer messageId) {
         List<String> path = getPath(text);
-        log.info("Process telegram message: path {}, text: {}", path, text);
+        logger.info("Process telegram message: path {}, text: {}", path, text);
         if (path.isEmpty()) {
             path.add("");
         }
@@ -122,7 +124,7 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
         String commandName = path.remove(0);
         Command command = commandsMap.get(commandName);
         if (command != null) {
-            log.info("Found command: [{}]", commandName);
+            logger.info("Found command: [{}]", commandName);
             BotApiMethod<?> botApiMethod = command.answer(new CommandRequest(path, chatId.toString(), messageId));
             sendMessageToTelegram(botApiMethod);
             return true;
@@ -139,10 +141,10 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
     public boolean sendMessageToTelegram(BotApiMethod<?> botApiMethod) {
         try {
             super.execute(botApiMethod);
-            log.debug("Message to telegram sent: {}", botApiMethod);
+            logger.debug("Message to telegram sent: {}", botApiMethod);
             return true;
         } catch (TelegramApiException e) {
-            log.error("Telegram Api Exception: {}", e.getMessage(), e);
+            logger.error("Telegram Api Exception: {}", e.getMessage(), e);
         }
         return false;
     }

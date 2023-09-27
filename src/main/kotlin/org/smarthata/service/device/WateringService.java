@@ -2,7 +2,8 @@ package org.smarthata.service.device;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.smarthata.model.Mode;
 import org.smarthata.service.message.AbstractSmarthataMessageListener;
 import org.smarthata.service.message.EndpointType;
@@ -16,7 +17,6 @@ import java.util.Map;
 
 import static org.smarthata.service.message.EndpointType.MQTT;
 
-@Slf4j
 @Service
 public class WateringService extends AbstractSmarthataMessageListener {
 
@@ -28,6 +28,8 @@ public class WateringService extends AbstractSmarthataMessageListener {
     private List<Integer> durations;
 
     private final Map<Integer, Integer> channelStates = new HashMap<>();
+
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     protected WateringService(SmarthataMessageBroker messageBroker, ObjectMapper objectMapper) {
         super(messageBroker);
@@ -41,7 +43,7 @@ public class WateringService extends AbstractSmarthataMessageListener {
 
     public void wave(EndpointType source) {
         sendActionToBroker("wave", source);
-        log.info("Wave to broker sent");
+        logger.info("Wave to broker sent");
     }
 
     @SneakyThrows
@@ -72,15 +74,15 @@ public class WateringService extends AbstractSmarthataMessageListener {
         switch (message.path) {
             case "/watering/mode/in" -> {
                 mode = Mode.valueOf(Integer.parseInt(message.text));
-                log.info("Watering mode changed to {}", mode);
+                logger.info("Watering mode changed to {}", mode);
             }
             case "/watering/start/in" -> {
                 startTimes = objectMapper.readValue(message.text, List.class);
-                log.info("Watering startTimes {}", startTimes);
+                logger.info("Watering startTimes {}", startTimes);
             }
             case "/watering/duration/in" -> {
                 durations = objectMapper.readValue(message.text, List.class);
-                log.info("Watering durations {}", durations);
+                logger.info("Watering durations {}", durations);
             }
             case "/watering" -> {
                 Map<String, Integer> map = objectMapper.readValue(message.text, Map.class);

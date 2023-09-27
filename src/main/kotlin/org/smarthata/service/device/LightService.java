@@ -2,7 +2,8 @@ package org.smarthata.service.device;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.smarthata.service.message.AbstractSmarthataMessageListener;
 import org.smarthata.service.message.EndpointType;
 import org.smarthata.service.message.SmarthataMessage;
@@ -12,7 +13,6 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Slf4j
 @Service
 public class LightService extends AbstractSmarthataMessageListener {
     public static final Map<String, String> translations = Map.of(
@@ -34,30 +34,32 @@ public class LightService extends AbstractSmarthataMessageListener {
         this.objectMapper = objectMapper;
     }
 
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
     public Map<String, Boolean> getLightState() {
         return lightState;
     }
 
     public Boolean getLight(String room) {
-        log.debug("IN Get light room = {}", room);
+        logger.debug("IN Get light room = {}", room);
         Boolean state = lightState.getOrDefault(room, false);
-        log.debug("OUT Get light room = {}, state = {}", room, state);
+        logger.debug("OUT Get light room = {}, state = {}", room, state);
         return state;
     }
 
     @SneakyThrows
     public synchronized void setLight(String room, boolean newState, EndpointType source) {
-        log.info("IN Switch light room = {}, newState = {}, currentState = {}", room, newState, lightState.get(room));
+        logger.info("IN Switch light room = {}, newState = {}, currentState = {}", room, newState, lightState.get(room));
         lightState.put(room, newState);
 
         Map<String, Object> map = Map.of("room", room, "state", newState);
         sendToBroker(objectMapper.writeValueAsString(map), source);
-        log.info("OUT Switch light room = {}, newState = {}", room, newState);
+        logger.info("OUT Switch light room = {}, newState = {}", room, newState);
     }
 
     @SneakyThrows
     public void enableLightTemporary(String room, long seconds, EndpointType source) {
-        log.info("IN enable light temporary room = {}", room);
+        logger.info("IN enable light temporary room = {}", room);
 
         lightState.put(room, true);
 
@@ -67,7 +69,7 @@ public class LightService extends AbstractSmarthataMessageListener {
                 "time", seconds);
         sendToBroker(objectMapper.writeValueAsString(map), source);
 
-        log.info("OUT enable light temporary room = {}", room);
+        logger.info("OUT enable light temporary room = {}", room);
     }
 
     private void sendToBroker(String text, EndpointType source) {

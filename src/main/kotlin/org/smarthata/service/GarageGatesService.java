@@ -1,6 +1,7 @@
 package org.smarthata.service;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.smarthata.service.message.SmarthataMessageBroker;
 import org.smarthata.service.mqtt.MqttService;
 import org.smarthata.service.tm.TmBot;
@@ -27,9 +28,9 @@ enum GarageGateAction {
     }
 }
 
-@Slf4j
 @Service
 public class GarageGatesService {
+
     @Autowired
     private MqttService mqttService;
     @Autowired
@@ -37,30 +38,31 @@ public class GarageGatesService {
     @Autowired(required = false)
     private TmBot tmBot;
     private LocalDateTime lastNotificationTime;
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 
     @Scheduled(fixedDelay = 60, timeUnit = SECONDS)
     public void checkGarage() {
         try {
-            log.debug("Check garage heating");
+            logger.debug("Check garage heating");
 
             double streetTemp = getStreetTemp();
             double garageTemp = getGarageTemp();
 
             if (getStreetAverageTemp() <= 18) {
-                log.debug("Check for heating garage");
+                logger.debug("Check for heating garage");
                 GarageGateAction action = getGarageGateWarmingAction(streetTemp, garageTemp);
                 if (action != GarageGateAction.NOTHING) {
-                    log.debug("Temp is good to {} gates", action.name());
+                    logger.debug("Temp is good to {} gates", action.name());
                     if (DateUtils.isDateAfter(lastNotificationTime, Duration.ofMinutes(30))) {
                         sendMessage(action);
                     } else {
-                        log.debug("Notification was sent recently");
+                        logger.debug("Notification was sent recently");
                     }
                 }
             }
         } catch (RuntimeException e) {
-            log.error(e.getMessage(), e);
+            logger.error(e.getMessage(), e);
         }
     }
 
@@ -85,21 +87,21 @@ public class GarageGatesService {
     private double getStreetTemp() {
         double streetTemp = mqttService.getLastMessageAsDouble("/street/temp")
                 .orElseThrow(() -> new RuntimeException("Street temp is not populated"));
-        log.debug("Street temp: {}", streetTemp);
+        logger.debug("Street temp: {}", streetTemp);
         return streetTemp;
     }
 
     private double getStreetAverageTemp() {
         double streetAverageTemp = mqttService.getLastMessageAsDouble("/street/temp-average")
                 .orElseThrow(() -> new RuntimeException("Average temp is not populated"));
-        log.debug("Street average temp: {}", streetAverageTemp);
+        logger.debug("Street average temp: {}", streetAverageTemp);
         return streetAverageTemp;
     }
 
     private double getGarageTemp() {
         Double garageTemp = (Double) mqttService.getLastMessageFieldFromJson("/heating/garage/garage", "temp")
                 .orElseThrow(() -> new RuntimeException("Garage data is not populated"));
-        log.debug("Garage temp: {}", garageTemp);
+        logger.debug("Garage temp: {}", garageTemp);
         return garageTemp;
     }
 
