@@ -60,14 +60,14 @@ public class HeatingService extends AbstractSmarthataMessageListener {
         logger.info("Set temp [{}] for room [{}]", temp, room);
         HeatingDevice device = map.get(room);
         device.expectedTemp.set(temp);
-        sendTempToBroker(device);
+        saveTempToBroker(device);
     }
 
     public synchronized void incExpectedTemp(Room room, double delta) {
         logger.info("Inc temp [{}] for room [{}]", delta, room);
         HeatingDevice device = map.get(room);
         device.expectedTemp.getAndUpdate(value -> value + delta);
-        sendTempToBroker(device);
+        saveTempToBroker(device);
     }
 
     public int floorPomp(Room room) {
@@ -79,17 +79,15 @@ public class HeatingService extends AbstractSmarthataMessageListener {
         logger.info("Set floor pomp [{}] for room {}", floorPomp, room);
         HeatingDevice device = map.get(room);
         device.enabled.set(Integer.parseInt(floorPomp));
-        sendEnabledToBroker(device);
+        saveEnabledToBroker(device);
     }
 
-    private void sendTempToBroker(HeatingDevice device) {
-        SmarthataMessage message = new SmarthataMessage(device.queueExpectedTemp, device.expectedTemp.toString(), TELEGRAM, MQTT, true);
-        messageBroker.broadcastSmarthataMessage(message);
+    private void saveTempToBroker(HeatingDevice device) {
+        messageBroker.broadcast(new SmarthataMessage(device.queueExpectedTemp, device.expectedTemp.toString(), TELEGRAM, MQTT, true));
     }
 
-    private void sendEnabledToBroker(HeatingDevice device) {
-        SmarthataMessage message = new SmarthataMessage(device.queueEnabled, device.enabled.toString(), TELEGRAM, MQTT, true);
-        messageBroker.broadcastSmarthataMessage(message);
+    private void saveEnabledToBroker(HeatingDevice device) {
+        messageBroker.broadcast(new SmarthataMessage(device.queueEnabled, device.enabled.toString(), TELEGRAM, MQTT, true));
     }
 
     @Override
@@ -129,13 +127,12 @@ public class HeatingService extends AbstractSmarthataMessageListener {
         return SYSTEM;
     }
 
-    public void sendAction(String action, int value) {
+    public void sendAction(String action, int value, EndpointType source) {
         try {
             Map<String, Object> map = Map.of("action", action, "value", value);
             String text = objectMapper.writeValueAsString(map);
 
-            SmarthataMessage message = new SmarthataMessage("/heating/in/json", text, TELEGRAM);
-            messageBroker.broadcastSmarthataMessage(message);
+            messageBroker.broadcast(new SmarthataMessage("/heating/in/json", text, source));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

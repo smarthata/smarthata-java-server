@@ -104,7 +104,6 @@ public class DeviceHealthCheckService extends AbstractSmarthataMessageListener {
     }
 
     private void sendMessage(String text) {
-        SmarthataMessage message = new SmarthataMessage("/messages", text, SYSTEM, TELEGRAM);
-        messageBroker.broadcastSmarthataMessage(message);
+        messageBroker.broadcast(new SmarthataMessage("/messages", text, SYSTEM, TELEGRAM));
     }
 }

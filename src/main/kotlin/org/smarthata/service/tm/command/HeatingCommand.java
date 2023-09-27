@@ -13,6 +13,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import static org.smarthata.service.device.Room.*;
+import static org.smarthata.service.message.EndpointType.TELEGRAM;
 
 
 @Order(1)
@@ -151,7 +152,7 @@ public class HeatingCommand extends AbstractCommand {
         if (request.hasNext()) {
             String config = request.next();
             switch (config) {
-                case "restart" -> heatingService.sendAction("restart", 0);
+                case "restart" -> heatingService.sendAction("restart", 0, TELEGRAM);
                 case "mixer" -> {
                     return processMixer(request);
                 }
@@ -175,7 +176,7 @@ public class HeatingCommand extends AbstractCommand {
         if (request.hasNext()) {
             String command = request.next();
             Integer value = values.stream().filter(integer -> command.equals(integer.toString())).findFirst().orElse(0);
-            heatingService.sendAction("mixer-move", value);
+            heatingService.sendAction("mixer-move", value, TELEGRAM);
             commandText = "Принято " + command + "! ";
         }
 

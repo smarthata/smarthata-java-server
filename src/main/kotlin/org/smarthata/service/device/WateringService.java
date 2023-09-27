@@ -36,9 +36,8 @@ public class WateringService extends AbstractSmarthataMessageListener {
         this.objectMapper = objectMapper;
     }
 
-    private void sendModeToBroker(String text, EndpointType source) {
-        SmarthataMessage message = new SmarthataMessage("/watering/mode/in", text, source, MQTT, true);
-        messageBroker.broadcastSmarthataMessage(message);
+    private void saveModeToBroker(String text, EndpointType source) {
+        messageBroker.broadcast(new SmarthataMessage("/watering/mode/in", text, source, MQTT, true));
     }
 
     public void wave(EndpointType source) {
@@ -49,8 +48,7 @@ public class WateringService extends AbstractSmarthataMessageListener {
     private void sendActionToBroker(String action, EndpointType source){
         try {
             String text = objectMapper.writeValueAsString(Map.of("action", action));
-            SmarthataMessage message = new SmarthataMessage("/watering/in/json", text, source, MQTT, false);
-            messageBroker.broadcastSmarthataMessage(message);
+            messageBroker.broadcast(new SmarthataMessage("/watering/in/json", text, source, MQTT, false));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
@@ -65,8 +63,7 @@ public class WateringService extends AbstractSmarthataMessageListener {
     private void sendChangeChannelBroker(int channel, int state, EndpointType source) {
         try {
             String text = objectMapper.writeValueAsString(Map.of("channel", channel, "state", state));
-            SmarthataMessage message = new SmarthataMessage("/watering/in/json", text, source, MQTT, false);
-            messageBroker.broadcastSmarthataMessage(message);
+            messageBroker.broadcast(new SmarthataMessage("/watering/in/json", text, source, MQTT, false));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
@@ -111,7 +108,7 @@ public class WateringService extends AbstractSmarthataMessageListener {
 
     public void updateMode(Mode mode, EndpointType source) {
         this.mode = mode;
-        sendModeToBroker(Integer.toString(mode.ordinal()), source);
+        saveModeToBroker(Integer.toString(mode.ordinal()), source);
     }
 
     public void updateStartTimes(List<Double> startTimes) {

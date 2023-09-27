@@ -23,9 +23,7 @@ public class CronService {
     @Scheduled(cron = "0 */5 * * * *")
     public void calcAverageDailyStreetTemp() {
         double averageDailyStreetTemperature = weatherService.calcAverageDailyStreetTemperature();
-
-        SmarthataMessage message = new SmarthataMessage("/street/temp-average", Double.toString(averageDailyStreetTemperature), SYSTEM, MQTT);
-        messageBroker.broadcastSmarthataMessageRetained(message);
+        messageBroker.broadcast(new SmarthataMessage("/street/temp-average", Double.toString(averageDailyStreetTemperature), SYSTEM, MQTT, true));
     }
 
     @Scheduled(cron = "0 */5 * * * *")

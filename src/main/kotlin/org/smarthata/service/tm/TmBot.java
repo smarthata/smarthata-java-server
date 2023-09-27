@@ -82,8 +82,7 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
     @Override
     public void receiveSmarthataMessage(SmarthataMessage message) {
         if (message.path.equals("/messages")) {
-            BotApiMethod<?> botApiMethod = new SendMessage(adminChatId, message.text);
-            sendMessageToTelegram(botApiMethod);
+            sendMessageToTelegram(new SendMessage(adminChatId, message.text));
         }
     }
 
@@ -108,7 +107,7 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
         boolean messageProcessed = processMessage(chatId, text, messageId);
 
         if (!messageProcessed && !text.isEmpty()) {
-            broadcastSmarthataMessage(text);
+            broadcast(text);
         }
     }
 
@@ -147,7 +146,7 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
         return false;
     }
 
-    private void broadcastSmarthataMessage(String text) {
+    private void broadcast(String text) {
         SmarthataMessage message;
         if (text.matches("\\s")) {
             String[] split = text.split("\\s", 2);
@@ -155,6 +154,6 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
         } else {
             message = new SmarthataMessage(text, "", TELEGRAM);
         }
-        messageBroker.broadcastSmarthataMessage(message);
+        messageBroker.broadcast(message);
     }
 }

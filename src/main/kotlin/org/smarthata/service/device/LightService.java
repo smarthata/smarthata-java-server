@@ -72,8 +72,7 @@ public class LightService extends AbstractSmarthataMessageListener {
     }
 
     private void sendToBroker(String text, EndpointType source) {
-        SmarthataMessage message = new SmarthataMessage("/light/in", text, source);
-        messageBroker.broadcastSmarthataMessage(message);
+        messageBroker.broadcast(new SmarthataMessage("/light/in", text, source));
     }
 
     @Override

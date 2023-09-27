@@ -59,7 +59,7 @@ public class MqttService extends AbstractSmarthataMessageListener implements IMq
     public void messageArrived(String topic, MqttMessage mqttMessage) {
         String text = new String(mqttMessage.getPayload());
         logger.debug("messageArrived: [{}], [{}]", topic, text);
-        messageBroker.broadcastSmarthataMessage(new SmarthataMessage(topic, text, MQTT));
+        messageBroker.broadcast(new SmarthataMessage(topic, text, MQTT));
         lastMessages.put(topic, new LastMessage(text, LocalDateTime.now()));
     }
 

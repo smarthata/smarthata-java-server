@@ -14,12 +14,7 @@ public class SmarthataMessageBroker {
 
     private final List<SmarthataMessageListener> listeners = new ArrayList<>();
 
-    public void broadcastSmarthataMessageRetained(SmarthataMessage message) {
-        message.retained = true;
-        broadcastSmarthataMessage(message);
-    }
-
-    public void broadcastSmarthataMessage(SmarthataMessage message) {
+    public void broadcast(SmarthataMessage message) {
         logger.debug("Broadcasting message: {}", message);
 
         listeners.stream()
