@@ -14,7 +14,6 @@ import org.smarthata.service.message.SmarthataMessageBroker;
 import org.smarthata.service.message.SmarthataMessageListener;
 import org.smarthata.service.tm.command.Command;
 import org.smarthata.service.tm.command.CommandRequest;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
@@ -44,7 +43,6 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
 
     private final SmarthataMessageBroker messageBroker;
 
-    @Autowired
     public TmBot(
             @Value("${bot.token}") String token,
             List<Command> commands,

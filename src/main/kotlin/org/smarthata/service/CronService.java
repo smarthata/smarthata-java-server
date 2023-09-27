@@ -2,7 +2,6 @@ package org.smarthata.service;
 
 import org.smarthata.service.message.SmarthataMessage;
 import org.smarthata.service.message.SmarthataMessageBroker;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -15,7 +14,6 @@ public class CronService {
     private final WeatherService weatherService;
     private final SensorCleaner sensorCleaner;
 
-    @Autowired
     public CronService(SmarthataMessageBroker messageBroker, WeatherService weatherService, SensorCleaner sensorCleaner) {
         this.messageBroker = messageBroker;
         this.weatherService = weatherService;

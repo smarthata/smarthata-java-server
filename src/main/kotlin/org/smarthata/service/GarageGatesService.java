@@ -2,7 +2,6 @@ package org.smarthata.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smarthata.service.message.SmarthataMessageBroker;
 import org.smarthata.service.mqtt.MqttService;
 import org.smarthata.service.tm.TmBot;
 import org.smarthata.service.tm.command.CommandRequest;
@@ -31,14 +30,21 @@ enum GarageGateAction {
 @Service
 public class GarageGatesService {
 
-    @Autowired
-    private MqttService mqttService;
-    @Autowired
-    private GarageCommand garageCommand;
-    @Autowired(required = false)
-    private TmBot tmBot;
-    private LocalDateTime lastNotificationTime;
+    private final MqttService mqttService;
+    private final GarageCommand garageCommand;
+    private final TmBot tmBot;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    private LocalDateTime lastNotificationTime;
+
+    public GarageGatesService(
+            MqttService mqttService,
+            GarageCommand garageCommand,
+            @Autowired(required = false) TmBot tmBot
+    ) {
+        this.mqttService = mqttService;
+        this.garageCommand = garageCommand;
+        this.tmBot = tmBot;
+    }
 
 
     @Scheduled(fixedDelay = 60, timeUnit = SECONDS)

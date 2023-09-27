@@ -6,7 +6,6 @@ import org.smarthata.model.Measure;
 import org.smarthata.model.Sensor;
 import org.smarthata.repository.MeasureRepository;
 import org.smarthata.repository.SensorRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Service;
@@ -35,7 +34,6 @@ public class WeatherService {
     @Value("${narodmon.mac}")
     private String mac;
 
-    @Autowired
     public WeatherService(SensorRepository sensorRepository,
                           MeasureRepository measureRepository,
                           RestTemplateBuilder restTemplateBuilder) {

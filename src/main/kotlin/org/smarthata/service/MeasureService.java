@@ -6,7 +6,6 @@ import org.smarthata.model.Sensor;
 import org.smarthata.repository.DeviceRepository;
 import org.smarthata.repository.MeasureRepository;
 import org.smarthata.repository.SensorRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -22,7 +21,6 @@ public class MeasureService {
     private final SensorRepository sensorRepository;
     private final MeasureRepository measureRepository;
 
-    @Autowired
     public MeasureService(DeviceRepository deviceRepository, SensorRepository sensorRepository, MeasureRepository measureRepository) {
         this.deviceRepository = deviceRepository;
         this.sensorRepository = sensorRepository;

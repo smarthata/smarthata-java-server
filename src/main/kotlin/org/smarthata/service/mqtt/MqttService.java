@@ -10,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthata.service.DateUtils;
 import org.smarthata.service.message.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -36,7 +35,6 @@ public class MqttService extends AbstractSmarthataMessageListener implements IMq
 
 
     private final ObjectMapper objectMapper;
-    @Autowired
     public MqttService(IMqttClient mqttClient, SmarthataMessageBroker messageBroker, ObjectMapper objectMapper) {
         super(messageBroker);
         this.mqttClient = mqttClient;

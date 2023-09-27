@@ -8,21 +8,18 @@ import org.smarthata.alice.model.smarthome.DevicesPayload
 import org.smarthata.alice.model.smarthome.DevicesResponse
 import org.smarthata.alice.model.smarthome.Unlink
 import org.smarthata.alice.service.AliceDevicesService
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.util.*
 
 @RestController
 @RequestMapping("/alice/home/v1.0")
-class AliceSmartHomeController {
+class AliceSmartHomeController(
+    private val aliceDevicesService: AliceDevicesService,
+    private val objectMapper: ObjectMapper,
+) {
 
     private val logger = LoggerFactory.getLogger(javaClass)
-
-    @Autowired
-    private lateinit var aliceDevicesService: AliceDevicesService
-    @Autowired
-    private lateinit var objectMapper: ObjectMapper
 
     @RequestMapping
     fun ping(): ResponseEntity<Any> {

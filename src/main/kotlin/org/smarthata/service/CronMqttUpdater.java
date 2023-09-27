@@ -2,7 +2,6 @@ package org.smarthata.service;
 
 import org.smarthata.service.message.SmarthataMessage;
 import org.smarthata.service.message.SmarthataMessageBroker;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +16,6 @@ public class CronMqttUpdater {
 
     private final SmarthataMessageBroker messageBroker;
 
-    @Autowired
     public CronMqttUpdater(SmarthataMessageBroker messageBroker) {
         this.messageBroker = messageBroker;
     }

@@ -6,15 +6,13 @@ import org.smarthata.alice.model.smarthome.DeviceAction
 import org.smarthata.alice.model.smarthome.DeviceQuery
 import org.smarthata.alice.model.smarthome.DevicesPayload
 import org.smarthata.alice.model.smarthome.DevicesResponse
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.util.UUID
 
 @Service
-class AliceDevicesService {
-
-    @Autowired
-    private lateinit var lightDevices: AliceLightDevices
+class AliceDevicesService(
+    private var lightDevices: AliceLightDevices,
+) {
 
     private val logger = LoggerFactory.getLogger(javaClass)
 

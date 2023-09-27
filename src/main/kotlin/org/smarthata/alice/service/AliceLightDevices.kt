@@ -7,14 +7,12 @@ import org.smarthata.alice.model.smarthome.OnOffCapability
 import org.smarthata.alice.model.smarthome.State
 import org.smarthata.service.device.LightService
 import org.smarthata.service.message.EndpointType.ALICE
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 @Service
-class AliceLightDevices {
-
-    @Autowired
-    private lateinit var lightService: LightService
+class AliceLightDevices(
+    private var lightService: LightService,
+) {
 
     private val logger = LoggerFactory.getLogger(javaClass)
 

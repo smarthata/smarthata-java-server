@@ -4,7 +4,6 @@ import org.smarthata.model.Measure;
 import org.smarthata.model.Sensor;
 import org.smarthata.repository.MeasureRepository;
 import org.smarthata.repository.SensorRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 
@@ -20,7 +19,6 @@ public class TemperaturesCommand extends AbstractCommand {
     private final SensorRepository sensorRepository;
     private final MeasureRepository measureRepository;
 
-    @Autowired
     public TemperaturesCommand(SensorRepository sensorRepository, MeasureRepository measureRepository) {
         super(TEMPERATURES);
         this.sensorRepository = sensorRepository;
