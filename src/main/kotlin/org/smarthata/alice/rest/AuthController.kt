@@ -11,11 +11,10 @@ import java.util.*
 
 @Controller
 @RequestMapping("/alice/oauth")
-class AuthController {
+class AuthController(
+    @Value("\${oauth2.0.password}") private val oauthPassword: String,
+) {
     private val logger = LoggerFactory.getLogger(javaClass)
-
-    @Value("\${oauth2.0.password}")
-    private lateinit var oauthPassword: String
 
     @RequestMapping(value = ["/login"], method = [RequestMethod.GET])
     fun login(

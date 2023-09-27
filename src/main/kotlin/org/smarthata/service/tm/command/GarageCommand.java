@@ -25,7 +25,10 @@ public class GarageCommand extends AbstractCommand {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    public GarageCommand(MqttService mqttService, @Value("${bot.adminChatId}") String adminChatId) {
+    public GarageCommand(
+            MqttService mqttService,
+            @Value("${bot.adminChatId}") String adminChatId
+    ) {
         super(GARAGE);
         this.adminChatId = adminChatId;
         this.mqttService = mqttService;

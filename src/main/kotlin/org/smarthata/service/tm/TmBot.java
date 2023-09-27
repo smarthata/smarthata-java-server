@@ -32,12 +32,8 @@ import static org.smarthata.service.message.EndpointType.TELEGRAM;
 public class TmBot extends TelegramLongPollingBot implements SmarthataMessageListener {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
-
-    @Value("${bot.username}")
-    private String username;
-
-    @Value("${bot.adminChatId}")
-    private String adminChatId;
+    private final String username;
+    private final String adminChatId;
 
     private final Map<String, Command> commandsMap;
 
@@ -45,10 +41,14 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
 
     public TmBot(
             @Value("${bot.token}") String token,
+            @Value("${bot.username}") String username,
+            @Value("${bot.adminChatId}") String adminChatId,
             List<Command> commands,
             SmarthataMessageBroker messageBroker
     ) {
         super(token);
+        this.username = username;
+        this.adminChatId = adminChatId;
         this.messageBroker = messageBroker;
         this.messageBroker.register(this);
 

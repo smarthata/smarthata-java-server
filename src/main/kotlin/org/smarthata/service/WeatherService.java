@@ -31,15 +31,16 @@ public class WeatherService {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    @Value("${narodmon.mac}")
-    private String mac;
+    private final String mac;
 
     public WeatherService(SensorRepository sensorRepository,
                           MeasureRepository measureRepository,
-                          RestTemplateBuilder restTemplateBuilder) {
+                          RestTemplateBuilder restTemplateBuilder,
+                          @Value("${narodmon.mac}") String mac) {
         this.sensorRepository = sensorRepository;
         this.measureRepository = measureRepository;
         this.restTemplate = restTemplateBuilder.build();
+        this.mac = mac;
     }
 
     public double calcAverageDailyStreetTemperature() {

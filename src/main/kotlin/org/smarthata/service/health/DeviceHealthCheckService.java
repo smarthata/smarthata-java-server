@@ -30,13 +30,16 @@ public class DeviceHealthCheckService extends AbstractSmarthataMessageListener {
     private final Map<String, DeviceHealth> deviceTimeMap;
     private final List<String> devices;
 
-    public DeviceHealthCheckService(SmarthataMessageBroker messageBroker,
-                                    @Value("${health.devices}") List<String> devices) {
+    public DeviceHealthCheckService(
+            SmarthataMessageBroker messageBroker,
+            @Value("${health.devices}") List<String> devices
+    ) {
         super(messageBroker);
 
         this.devices = devices;
         deviceTimeMap = createMap(devices);
     }
+
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private static Map<String, DeviceHealth> createMap(List<String> devices) {
