@@ -3,16 +3,14 @@ package org.smarthata.service.device.heating;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-import lombok.Data;
 
-@Data
 class HeatingDevice {
-    private final String queueActualTemp;
-    private final String queueExpectedTemp;
-    private final String queueEnabled;
-    private final AtomicReference<Double> actualTemp = new AtomicReference<>(0.0);
-    private final AtomicReference<Double> expectedTemp;
-    private final AtomicInteger enabled = new AtomicInteger(1);
+    public final String queueActualTemp;
+    public final String queueExpectedTemp;
+    public final String queueEnabled;
+    public final AtomicReference<Double> actualTemp = new AtomicReference<>(0.0);
+    public final AtomicReference<Double> expectedTemp;
+    public final AtomicInteger enabled = new AtomicInteger(1);
 
     HeatingDevice(String baseQueue, AtomicReference<Double> expectedTemp) {
         this.queueActualTemp = baseQueue;

@@ -58,8 +58,8 @@ public class GarageCommand extends AbstractCommand {
         }
 
         List<String> temps = new LinkedList<>();
-        getStreetTemp().ifPresent(t -> temps.add(String.format("улица %.1f°C", t)));
-        getGarageTemp().ifPresent(t -> temps.add(String.format("гараж %.1f°C", (double) t)));
+        findStreetTemp().ifPresent(t -> temps.add(String.format("улица %.1f°C", t)));
+        findGarageTemp().ifPresent(t -> temps.add(String.format("гараж %.1f°C", (double) t)));
         if (temps.size() > 0) text += " (" + String.join(", ", temps) + ")";
 
 
@@ -69,16 +69,16 @@ public class GarageCommand extends AbstractCommand {
         map.put("back", "Назад");
 
         InlineKeyboardMarkup buttons = createButtons(Collections.emptyList(), map, 2);
-        return createTmMessage(request.getChatId(), request.getMessageId(), text, buttons);
+        return createTmMessage(request.chatId, request.messageId, text, buttons);
     }
 
 
-    private Optional<Double> getStreetTemp() {
-        return mqttService.getLastMessageAsDouble("/street/temp");
+    private Optional<Double> findStreetTemp() {
+        return mqttService.findLastMessageAsDouble("/street/temp");
     }
 
-    private Optional<Object> getGarageTemp() {
-        return mqttService.getLastMessageFieldFromJson("/heating/garage/garage", "temp");
+    private Optional<Object> findGarageTemp() {
+        return mqttService.findLastMessageFieldFromJson("/heating/garage/garage", "temp");
     }
 
 }

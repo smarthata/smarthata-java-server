@@ -27,7 +27,7 @@ public class LightService extends AbstractSmarthataMessageListener {
 
     private final ObjectMapper objectMapper;
 
-    private final Map<String, Boolean> lightState = new ConcurrentHashMap<>();
+    public final Map<String, Boolean> lightState = new ConcurrentHashMap<>();
 
     protected LightService(SmarthataMessageBroker messageBroker, ObjectMapper objectMapper) {
         super(messageBroker);
@@ -36,19 +36,12 @@ public class LightService extends AbstractSmarthataMessageListener {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    public Map<String, Boolean> getLightState() {
-        return lightState;
-    }
-
-    public Boolean getLight(String room) {
-        logger.debug("IN Get light room = {}", room);
-        Boolean state = lightState.getOrDefault(room, false);
-        logger.debug("OUT Get light room = {}, state = {}", room, state);
-        return state;
+    public Boolean lightState(String room) {
+        return lightState.getOrDefault(room, false);
     }
 
     @SneakyThrows
-    public synchronized void setLight(String room, boolean newState, EndpointType source) {
+    public synchronized void updateLight(String room, boolean newState, EndpointType source) {
         logger.info("IN Switch light room = {}, newState = {}, currentState = {}", room, newState, lightState.get(room));
         lightState.put(room, newState);
 
@@ -88,7 +81,7 @@ public class LightService extends AbstractSmarthataMessageListener {
     }
 
     @Override
-    public EndpointType getEndpointType() {
+    public EndpointType endpointType() {
         return EndpointType.SYSTEM;
     }
 }

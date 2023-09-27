@@ -43,7 +43,7 @@ class AliceSmartHomeController(
             requestId = UUID.randomUUID().toString(),
             payload = DevicesPayload(
                 userId = "valery",
-                devices = aliceDevicesService.getDevices()
+                devices = aliceDevicesService.devices()
             )
         )
     }

@@ -67,18 +67,18 @@ public class DeviceHealthCheckService extends AbstractSmarthataMessageListener {
     }
 
     @Override
-    public EndpointType getEndpointType() {
+    public EndpointType endpointType() {
         return SYSTEM;
     }
 
     @Scheduled(cron = "0 * * * * *")
     public void check() {
-        List<DeviceHealth> offlineDevices = getOfflineDevices();
+        List<DeviceHealth> offlineDevices = findOfflineDevices();
         logger.debug("offlineDevices = " + offlineDevices);
         sendNotifications(offlineDevices);
     }
 
-    private List<DeviceHealth> getOfflineDevices() {
+    private List<DeviceHealth> findOfflineDevices() {
         List<DeviceHealth> offlineDevices = new ArrayList<>();
         for (String device : devices) {
             DeviceHealth deviceHealth = deviceTimeMap.get(device);

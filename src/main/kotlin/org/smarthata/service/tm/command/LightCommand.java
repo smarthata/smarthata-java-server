@@ -45,11 +45,11 @@ public class LightCommand extends AbstractCommand {
                     String action = request.next();
                     switch (action) {
                         case "on" -> {
-                            lightService.setLight(part, true, TELEGRAM);
+                            lightService.updateLight(part, true, TELEGRAM);
                             text = "Включено\n" + text;
                         }
                         case "off" -> {
-                            lightService.setLight(part, false, TELEGRAM);
+                            lightService.updateLight(part, false, TELEGRAM);
                             text = "Выключено\n" + text;
                         }
                     }
@@ -65,7 +65,7 @@ public class LightCommand extends AbstractCommand {
     private BotApiMethod<?> showMainView(CommandRequest request, String text) {
         // /light
         Map<String, String> rooms = new LinkedHashMap<>();
-        lightService.getLightState().forEach((room, roomState) -> {
+        lightService.lightState.forEach((room, roomState) -> {
             String action = !roomState ? "on" : "off";
             String currentStatus = roomState ? "on" : "off";
             rooms.put(room + "/" + action,
@@ -76,7 +76,7 @@ public class LightCommand extends AbstractCommand {
         rooms.put("5min", "5 мин");
         rooms.put("back", "Назад");
         InlineKeyboardMarkup buttons = createButtons(List.of(), rooms, 2);
-        return createTmMessage(request.getChatId(), request.getMessageId(), text, buttons);
+        return createTmMessage(request.chatId, request.messageId, text, buttons);
     }
 
     private BotApiMethod<?> showTemporaryView(CommandRequest request, int temporary, String text) {
@@ -84,16 +84,16 @@ public class LightCommand extends AbstractCommand {
         text += "\nВключить на %d мин:".formatted(temporary);
 
         Map<String, String> rooms = new LinkedHashMap<>();
-        lightService.getLightState().forEach((room, roomState) -> {
+        lightService.lightState.forEach((room, roomState) -> {
             String currentStatus = roomState ? "on" : "off";
             rooms.put(room,
                     LightService.translations.getOrDefault(room, room) + ": " + currentStatus);
         });
         rooms.put("back", "Назад");
-        List<String> path = request.getPath();
+        List<String> path = request.path;
         if (path.size() > 2) path = path.subList(0, 1);
         InlineKeyboardMarkup buttons = createButtons(path, rooms, 2);
-        return createTmMessage(request.getChatId(), request.getMessageId(), text, buttons);
+        return createTmMessage(request.chatId, request.messageId, text, buttons);
     }
 
 }

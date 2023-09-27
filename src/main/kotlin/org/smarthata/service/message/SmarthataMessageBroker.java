@@ -23,7 +23,7 @@ public class SmarthataMessageBroker {
         logger.debug("Broadcasting message: {}", message);
 
         listeners.stream()
-                .filter(listener -> isNeedSendMessage(message, listener.getEndpointType()))
+                .filter(listener -> isNeedSendMessage(message, listener.endpointType()))
                 .forEach(listener -> listener.receiveSmarthataMessage(message));
     }
 

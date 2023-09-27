@@ -13,14 +13,14 @@ import java.util.stream.Collectors;
 public abstract class AbstractCommand implements Command {
 
     public static final int BUTTONS_IN_ROW = 1;
-    private final String command;
+    public final String command;
 
     public AbstractCommand(@NotNull String command) {
         this.command = command;
     }
 
     @Override
-    public String getCommand() {
+    public String command() {
         return command;
     }
 

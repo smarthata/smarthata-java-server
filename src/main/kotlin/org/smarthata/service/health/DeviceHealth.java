@@ -1,10 +1,8 @@
 package org.smarthata.service.health;
 
-import lombok.ToString;
 
 import java.time.LocalDateTime;
 
-@ToString
 public class DeviceHealth {
 
     public String devicePath;

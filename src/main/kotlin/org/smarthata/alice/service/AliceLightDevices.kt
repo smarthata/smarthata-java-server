@@ -17,12 +17,12 @@ class AliceLightDevices(
     private val logger = LoggerFactory.getLogger(javaClass)
 
     fun devices() =
-        lightService.lightState.map { getDeviceForRoom(room = it.key) }
+        lightService.lightState.map { createDeviceForRoom(room = it.key) }
 
     fun query(device: Device): Device {
         logger.info("Query for device: $device")
         val room = device.id.removePrefix(LIGHT_PREFIX)
-        return getDeviceForRoom(room, fillState = true)
+        return createDeviceForRoom(room, fillState = true)
     }
 
     fun action(action: Device): Device? {
@@ -35,11 +35,11 @@ class AliceLightDevices(
         return if (onOff?.state?.value != null) {
             val value = onOff.state!!.value!!
             logger.info("Changing light $room to state $value")
-            lightService.setLight(room, value, ALICE)
+            lightService.updateLight(room, value, ALICE)
 
-            getDeviceForRoom(room, actionResult = ActionResult(status = "DONE"))
+            createDeviceForRoom(room, actionResult = ActionResult(status = "DONE"))
         } else {
-            getDeviceForRoom(
+            createDeviceForRoom(
                 room, actionResult = ActionResult(
                     errorCode = "UNKNOWN",
                     errorMessage = "Could not find on_off capability"
@@ -48,7 +48,7 @@ class AliceLightDevices(
         }
     }
 
-    private fun getDeviceForRoom(room: String, fillState: Boolean = false, actionResult: ActionResult? = null): Device {
+    private fun createDeviceForRoom(room: String, fillState: Boolean = false, actionResult: ActionResult? = null): Device {
         val name = LightService.translations.getOrDefault(room, room)
         return Device(
             id = LIGHT_PREFIX + room,
@@ -60,7 +60,7 @@ class AliceLightDevices(
                     state = if (fillState)
                         State(
                             instance = "on",
-                            value = lightService.getLight(room),
+                            value = lightService.lightState(room),
                         )
                     else
                         null

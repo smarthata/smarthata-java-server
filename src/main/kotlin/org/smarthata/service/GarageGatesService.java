@@ -52,12 +52,12 @@ public class GarageGatesService {
         try {
             logger.debug("Check garage heating");
 
-            double streetTemp = getStreetTemp();
-            double garageTemp = getGarageTemp();
+            double streetTemp = findStreetTemp();
+            double garageTemp = findGarageTemp();
 
-            if (getStreetAverageTemp() <= 18) {
+            if (findStreetAverageTemp() <= 18) {
                 logger.debug("Check for heating garage");
-                GarageGateAction action = getGarageGateWarmingAction(streetTemp, garageTemp);
+                GarageGateAction action = findGarageGateWarmingAction(streetTemp, garageTemp);
                 if (action != GarageGateAction.NOTHING) {
                     logger.debug("Temp is good to {} gates", action.name());
                     if (DateUtils.isDateAfter(lastNotificationTime, Duration.ofMinutes(30))) {
@@ -72,7 +72,7 @@ public class GarageGatesService {
         }
     }
 
-    private GarageGateAction getGarageGateWarmingAction(double streetTemp, double garageTemp) {
+    private GarageGateAction findGarageGateWarmingAction(double streetTemp, double garageTemp) {
         if (streetTemp > garageTemp + 0.2 && !garageCommand.gatesOpen.get())
             return GarageGateAction.OPEN;
         if (streetTemp + 0.2 < garageTemp && garageCommand.gatesOpen.get())
@@ -90,22 +90,22 @@ public class GarageGatesService {
         }
     }
 
-    private double getStreetTemp() {
-        double streetTemp = mqttService.getLastMessageAsDouble("/street/temp")
+    private double findStreetTemp() {
+        double streetTemp = mqttService.findLastMessageAsDouble("/street/temp")
                 .orElseThrow(() -> new RuntimeException("Street temp is not populated"));
         logger.debug("Street temp: {}", streetTemp);
         return streetTemp;
     }
 
-    private double getStreetAverageTemp() {
-        double streetAverageTemp = mqttService.getLastMessageAsDouble("/street/temp-average")
+    private double findStreetAverageTemp() {
+        double streetAverageTemp = mqttService.findLastMessageAsDouble("/street/temp-average")
                 .orElseThrow(() -> new RuntimeException("Average temp is not populated"));
         logger.debug("Street average temp: {}", streetAverageTemp);
         return streetAverageTemp;
     }
 
-    private double getGarageTemp() {
-        Double garageTemp = (Double) mqttService.getLastMessageFieldFromJson("/heating/garage/garage", "temp")
+    private double findGarageTemp() {
+        Double garageTemp = (Double) mqttService.findLastMessageFieldFromJson("/heating/garage/garage", "temp")
                 .orElseThrow(() -> new RuntimeException("Garage data is not populated"));
         logger.debug("Garage temp: {}", garageTemp);
         return garageTemp;

@@ -69,11 +69,11 @@ public class MqttService extends AbstractSmarthataMessageListener implements IMq
     }
 
     @Override
-    public EndpointType getEndpointType() {
+    public EndpointType endpointType() {
         return MQTT;
     }
 
-    public Optional<String> getLastMessage(String topic) {
+    public Optional<String> findLastMessage(String topic) {
         LastMessage lastMessage = lastMessages.get(topic);
         if (lastMessage == null || DateUtils.isDateAfter(lastMessage.dateTime(), Duration.ofMinutes(5))) {
             return Optional.empty();
@@ -81,14 +81,14 @@ public class MqttService extends AbstractSmarthataMessageListener implements IMq
         return Optional.of(lastMessage.message());
     }
 
-    public Optional<Double> getLastMessageAsDouble(String topic) {
-        return getLastMessage(topic).map(Double::parseDouble);
+    public Optional<Double> findLastMessageAsDouble(String topic) {
+        return findLastMessage(topic).map(Double::parseDouble);
     }
 
     @SuppressWarnings("unchecked")
-    public Optional<Map<String, Object>> getLastMessageAsMap(String topic) {
+    public Optional<Map<String, Object>> findLastMessageAsMap(String topic) {
 
-        Optional<String> json = getLastMessage(topic);
+        Optional<String> json = findLastMessage(topic);
         if (json.isEmpty()) return Optional.empty();
 
         try {
@@ -98,8 +98,8 @@ public class MqttService extends AbstractSmarthataMessageListener implements IMq
             throw new RuntimeException(e);
         }
     }
-    public Optional<Object> getLastMessageFieldFromJson(String topic, String field) {
-        Optional<Map<String, Object>> optional = getLastMessageAsMap(topic);
+    public Optional<Object> findLastMessageFieldFromJson(String topic, String field) {
+        Optional<Map<String, Object>> optional = findLastMessageAsMap(topic);
         if (optional.isPresent()) {
             Map<String, Object> map = optional.get();
             if (map.containsKey(field)) {

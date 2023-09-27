@@ -10,7 +10,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 @Order(1)
 public interface Command {
 
-    String getCommand();
+    String command();
 
     BotApiMethod<?> answer(CommandRequest request);
 

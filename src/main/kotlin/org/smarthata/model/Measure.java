@@ -6,13 +6,11 @@ import lombok.NoArgsConstructor;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.ToString;
 
 import java.util.Date;
 
 @NoArgsConstructor
 @Entity
-@ToString
 public class Measure {
 
     @JsonIgnore

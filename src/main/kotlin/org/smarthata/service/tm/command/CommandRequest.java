@@ -1,15 +1,13 @@
 package org.smarthata.service.tm.command;
 
-import lombok.Data;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Data
 public class CommandRequest implements Iterator<String> {
-    private final List<String> path;
-    private final String chatId;
-    private final Integer messageId;
+    public final List<String> path;
+    public final String chatId;
+    public final Integer messageId;
     private int read = 0;
 
     public CommandRequest(List<String> path, String chatId, Integer messageId) {
@@ -29,7 +27,7 @@ public class CommandRequest implements Iterator<String> {
         return path.size() > read;
     }
 
-    public List<String> getPathRemoving(String... removing) {
+    public List<String> createPathRemoving(String... removing) {
         Set<String> set = new HashSet<>(Arrays.asList(removing));
         return path.stream()
                 .filter(s -> !set.contains(s))

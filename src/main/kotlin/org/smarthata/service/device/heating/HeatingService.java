@@ -44,51 +44,51 @@ public class HeatingService extends AbstractSmarthataMessageListener {
         }};
     }
 
-    public double getExpectedTemp(Room room) {
-        return map.get(room).getExpectedTemp().get();
+    public double expectedTemp(Room room) {
+        return map.get(room).expectedTemp.get();
     }
 
     public boolean isActualTempExists(Room room) {
-        return map.get(room).getActualTemp() != null;
+        return map.get(room).actualTemp != null;
     }
 
-    public double getActualTemp(Room room) {
-        return map.get(room).getActualTemp().get();
+    public double actualTemp(Room room) {
+        return map.get(room).actualTemp.get();
     }
 
-    public void setExpectedTemp(Room room, Double temp) {
+    public void updateExpectedTemp(Room room, Double temp) {
         logger.info("Set temp [{}] for room [{}]", temp, room);
         HeatingDevice device = map.get(room);
-        device.getExpectedTemp().set(temp);
+        device.expectedTemp.set(temp);
         sendTempToBroker(device);
     }
 
     public synchronized void incExpectedTemp(Room room, double delta) {
         logger.info("Inc temp [{}] for room [{}]", delta, room);
         HeatingDevice device = map.get(room);
-        device.getExpectedTemp().getAndUpdate(value -> value + delta);
+        device.expectedTemp.getAndUpdate(value -> value + delta);
         sendTempToBroker(device);
     }
 
-    public int getFloorPomp(Room room) {
+    public int floorPomp(Room room) {
         logger.info("Get floor pomp for room {}", room);
-        return map.get(room).getEnabled().get();
+        return map.get(room).enabled.get();
     }
 
-    public void setFloorPomp(Room room, String floorPomp) {
+    public void updateFloorPomp(Room room, String floorPomp) {
         logger.info("Set floor pomp [{}] for room {}", floorPomp, room);
         HeatingDevice device = map.get(room);
-        device.getEnabled().set(Integer.parseInt(floorPomp));
+        device.enabled.set(Integer.parseInt(floorPomp));
         sendEnabledToBroker(device);
     }
 
     private void sendTempToBroker(HeatingDevice device) {
-        SmarthataMessage message = new SmarthataMessage(device.getQueueExpectedTemp(), device.getExpectedTemp().toString(), TELEGRAM, MQTT, true);
+        SmarthataMessage message = new SmarthataMessage(device.queueExpectedTemp, device.expectedTemp.toString(), TELEGRAM, MQTT, true);
         messageBroker.broadcastSmarthataMessage(message);
     }
 
     private void sendEnabledToBroker(HeatingDevice device) {
-        SmarthataMessage message = new SmarthataMessage(device.getQueueEnabled(), device.getEnabled().toString(), TELEGRAM, MQTT, true);
+        SmarthataMessage message = new SmarthataMessage(device.queueEnabled, device.enabled.toString(), TELEGRAM, MQTT, true);
         messageBroker.broadcastSmarthataMessage(message);
     }
 
@@ -99,12 +99,12 @@ public class HeatingService extends AbstractSmarthataMessageListener {
 
     private void readInputMessage(SmarthataMessage message, Room room, HeatingDevice device) {
         String path = message.path;
-        if (path.equals(device.getQueueExpectedTemp())) {
-            device.getExpectedTemp().set(Double.parseDouble(message.text));
-        } else if (path.equals(device.getQueueActualTemp())) {
+        if (path.equals(device.queueExpectedTemp)) {
+            device.expectedTemp.set(Double.parseDouble(message.text));
+        } else if (path.equals(device.queueActualTemp)) {
             parseActualTemp(message, room, device);
-        } else if (path.equals(device.getQueueEnabled())) {
-            device.getEnabled().set(Integer.parseInt(message.text));
+        } else if (path.equals(device.queueEnabled)) {
+            device.enabled.set(Integer.parseInt(message.text));
         } else if (path.equals("/heating/floor/mixer-position")) {
             mixerPosition.set(Integer.parseInt(message.text));
         }
@@ -117,12 +117,12 @@ public class HeatingService extends AbstractSmarthataMessageListener {
         if (map.containsKey("temp")) {
             Double newActualTemp = (Double) map.get("temp");
             logger.trace("Update room [{}] set actual temp [{}]", room, newActualTemp);
-            device.getActualTemp().set(newActualTemp);
+            device.actualTemp.set(newActualTemp);
         }
     }
 
     @Override
-    public EndpointType getEndpointType() {
+    public EndpointType endpointType() {
         return SYSTEM;
     }
 

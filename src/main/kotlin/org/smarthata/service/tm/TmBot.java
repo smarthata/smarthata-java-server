@@ -53,7 +53,7 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
         this.messageBroker.register(this);
 
         commandsMap = commands.stream()
-                .collect(Collectors.toMap(Command::getCommand, Function.identity()));
+                .collect(Collectors.toMap(Command::command, Function.identity()));
     }
 
     @Override
@@ -88,7 +88,7 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
     }
 
     @Override
-    public EndpointType getEndpointType() {
+    public EndpointType endpointType() {
         return TELEGRAM;
     }
 
@@ -113,7 +113,7 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
     }
 
     private boolean processMessage(Long chatId, String text, Integer messageId) {
-        List<String> path = getPath(text);
+        List<String> path = splitPath(text);
         logger.info("Process telegram message: path {}, text: {}", path, text);
         if (path.isEmpty()) {
             path.add("");
@@ -130,7 +130,7 @@ public class TmBot extends TelegramLongPollingBot implements SmarthataMessageLis
         return false;
     }
 
-    private List<String> getPath(String text) {
+    private List<String> splitPath(String text) {
         return Arrays.stream(text.split("/"))
                 .filter(s -> !s.isEmpty())
                 .collect(Collectors.toList());

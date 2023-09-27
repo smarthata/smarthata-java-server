@@ -16,7 +16,7 @@ class AliceDevicesService(
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    fun getDevices(): List<Device> {
+    fun devices(): List<Device> {
         return lightDevices.devices()
     }
 

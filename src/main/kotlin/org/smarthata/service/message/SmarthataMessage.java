@@ -1,10 +1,8 @@
 package org.smarthata.service.message;
 
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 
 @NoArgsConstructor
-@ToString
 public class SmarthataMessage {
 
     public String path;

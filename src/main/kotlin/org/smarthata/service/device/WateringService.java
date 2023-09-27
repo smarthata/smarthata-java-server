@@ -22,12 +22,12 @@ public class WateringService extends AbstractSmarthataMessageListener {
 
     private final ObjectMapper objectMapper;
 
-    private Mode mode = Mode.UNDEFINED;
+    public Mode mode = Mode.UNDEFINED;
 
-    private List<Double> startTimes;
-    private List<Integer> durations;
+    public List<Double> startTimes;
+    public List<Integer> durations;
 
-    private final Map<Integer, Integer> channelStates = new HashMap<>();
+    public final Map<Integer, Integer> channelStates = new HashMap<>();
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -96,37 +96,22 @@ public class WateringService extends AbstractSmarthataMessageListener {
     }
 
     @Override
-    public EndpointType getEndpointType() {
+    public EndpointType endpointType() {
         return EndpointType.SYSTEM;
     }
 
 
-    public Mode getMode() {
-        return mode;
-    }
-
-    public void setMode(Mode mode, EndpointType source) {
+    public void updateMode(Mode mode, EndpointType source) {
         this.mode = mode;
         sendModeToBroker(Integer.toString(mode.ordinal()), source);
     }
 
-    public List<Double> getStartTimes() {
-        return startTimes;
-    }
-
-    public void setStartTimes(List<Double> startTimes) {
+    public void updateStartTimes(List<Double> startTimes) {
         this.startTimes = startTimes;
     }
 
-    public List<Integer> getDurations() {
-        return durations;
-    }
-
-    public void setDurations(List<Integer> durations) {
+    public void updateDurations(List<Integer> durations) {
         this.durations = durations;
     }
 
-    public Map<Integer, Integer> getChannelStates() {
-        return channelStates;
-    }
 }

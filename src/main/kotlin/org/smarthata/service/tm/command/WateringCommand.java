@@ -40,7 +40,7 @@ public class WateringCommand extends AbstractCommand {
                     if (request.hasNext()) {
                         String newModeIndex = request.next();
                         Mode newMode = Mode.valueOf(Integer.parseInt(newModeIndex));
-                        wateringService.setMode(newMode, TELEGRAM);
+                        wateringService.updateMode(newMode, TELEGRAM);
                         logger.info("Mode has been changed to {}", newMode);
                     }
                     break;
@@ -53,7 +53,7 @@ public class WateringCommand extends AbstractCommand {
                 case "channel":
                     return showChannel(request);
                 default:
-                    return showMainButtons(request, "This is not implemented:" + request.getPath());
+                    return showMainButtons(request, "This is not implemented:" + request.path);
             }
 
         }
@@ -63,7 +63,7 @@ public class WateringCommand extends AbstractCommand {
 
     private BotApiMethod<?> showMainButtons(CommandRequest request, String text) {
 
-        Mode currentMode = wateringService.getMode();
+        Mode currentMode = wateringService.mode;
         if (currentMode == null) {
             currentMode = Mode.OFF;
         }
@@ -74,35 +74,35 @@ public class WateringCommand extends AbstractCommand {
         Map<String, String> map = new LinkedHashMap<>();
         map.put("mode/" + next.mode, "Режим: " + currentMode.name());
         if (currentMode != Mode.OFF) {
-            map.put("channel", "Каналы: " + wateringService.getChannelStates().values());
+            map.put("channel", "Каналы: " + wateringService.channelStates.values());
             map.put("wave/start", "Запустить полив");
-            map.put("duration", "Продолжительность каналов (мин): " + wateringService.getDurations());
+            map.put("duration", "Продолжительность каналов (мин): " + wateringService.durations);
         }
         if (currentMode == Mode.AUTO) {
-            map.put("start", "Время начала (ч): " + wateringService.getStartTimes());
+            map.put("start", "Время начала (ч): " + wateringService.startTimes);
         }
         map.put("back", "Назад");
 
         InlineKeyboardMarkup keyboard = createButtons(emptyList(), map);
-        return createTmMessage(request.getChatId(), request.getMessageId(), text, keyboard);
+        return createTmMessage(request.chatId, request.messageId, text, keyboard);
     }
 
     private BotApiMethod<?> showDurations(CommandRequest request) {
-        String text = "Продолжительность (минуты): " + wateringService.getDurations();
+        String text = "Продолжительность (минуты): " + wateringService.durations;
 
         List<String> buttons = List.of("change", "back");
         InlineKeyboardMarkup keyboard = createButtons(singletonList("duration"), buttons);
 
-        return createTmMessage(request.getChatId(), request.getMessageId(), text, keyboard);
+        return createTmMessage(request.chatId, request.messageId, text, keyboard);
     }
 
     private BotApiMethod<?> showStartTimes(CommandRequest request) {
-        String text = "Время начала полива (часы): " + wateringService.getStartTimes();
+        String text = "Время начала полива (часы): " + wateringService.startTimes;
 
         List<String> buttons = List.of("add", "remove", "back");
         InlineKeyboardMarkup keyboard = createButtons(singletonList("start"), buttons);
 
-        return createTmMessage(request.getChatId(), request.getMessageId(), text, keyboard);
+        return createTmMessage(request.chatId, request.messageId, text, keyboard);
     }
 
 
@@ -117,7 +117,7 @@ public class WateringCommand extends AbstractCommand {
 
         InlineKeyboardMarkup keyboard = createButtons(singletonList("watering"), map);
 
-        return createTmMessage(request.getChatId(), request.getMessageId(), text, keyboard);
+        return createTmMessage(request.chatId, request.messageId, text, keyboard);
     }
 
     private BotApiMethod<?> showChannel(CommandRequest request) {
@@ -125,7 +125,7 @@ public class WateringCommand extends AbstractCommand {
         if (request.hasNext()) {
             String part = request.next();
             if (part.equals("disable")) {
-                wateringService.getChannelStates().keySet()
+                wateringService.channelStates.keySet()
                         .forEach(ch -> wateringService.updateChannel(ch, 0, TELEGRAM));
             } else {
                 int channel = Integer.parseInt(part);
@@ -141,7 +141,7 @@ public class WateringCommand extends AbstractCommand {
         String text = "Каналы: ";
 
         Map<String, String> out = new LinkedHashMap<>();
-        wateringService.getChannelStates().forEach((key, value) -> out.put(
+        wateringService.channelStates.forEach((key, value) -> out.put(
                 key + "/" + (1 - value),
                 key + ":" + (value == 1 ? "On" : "Off")
         ));
@@ -150,7 +150,7 @@ public class WateringCommand extends AbstractCommand {
 
         InlineKeyboardMarkup keyboard = createButtons(singletonList("channel"), out);
 
-        return createTmMessage(request.getChatId(), request.getMessageId(), text, keyboard);
+        return createTmMessage(request.chatId, request.messageId, text, keyboard);
     }
 
 }

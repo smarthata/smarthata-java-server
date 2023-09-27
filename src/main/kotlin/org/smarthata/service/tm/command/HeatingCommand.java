@@ -44,7 +44,7 @@ public class HeatingCommand extends AbstractCommand {
                     return processConfig(request);
                 default:
                     String text = "Unknown house";
-                    return createTmMessage(request.getChatId(), request.getMessageId(), text);
+                    return createTmMessage(request.chatId, request.messageId, text);
             }
         }
 
@@ -54,8 +54,8 @@ public class HeatingCommand extends AbstractCommand {
         buttons.put("garage", "Гараж");
         buttons.put("config", "Настройка");
         buttons.put("back", "Назад");
-        return createTmMessage(request.getChatId(), request.getMessageId(),
-                text, createButtons(request.getPath(), buttons, 2));
+        return createTmMessage(request.chatId, request.messageId,
+                text, createButtons(request.path, buttons, 2));
     }
 
     private BotApiMethod<?> processHouse(CommandRequest request) {
@@ -71,7 +71,7 @@ public class HeatingCommand extends AbstractCommand {
                     return processRoom(request, BATHROOM);
                 default:
                     String text = "Unknown room";
-                    return createTmMessage(request.getChatId(), request.getMessageId(), text);
+                    return createTmMessage(request.chatId, request.messageId, text);
             }
         }
 
@@ -85,8 +85,8 @@ public class HeatingCommand extends AbstractCommand {
         buttons.put("bathroom", v3);
         buttons.put("back", "Назад");
 
-        return createTmMessage(request.getChatId(), request.getMessageId(),
-                text, createButtons(request.getPath(), buttons));
+        return createTmMessage(request.chatId, request.messageId,
+                text, createButtons(request.path, buttons));
     }
 
     private String showTempInRoom(String roomName, Room room) {
@@ -94,7 +94,7 @@ public class HeatingCommand extends AbstractCommand {
 //            return String.format("%s: %.1f%s/%.1f%s", roomName, heatingDevice.getActualTemp(room), CELSIUS,
 //                    heatingDevice.getExpectedTemp(room), CELSIUS);
 //        }
-        return String.format("%s: %.1f%s", roomName, heatingService.getExpectedTemp(room), CELSIUS);
+        return String.format("%s: %.1f%s", roomName, heatingService.expectedTemp(room), CELSIUS);
     }
 
     private BotApiMethod<?> processGarage(CommandRequest request) {
@@ -108,7 +108,7 @@ public class HeatingCommand extends AbstractCommand {
                     return processRoom(request, WORKSHOP);
                 default:
                     String text = "Unknown device";
-                    return createTmMessage(request.getChatId(), request.getMessageId(), text);
+                    return createTmMessage(request.chatId, request.messageId, text);
             }
         }
 
@@ -119,8 +119,8 @@ public class HeatingCommand extends AbstractCommand {
         buttons.put("garage", v1);
         buttons.put("workshop", v2);
         buttons.put("back", "Назад");
-        return createTmMessage(request.getChatId(), request.getMessageId(),
-                text, createButtons(request.getPath(), buttons));
+        return createTmMessage(request.chatId, request.messageId,
+                text, createButtons(request.path, buttons));
     }
 
     private BotApiMethod<?> processRoom(CommandRequest request, Room room) {
@@ -131,18 +131,18 @@ public class HeatingCommand extends AbstractCommand {
                 heatingService.incExpectedTemp(room, Double.parseDouble(next));
             } catch (NumberFormatException e) {
                 String text = "Unknown command: " + next;
-                return createTmMessage(request.getChatId(), request.getMessageId(), text);
+                return createTmMessage(request.chatId, request.messageId, text);
             }
         }
 
         String roomName = room.name().toLowerCase(Locale.ROOT);
-        String text = String.format("Temp %s: %1.1f%s", roomName, heatingService.getExpectedTemp(room), CELSIUS);
+        String text = String.format("Temp %s: %1.1f%s", roomName, heatingService.expectedTemp(room), CELSIUS);
         InlineKeyboardMarkup buttons = createButtons(
-                request.getPathRemoving("-0.5", "+0.5", "-1", "+1"),
+                request.createPathRemoving("-0.5", "+0.5", "-1", "+1"),
                 List.of("-0.5", "+0.5", "-1", "+1", "set", "back"),
                 2
         );
-        return createTmMessage(request.getChatId(), request.getMessageId(), text, buttons);
+        return createTmMessage(request.chatId, request.messageId, text, buttons);
     }
 
 
@@ -164,7 +164,7 @@ public class HeatingCommand extends AbstractCommand {
         buttons.put("restart", "restart");
         buttons.put("mixer", "mixer: " + heatingService.mixerPosition);
         buttons.put("back", "Назад");
-        return createTmMessage(request.getChatId(), request.getMessageId(), text, createButtons(List.of("config"), buttons));
+        return createTmMessage(request.chatId, request.messageId, text, createButtons(List.of("config"), buttons));
     }
 
     private BotApiMethod<?> processMixer(CommandRequest request) {
@@ -186,7 +186,7 @@ public class HeatingCommand extends AbstractCommand {
             buttons.put(value.toString(), value.toString());
         }
         buttons.put("back", "Назад");
-        return createTmMessage(request.getChatId(), request.getMessageId(), text, createButtons(List.of("config", "mixer"), buttons));
+        return createTmMessage(request.chatId, request.messageId, text, createButtons(List.of("config", "mixer"), buttons));
     }
 
 }

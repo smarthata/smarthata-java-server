@@ -23,19 +23,19 @@ public class CronMqttUpdater {
 
     @Scheduled(cron = "0 * * * * *")
     public void sendSecondOfDay() {
-        int secondOfDay = getSecondOfDay();
+        int secondOfDay = calcSecondOfDay();
         SmarthataMessage message = new SmarthataMessage("/time/second-of-day", Integer.toString(secondOfDay), SYSTEM, MQTT);
         messageBroker.broadcastSmarthataMessageRetained(message);
     }
 
     @Scheduled(cron = "0 * * * * *")
     public void sendMinuteOfDay() {
-        int minuteOfDay = getSecondOfDay() / 60;
+        int minuteOfDay = calcSecondOfDay() / 60;
         SmarthataMessage message = new SmarthataMessage("/time/minute-of-day", Integer.toString(minuteOfDay), SYSTEM, MQTT);
         messageBroker.broadcastSmarthataMessageRetained(message);
     }
 
-    private int getSecondOfDay() {
+    private int calcSecondOfDay() {
         return LocalTime.now(ZoneId.systemDefault()).toSecondOfDay();
     }
 

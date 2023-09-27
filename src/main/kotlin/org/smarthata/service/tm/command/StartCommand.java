@@ -22,7 +22,7 @@ public class StartCommand extends AbstractCommand {
 
     @Override
     public BotApiMethod<?> answer(CommandRequest request) {
-        return aSimpleSendMessage(request.getChatId(), "Smarthata bot", createMainButtons());
+        return aSimpleSendMessage(request.chatId, "Smarthata bot", createMainButtons());
     }
 
     private ReplyKeyboardMarkup createMainButtons() {

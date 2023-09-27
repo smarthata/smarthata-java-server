@@ -4,6 +4,6 @@ public interface SmarthataMessageListener {
 
     void receiveSmarthataMessage(SmarthataMessage message);
 
-    EndpointType getEndpointType();
+    EndpointType endpointType();
 
 }
