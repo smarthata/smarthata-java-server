@@ -39,7 +39,6 @@ public class GarageCommand extends AbstractCommand {
 
         logger.info("Garage request: {}", request);
 
-
         String text = "Ворота " + (gatesOpen.get() ? "открыты" : "закрыты");
 
         if (request.hasNext()) {
@@ -59,6 +58,7 @@ public class GarageCommand extends AbstractCommand {
 
         List<String> temps = new LinkedList<>();
         findStreetTemp().ifPresent(t -> temps.add(String.format("улица %.1f°C", t)));
+        findStreetAverageTemp().ifPresent(t -> temps.add(String.format("среднесуточная %.1f°C", t)));
         findGarageTemp().ifPresent(t -> temps.add(String.format("гараж %.1f°C", (double) t)));
         if (temps.size() > 0) text += " (" + String.join(", ", temps) + ")";
 
@@ -75,6 +75,9 @@ public class GarageCommand extends AbstractCommand {
 
     private Optional<Double> findStreetTemp() {
         return mqttMessagesCache.findLastMessageAsDouble("/street/temp");
+    }
+    private Optional<Double> findStreetAverageTemp() {
+        return mqttMessagesCache.findLastMessageAsDouble("/street/temp-average");
     }
 
     private Optional<Object> findGarageTemp() {

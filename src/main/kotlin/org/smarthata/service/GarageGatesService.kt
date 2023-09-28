@@ -1,114 +1,89 @@
-package org.smarthata.service;
+package org.smarthata.service
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.smarthata.service.mqtt.MqttMessagesCache;
-import org.smarthata.service.tm.TmBot;
-import org.smarthata.service.tm.command.CommandRequest;
-import org.smarthata.service.tm.command.GarageCommand;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
-
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.util.List;
-
-import static java.util.concurrent.TimeUnit.SECONDS;
-
-
-enum GarageGateAction {
-    OPEN("открыть"), CLOSE("закрыть"), NOTHING("");
-
-    public final String text;
-
-    GarageGateAction(String text) {
-        this.text = text;
-    }
-}
+import org.slf4j.LoggerFactory
+import org.smarthata.service.DateUtils.isDateAfter
+import org.smarthata.service.mqtt.MqttMessagesCache
+import org.smarthata.service.tm.TmBot
+import org.smarthata.service.tm.command.CommandRequest
+import org.smarthata.service.tm.command.GarageCommand
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.scheduling.annotation.Scheduled
+import org.springframework.stereotype.Service
+import java.time.Duration
+import java.time.LocalDateTime
+import java.util.concurrent.TimeUnit
 
 @Service
-public class GarageGatesService {
+class GarageGatesService(
+    private val mqttMessagesCache: MqttMessagesCache,
+    private val garageCommand: GarageCommand,
+    @param:Autowired(required = false) private val tmBot: TmBot,
+    @Value("\${garage.gates.average-temp-threshold:20.0}") private val averageTempThreshold: Double,
+) {
 
-    private final MqttMessagesCache mqttMessagesCache;
-    private final GarageCommand garageCommand;
-    private final TmBot tmBot;
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
-    private LocalDateTime lastNotificationTime;
+    private val logger = LoggerFactory.getLogger(this.javaClass)
 
-    public GarageGatesService(
-            MqttMessagesCache mqttMessagesCache,
-            GarageCommand garageCommand,
-            @Autowired(required = false) TmBot tmBot
-    ) {
-        this.mqttMessagesCache = mqttMessagesCache;
-        this.garageCommand = garageCommand;
-        this.tmBot = tmBot;
-    }
+    private var lastNotificationTime: LocalDateTime? = null
 
-
-    @Scheduled(fixedDelay = 60, timeUnit = SECONDS)
-    public void checkGarage() {
+    @Scheduled(fixedDelay = 60, timeUnit = TimeUnit.SECONDS)
+    fun checkGarage() {
         try {
-            logger.debug("Check garage heating");
-
-            double streetTemp = findStreetTemp();
-            double garageTemp = findGarageTemp();
-
-            if (findStreetAverageTemp() <= 18) {
-                logger.debug("Check for heating garage");
-                GarageGateAction action = findGarageGateWarmingAction(streetTemp, garageTemp);
+            if (findStreetAverageTemp() <= averageTempThreshold) {
+                logger.debug("Check for heating garage")
+                val streetTemp = findStreetTemp()
+                val garageTemp = findGarageTemp()
+                val action = findGarageGateWarmingAction(streetTemp, garageTemp)
                 if (action != GarageGateAction.NOTHING) {
-                    logger.debug("Temp is good to {} gates", action.name());
-                    if (DateUtils.isDateAfter(lastNotificationTime, Duration.ofMinutes(30))) {
-                        sendMessage(action);
+                    logger.debug("Temp is good to {} gates", action.name)
+                    if (isDateAfter(lastNotificationTime, Duration.ofMinutes(30))) {
+                        sendTelegramMessage(action)
                     } else {
-                        logger.debug("Notification was sent recently");
+                        logger.debug("Notification was sent recently")
                     }
                 }
             }
-        } catch (RuntimeException e) {
-            logger.error(e.getMessage(), e);
+        } catch (e: RuntimeException) {
+            logger.error("Error in garage gates check", e)
         }
     }
 
-    private GarageGateAction findGarageGateWarmingAction(double streetTemp, double garageTemp) {
+    private fun findGarageGateWarmingAction(streetTemp: Double, garageTemp: Double): GarageGateAction =
         if (streetTemp > garageTemp + 0.5 && !garageCommand.gatesOpen.get())
-            return GarageGateAction.OPEN;
-        if (streetTemp + 0.5 < garageTemp && garageCommand.gatesOpen.get())
-            return GarageGateAction.CLOSE;
-        return GarageGateAction.NOTHING;
-    }
+            GarageGateAction.OPEN
+        else
+            if (streetTemp + 0.5 < garageTemp && garageCommand.gatesOpen.get())
+                GarageGateAction.CLOSE
+            else
+                GarageGateAction.NOTHING
 
-    private void sendMessage(GarageGateAction action) {
-        String text = String.format("Можно %s гаражные ворота для прогрева", action.text);
+    private fun sendTelegramMessage(action: GarageGateAction) {
+        val text = when (action) {
+            GarageGateAction.OPEN -> "Можно открыть гаражные ворота для прогрева"
+            GarageGateAction.CLOSE -> "Нужно закрыть гаражные ворота, зима близко"
+            else -> "Ничего делать не нужно"
+        }
 
-        CommandRequest commandRequest = new CommandRequest(List.of(text), garageCommand.adminChatId, null);
-
+        val commandRequest = CommandRequest(listOf(text), garageCommand.adminChatId, null)
         if (tmBot.sendMessageToTelegram(garageCommand.answer(commandRequest))) {
-            lastNotificationTime = LocalDateTime.now();
+            lastNotificationTime = LocalDateTime.now()
         }
     }
 
-    private double findStreetTemp() {
-        double streetTemp = mqttMessagesCache.findLastMessageAsDouble("/street/temp")
-                .orElseThrow(() -> new RuntimeException("Street temp is not populated"));
-        logger.debug("Street temp: {}", streetTemp);
-        return streetTemp;
-    }
+    private fun findStreetTemp(): Double = mqttMessagesCache.findLastMessageAsDouble("/street/temp")
+        .orElseThrow { RuntimeException("Street temp is not populated") }
+        .also { logger.debug("Street temp: {}", it) }
 
-    private double findStreetAverageTemp() {
-        double streetAverageTemp = mqttMessagesCache.findLastMessageAsDouble("/street/temp-average")
-                .orElseThrow(() -> new RuntimeException("Average temp is not populated"));
-        logger.debug("Street average temp: {}", streetAverageTemp);
-        return streetAverageTemp;
-    }
+    private fun findStreetAverageTemp(): Double = mqttMessagesCache.findLastMessageAsDouble("/street/temp-average")
+        .orElseThrow { RuntimeException("Average temp is not populated") }
+        .also { logger.debug("Street average temp: {}", it) }
 
-    private double findGarageTemp() {
-        Double garageTemp = (Double) mqttMessagesCache.findLastMessageFieldFromJson("/heating/garage/garage", "temp")
-                .orElseThrow(() -> new RuntimeException("Garage data is not populated"));
-        logger.debug("Garage temp: {}", garageTemp);
-        return garageTemp;
-    }
+    private fun findGarageTemp(): Double =
+        (mqttMessagesCache.findLastMessageFieldFromJson("/heating/garage/garage", "temp")
+            .orElseThrow { RuntimeException("Garage data is not populated") } as Double)
+            .also { logger.debug("Garage temp: {}", it) }
 
+    internal enum class GarageGateAction {
+        OPEN, CLOSE, NOTHING;
+    }
 }
