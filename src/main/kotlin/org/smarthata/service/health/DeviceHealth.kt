@@ -1,18 +1,15 @@
-package org.smarthata.service.health;
+package org.smarthata.service.health
 
+import java.time.LocalDateTime
 
-import java.time.LocalDateTime;
+data class DeviceHealth(
+    var devicePath: String,
+) {
+    var status: DeviceStatus = DeviceStatus.UNKNOWN
+    var updateTime: LocalDateTime = LocalDateTime.now()
+    var lastNotificationTime: LocalDateTime? = null
 
-public class DeviceHealth {
-
-    public String devicePath;
-    public DeviceStatus status;
-
-    public LocalDateTime updateTime;
-    public LocalDateTime lastNotificationTime;
-
-    public DeviceHealth(String devicePath) {
-        this.devicePath = devicePath;
-        this.status = DeviceStatus.ACTIVE;
+    enum class DeviceStatus {
+        ACTIVE, OFFLINE, UNKNOWN
     }
 }
