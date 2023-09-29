@@ -29,41 +29,27 @@ class MqttMessagesCache(
         lastMessages[message.path] = LastMessage(message.text, LocalDateTime.now())
     }
 
-    override fun endpointType(): EndpointType = EndpointType.MQTT
+    override fun endpointType(): EndpointType = EndpointType.SYSTEM
 
-    private fun findLastMessage(topic: String): Optional<String> {
-        val lastMessage = lastMessages[topic]
-        return if (lastMessage == null || DateUtils.isDateAfter(lastMessage.dateTime, Duration.ofMinutes(5))) {
-            Optional.empty()
-        } else Optional.of(lastMessage.message)
-    }
-
-    fun findLastMessageAsDouble(topic: String): Optional<Double> =
-        findLastMessage(topic).map { s: String -> s.toDouble() }
-
-    private fun findLastMessageAsMap(topic: String): Optional<Map<String, Any>> {
-        val json = findLastMessage(topic)
-        return Optional.of(
-            if (json.isEmpty) mapOf()
-            else
-                try {
-
-                    objectMapper.readValue(json.get(), object : TypeReference<Map<String, Any>>() {})
-                } catch (e: JsonProcessingException) {
-                    logger.error("Failed to parse json: {}", json, e)
-                    throw RuntimeException(e)
-                }
-        )
-    }
-
-    fun findLastMessageFieldFromJson(topic: String, field: String): Optional<Any> {
-        val optional = findLastMessageAsMap(topic)
-        if (optional.isPresent) {
-            val map = optional.get()
-            if (map.containsKey(field)) {
-                return Optional.ofNullable(map[field])
-            }
+    private fun findLastMessage(topic: String): String? =
+        lastMessages[topic]?.let {
+            if (DateUtils.isDateAfter(it.dateTime, Duration.ofMinutes(5))) null
+            else it.message
         }
-        return Optional.empty()
-    }
+
+    fun findLastMessageAsDouble(topic: String): Double? =
+        findLastMessage(topic)?.toDouble()
+
+    private fun findLastMessageAsMap(topic: String): Map<String, Any> =
+        findLastMessage(topic)?.let {
+            try {
+                objectMapper.readValue(it, object : TypeReference<Map<String, Any>>() {})
+            } catch (e: JsonProcessingException) {
+                logger.error("Failed to parse json: {}", it, e)
+                throw RuntimeException(e)
+            }
+        } ?: mapOf()
+
+    fun findLastMessageFieldFromJson(topic: String, field: String): Any? =
+        findLastMessageAsMap(topic)[field]
 }

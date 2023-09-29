@@ -1,5 +1,11 @@
 package org.smarthata.service;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthata.model.Measure;
@@ -8,15 +14,10 @@ import org.smarthata.repository.MeasureRepository;
 import org.smarthata.repository.SensorRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @Service
 public class WeatherService {
@@ -33,14 +34,20 @@ public class WeatherService {
 
     private final String mac;
 
-    public WeatherService(SensorRepository sensorRepository,
-                          MeasureRepository measureRepository,
-                          RestTemplateBuilder restTemplateBuilder,
-                          @Value("${narodmon.mac}") String mac) {
+    private final Boolean narodmonEnabled;
+
+    public WeatherService(
+            SensorRepository sensorRepository,
+            MeasureRepository measureRepository,
+            RestTemplateBuilder restTemplateBuilder,
+            @Value("${narodmon.mac}") String mac,
+            @Value("${narodmon.enabled}") Boolean narodmonEnabled
+    ) {
         this.sensorRepository = sensorRepository;
         this.measureRepository = measureRepository;
         this.restTemplate = restTemplateBuilder.build();
         this.mac = mac;
+        this.narodmonEnabled = narodmonEnabled;
     }
 
     public double calcAverageDailyStreetTemperature() {
@@ -48,7 +55,7 @@ public class WeatherService {
         Sensor streetSensor = sensorRepository.findByIdOrElseThrow(STREET_TEMP_SENSOR_ID);
 
         double dailyAverage = round(measureRepository.findBySensorAndDateAfter(streetSensor, aDayAgo()).stream()
-                .collect(Collectors.averagingDouble( it -> it.value)));
+                .collect(Collectors.averagingDouble(it -> it.value)));
 
         Sensor dailyAverageSensor = sensorRepository.findByIdOrElseThrow(STREET_AVG_TEMP_SENSOR_ID);
         Measure measure = new Measure(dailyAverageSensor, dailyAverage, new Date());
@@ -57,7 +64,11 @@ public class WeatherService {
         return dailyAverage;
     }
 
+    @Scheduled(cron = "0 */5 * * * *")
     public void sendDataToNarodmon() {
+        if (!narodmonEnabled) {
+            return;
+        }
 
         Sensor streetSensor = sensorRepository.findByIdOrElseThrow(STREET_TEMP_SENSOR_ID);
 

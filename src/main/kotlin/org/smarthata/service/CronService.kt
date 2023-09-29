@@ -25,11 +25,6 @@ class CronService(
         )
     }
 
-    @Scheduled(cron = "0 */5 * * * *")
-    fun sendDataToNarodmon() {
-        weatherService.sendDataToNarodmon()
-    }
-
     @Scheduled(cron = "0 0 4 * * *")
     fun cleanSensorsData() {
         sensorCleaner.cleanAllDevices()
