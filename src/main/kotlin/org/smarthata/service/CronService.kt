@@ -12,18 +12,29 @@ class CronService(
     private val weatherService: WeatherService,
     private val sensorCleaner: SensorCleaner,
 ) {
-    @Scheduled(cron = "0 */5 * * * *")
-    fun calcAverageDailyStreetTemp() {
+    @Scheduled(cron = "0 */1 * * * *")
+    fun calcAverageStreetTemp() {
         messageBroker.broadcast(
-            SmarthataMessage(
-                "/street/temp-average",
-                weatherService.calcAverageDailyStreetTemperature().toString(),
-                EndpointType.SYSTEM,
-                EndpointType.MQTT,
-                true
+            smarthataMessage(
+                weatherService.calcAverageDailyStreetTemperature(),
+                "/street/temp-average"
+            )
+        )
+        messageBroker.broadcast(
+            smarthataMessage(
+                weatherService.calcAverageWeeklyStreetTemperature(),
+                "/street/temp-weekly-average"
             )
         )
     }
+
+    private fun smarthataMessage(value: Double, topic: String) = SmarthataMessage(
+        topic,
+        value.toString(),
+        EndpointType.SYSTEM,
+        EndpointType.MQTT,
+        true
+    )
 
     @Scheduled(cron = "0 0 4 * * *")
     fun cleanSensorsData() {

@@ -1,104 +1,86 @@
-package org.smarthata.service;
+package org.smarthata.service
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.smarthata.model.Measure;
-import org.smarthata.model.Sensor;
-import org.smarthata.repository.MeasureRepository;
-import org.smarthata.repository.SensorRepository;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
+import org.slf4j.LoggerFactory
+import org.smarthata.model.Measure
+import org.smarthata.repository.MeasureRepository
+import org.smarthata.repository.SensorRepository
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.web.client.RestTemplateBuilder
+import org.springframework.scheduling.annotation.Scheduled
+import org.springframework.stereotype.Service
+import org.springframework.web.client.RestClientException
+import org.springframework.web.client.RestTemplate
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.util.Date
+import java.util.concurrent.TimeUnit
+import kotlin.math.floor
 
 @Service
-public class WeatherService {
+class WeatherService(
+    private val sensorRepository: SensorRepository,
+    private val measureRepository: MeasureRepository,
+    private val measureService: MeasureService,
+    restTemplateBuilder: RestTemplateBuilder,
+    @Value("\${narodmon.mac}") private val mac: String,
+    @Value("\${narodmon.enabled}") private val narodmonEnabled: Boolean
+) {
 
-    private static final int STREET_TEMP_SENSOR_ID = 13;
-    private static final int STREET_AVG_TEMP_SENSOR_ID = 14;
+    private val logger = LoggerFactory.getLogger(this.javaClass)
 
-    private final SensorRepository sensorRepository;
-    private final MeasureRepository measureRepository;
+    private val restTemplate: RestTemplate = restTemplateBuilder.build()
 
-    private final RestTemplate restTemplate;
 
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
-
-    private final String mac;
-
-    private final Boolean narodmonEnabled;
-
-    public WeatherService(
-            SensorRepository sensorRepository,
-            MeasureRepository measureRepository,
-            RestTemplateBuilder restTemplateBuilder,
-            @Value("${narodmon.mac}") String mac,
-            @Value("${narodmon.enabled}") Boolean narodmonEnabled
-    ) {
-        this.sensorRepository = sensorRepository;
-        this.measureRepository = measureRepository;
-        this.restTemplate = restTemplateBuilder.build();
-        this.mac = mac;
-        this.narodmonEnabled = narodmonEnabled;
+    fun calcAverageDailyStreetTemperature(): Double {
+        val streetSensor = sensorRepository.findByIdOrElseThrow(STREET_TEMP_SENSOR_ID)
+        val dailyAverage = round(measureRepository.avgValueBySensorAndDateBetween(streetSensor.id, aDaysAgo(1), Date()))
+        val dailyAverageSensor = sensorRepository.findByIdOrElseThrow(STREET_AVG_TEMP_SENSOR_ID)
+        val measure = Measure(dailyAverageSensor, dailyAverage, Date())
+        return measureRepository.save(measure).value
     }
 
-    public double calcAverageDailyStreetTemperature() {
-
-        Sensor streetSensor = sensorRepository.findByIdOrElseThrow(STREET_TEMP_SENSOR_ID);
-
-        double dailyAverage = round(measureRepository.findBySensorAndDateAfter(streetSensor, aDayAgo()).stream()
-                .collect(Collectors.averagingDouble(it -> it.value)));
-
-        Sensor dailyAverageSensor = sensorRepository.findByIdOrElseThrow(STREET_AVG_TEMP_SENSOR_ID);
-        Measure measure = new Measure(dailyAverageSensor, dailyAverage, new Date());
-        measureRepository.save(measure);
-
-        return dailyAverage;
+    fun calcAverageWeeklyStreetTemperature(): Double {
+        val dailyAverageSensor = sensorRepository.findByIdOrElseThrow(STREET_AVG_TEMP_SENSOR_ID)
+        val weeklyAverage = round(measureRepository.avgValueBySensorAndDateBetween(dailyAverageSensor.id, aDaysAgo(7), Date()))
+        val weeklyAverageSensor = sensorRepository.findByIdOrElseThrow(STREET_WEEKLY_AVG_TEMP_SENSOR_ID)
+        val measure = Measure(weeklyAverageSensor, weeklyAverage, Date())
+        return measureRepository.save(measure).value
     }
 
     @Scheduled(cron = "0 */5 * * * *")
-    public void sendDataToNarodmon() {
+    fun sendDataToNarodmon() {
         if (!narodmonEnabled) {
-            return;
+            return
         }
-
-        Sensor streetSensor = sensorRepository.findByIdOrElseThrow(STREET_TEMP_SENSOR_ID);
-
-        Measure lastMeasure = measureRepository.findTopBySensorOrderByDateDesc(streetSensor);
-
-        long aLittleBitAgo = new Date().getTime() - TimeUnit.MINUTES.toMillis(2);
-        if (lastMeasure.date.before(new Date(aLittleBitAgo))) {
-            logger.error("Does not have time to publish into narodmon");
-            return;
+        val streetSensor = sensorRepository.findByIdOrElseThrow(STREET_TEMP_SENSOR_ID)
+        val lastMeasure = measureRepository.findTopBySensorOrderByDateDesc(streetSensor)
+        val aLittleBitAgo = Date().time - TimeUnit.MINUTES.toMillis(2)
+        if (lastMeasure.date.before(Date(aLittleBitAgo))) {
+            logger.error("Does not have time to publish into narodmon")
+            return
         }
-
-        Double temp = lastMeasure.value;
+        val temp = lastMeasure.value
         try {
-            String url = String.format("http://narodmon.ru/get?ID=%s&street=%s", mac, round(temp));
-
-            String result = this.restTemplate.getForObject(url, String.class);
-
-            logger.info("Temp {} sent to narodmon.ru result: {}", temp, result);
-        } catch (RestClientException e) {
-            logger.error("Failed to send street temp {} to narodmon.ru", temp, e);
+            val url = String.format("http://narodmon.ru/get?ID=%s&street=%s", mac, round(temp))
+            val result = restTemplate.getForObject(url, String::class.java)
+            logger.info("Temp {} sent to narodmon.ru result: {}", temp, result)
+        } catch (e: RestClientException) {
+            logger.error("Failed to send street temp {} to narodmon.ru", temp, e)
         }
-
     }
 
-    private double round(double number) {
-        return Math.floor(number * 10) / 10;
+    private fun round(number: Double): Double {
+        return floor(number * 10) / 10
     }
 
-    private Date aDayAgo() {
-        LocalDateTime yesterday = LocalDateTime.now().minusDays(1);
-        return Date.from(yesterday.atZone(ZoneId.systemDefault()).toInstant());
+    private fun aDaysAgo(days: Long): Date {
+        val yesterday = LocalDateTime.now().minusDays(days)
+        return Date.from(yesterday.atZone(ZoneId.systemDefault()).toInstant())
+    }
+
+    companion object {
+        private const val STREET_TEMP_SENSOR_ID = 13
+        private const val STREET_AVG_TEMP_SENSOR_ID = 14
+        private const val STREET_WEEKLY_AVG_TEMP_SENSOR_ID = 15
     }
 }
