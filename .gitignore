@@ -2,3 +2,6 @@
 *.iml
 target
 .mvn
+gradlew*
+.gradle
+gradle/

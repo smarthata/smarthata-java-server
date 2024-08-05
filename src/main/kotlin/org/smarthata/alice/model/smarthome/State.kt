@@ -1,6 +1,17 @@
 package org.smarthata.alice.model.smarthome
 
-data class State(
-    val instance: String,
-    val value: Boolean? = null,
+open class State<T>(
+    open val instance: String,
+    open val value: Any,
 )
+
+data class BooleanState(
+    override val instance: String,
+    override val value: Boolean,
+) : State<Boolean>(instance, value)
+
+
+data class FloatState(
+    override val instance: String,
+    override val value: Double,
+) : State<Double>(instance, value)

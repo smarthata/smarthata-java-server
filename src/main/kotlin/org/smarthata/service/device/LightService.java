@@ -15,15 +15,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class LightService extends AbstractSmarthataMessageListener {
-    public static final Map<String, String> translations = Map.of(
-            "all", "Везде",
-            "bathroom", "Ванная",
-            "bedroom", "Спальня",
-            "canopy", "Навес",
-            "room-egor", "Детская Егора",
-            "room-liza", "Детская Лизы",
-            "stairs-night", "Ночник на лестнице",
-            "stairs", "Лестница");
 
     private final ObjectMapper objectMapper;
 

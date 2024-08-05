@@ -3,21 +3,19 @@ USER_ID ?= $(shell stat -c "%u:%g" .)
 
 
 clean:
-	mvn -B clean
+	./gradlew clean
 build:
-	mvn -B package
+	./gradlew build
+bootJar:
+	./gradlew bootJar
 build-no-tests:
-	mvn -B package -DskipTests=true
+	./gradlew build -x test
 unit-tests:
-	mvn -B test
-integration-tests:
-	mvn -B failsafe:integration-test
-qa:
-	mvn -B pmd:check -Dpmd.printFailingErrors=true
+	./gradlew test
 run:
-	mvn spring-boot:run
+	./gradlew bootRun
 run-jar: build-no-tests
-	java -jar target/*.jar
+	java -jar ./build/libs/smarthata.jar
 
 
 # Server deploy
@@ -30,13 +28,10 @@ deploy-local:
 	sudo systemctl stop smarthata
 	cp ./target/smarthata.jar /app/smarthata/
 	systemctl start smarthata
-deploy-pi: build
+deploy-pi: bootJar
 	ssh pi@192.168.1.30 sudo systemctl stop smarthata
-	scp ./target/smarthata.jar pi@192.168.1.30:/app/smarthata
+	scp ./build/libs/smarthata.jar pi@192.168.1.30:/app/smarthata/smarthata.jar
 	ssh pi@192.168.1.30 sudo systemctl start smarthata
-
-scp-chart.html:
-	scp src/main/resources/static/chart.html valery@smarthata.org:/var/www/smarthata.org/
 
 
 # Docker build

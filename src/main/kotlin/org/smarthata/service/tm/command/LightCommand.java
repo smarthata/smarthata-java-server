@@ -1,6 +1,7 @@
 package org.smarthata.service.tm.command;
 
 import org.smarthata.service.device.LightService;
+import org.smarthata.service.device.Room;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -67,9 +68,8 @@ public class LightCommand extends AbstractCommand {
         Map<String, String> rooms = new LinkedHashMap<>();
         lightService.lightState.forEach((room, roomState) -> {
             String action = !roomState ? "on" : "off";
-            String currentStatus = roomState ? "on" : "off";
-            rooms.put(room + "/" + action,
-                    LightService.translations.getOrDefault(room, room) + ": " + currentStatus);
+            String currentStatus = roomState ? " \uD83D\uDCA1" : "";
+            rooms.put(room + "/" + action, getRusName(room) + currentStatus);
         });
 
         rooms.put("1min", "1 мин");
@@ -79,15 +79,24 @@ public class LightCommand extends AbstractCommand {
         return createTmMessage(request.chatId, request.messageId, text, buttons);
     }
 
+    private static String getRusName(String room) {
+        String rusName;
+        if (room.equals("stairs-night")) {
+            rusName = "Ночник";
+        } else {
+            rusName = Room.getFromRoomCode(room).rusName;
+        }
+        return rusName;
+    }
+
     private BotApiMethod<?> showTemporaryView(CommandRequest request, int temporary, String text) {
         // /light
         text += "\nВключить на %d мин:".formatted(temporary);
 
         Map<String, String> rooms = new LinkedHashMap<>();
         lightService.lightState.forEach((room, roomState) -> {
-            String currentStatus = roomState ? "on" : "off";
-            rooms.put(room,
-                    LightService.translations.getOrDefault(room, room) + ": " + currentStatus);
+            String currentStatus = roomState ? " \uD83D\uDCA1" : "";
+            rooms.put(room, getRusName(room) + ": " + currentStatus);
         });
         rooms.put("back", "Назад");
         List<String> path = request.path;

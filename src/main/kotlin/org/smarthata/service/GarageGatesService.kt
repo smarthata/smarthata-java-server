@@ -53,7 +53,7 @@ class GarageGatesService(
     private fun handleGarageGatesAction(action: GarageGateAction, reason: String) {
         if (action == GarageGateAction.OPEN || action == GarageGateAction.CLOSE) {
             logger.debug("Temp is good to {} gates", action.name)
-            if (isDateAfter(lastNotificationTime, Duration.ofMinutes(30))) {
+            if (isDateAfter(lastNotificationTime, Duration.ofMinutes(44))) {
                 sendTelegramMessage(action, reason)
             } else {
                 logger.debug("Notification was sent recently")
@@ -68,9 +68,9 @@ class GarageGatesService(
             GarageGateAction.CLOSE
         else if (garageTemp == null)
             GarageGateAction.ERROR
-        else if (streetTemp > garageTemp + 0.5 && !isGatesOpened())
+        else if (streetTemp > garageTemp + 1.0 && !isGatesOpened())
             GarageGateAction.OPEN
-        else if (garageTemp > streetTemp + 0.5 && isGatesOpened())
+        else if (garageTemp > streetTemp + 1.0 && isGatesOpened())
             GarageGateAction.CLOSE
         else
             GarageGateAction.NOTHING
@@ -80,9 +80,9 @@ class GarageGatesService(
             GarageGateAction.CLOSE
         else if (garageTemp == null)
             GarageGateAction.ERROR
-        else if (streetTemp > garageTemp + 0.5 && isGatesOpened())
+        else if (streetTemp > garageTemp + 1.0 && isGatesOpened())
             GarageGateAction.CLOSE
-        else if (garageTemp > streetTemp + 0.5 && !isGatesOpened())
+        else if (garageTemp > streetTemp + 1.0 && !isGatesOpened())
             GarageGateAction.OPEN
         else
             GarageGateAction.NOTHING
@@ -91,8 +91,8 @@ class GarageGatesService(
 
     private fun sendTelegramMessage(action: GarageGateAction, reason: String) {
         val text = when (action) {
-            GarageGateAction.OPEN -> "Можно открыть гаражные ворота для прогрева ($reason)"
-            GarageGateAction.CLOSE -> "Нужно закрыть гаражные ворота, зима близко ($reason)"
+            GarageGateAction.OPEN -> "Можно открыть гаражные ворота ($reason)"
+            GarageGateAction.CLOSE -> "Нужно закрыть гаражные ворота ($reason)"
             else -> "Ничего делать не нужно"
         }
 

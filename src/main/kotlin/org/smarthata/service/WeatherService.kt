@@ -52,8 +52,7 @@ class WeatherService(
         if (!narodmonEnabled) {
             return
         }
-        val streetSensor = sensorRepository.findByIdOrElseThrow(STREET_TEMP_SENSOR_ID)
-        val lastMeasure = measureRepository.findTopBySensorOrderByDateDesc(streetSensor)
+        val lastMeasure = getLastStreetTempMeasure()
         val aLittleBitAgo = Date().time - TimeUnit.MINUTES.toMillis(2)
         if (lastMeasure.date.before(Date(aLittleBitAgo))) {
             logger.error("Does not have time to publish into narodmon")
@@ -69,6 +68,11 @@ class WeatherService(
         }
     }
 
+    private fun getLastStreetTempMeasure(): Measure {
+        val streetSensor = sensorRepository.findByIdOrElseThrow(STREET_TEMP_SENSOR_ID)
+        return measureRepository.findTopBySensorOrderByDateDesc(streetSensor)
+    }
+
     private fun round(number: Double): Double {
         return floor(number * 10) / 10
     }
@@ -77,6 +81,8 @@ class WeatherService(
         val yesterday = LocalDateTime.now().minusDays(days)
         return Date.from(yesterday.atZone(ZoneId.systemDefault()).toInstant())
     }
+
+    fun getLastStreetTemp() = getLastStreetTempMeasure().value
 
     companion object {
         private const val STREET_TEMP_SENSOR_ID = 13
