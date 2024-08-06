@@ -8,7 +8,7 @@ public enum Room {
     CANOPY("Навес"),
     STREET("Улица"),
 
-    FLOOR("Первый этаж"),
+    HALL("Зал"),
 
     STAIRS("Лестница"),
 

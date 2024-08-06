@@ -81,7 +81,7 @@ public class WateringCommand extends AbstractCommand {
         if (currentMode == Mode.AUTO) {
             map.put("start", "Время начала (ч): " + wateringService.startTimes);
         }
-        map.put("back", "Назад");
+        map.put("back", "\uD83D\uDD19 Назад");
 
         InlineKeyboardMarkup keyboard = createButtons(emptyList(), map);
         return createTmMessage(request.chatId, request.messageId, text, keyboard);
@@ -113,7 +113,7 @@ public class WateringCommand extends AbstractCommand {
 
         Map<String, String> map = new LinkedHashMap<>();
         map.put("disable", "Выключить");
-        map.put("back", "Назад");
+        map.put("back", "\uD83D\uDD19 Назад");
 
         InlineKeyboardMarkup keyboard = createButtons(singletonList("watering"), map);
 
@@ -146,7 +146,7 @@ public class WateringCommand extends AbstractCommand {
                 key + ":" + (value == 1 ? "On" : "Off")
         ));
         out.put("disable", "Выключить");
-        out.put("back", "Назад");
+        out.put("back", "\uD83D\uDD19 Назад");
 
         InlineKeyboardMarkup keyboard = createButtons(singletonList("channel"), out);
 

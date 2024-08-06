@@ -74,7 +74,7 @@ public class LightCommand extends AbstractCommand {
 
         rooms.put("1min", "1 мин");
         rooms.put("5min", "5 мин");
-        rooms.put("back", "Назад");
+        rooms.put("back", "\uD83D\uDD19 Назад");
         InlineKeyboardMarkup buttons = createButtons(List.of(), rooms, 2);
         return createTmMessage(request.chatId, request.messageId, text, buttons);
     }
@@ -98,7 +98,7 @@ public class LightCommand extends AbstractCommand {
             String currentStatus = roomState ? " \uD83D\uDCA1" : "";
             rooms.put(room, getRusName(room) + ": " + currentStatus);
         });
-        rooms.put("back", "Назад");
+        rooms.put("back", "\uD83D\uDD19 Назад");
         List<String> path = request.path;
         if (path.size() > 2) path = path.subList(0, 1);
         InlineKeyboardMarkup buttons = createButtons(path, rooms, 2);

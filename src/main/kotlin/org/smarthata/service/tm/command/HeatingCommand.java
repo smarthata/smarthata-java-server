@@ -51,10 +51,10 @@ public class HeatingCommand extends AbstractCommand {
 
         String text = "Выберите помещение:";
         Map<String, String> buttons = new LinkedHashMap<>();
-        buttons.put("house", "Дом");
-        buttons.put("garage", "Гараж");
-        buttons.put("config", "Настройка");
-        buttons.put("back", "Назад");
+        buttons.put("house", "\uD83C\uDFE0 Дом");
+        buttons.put("garage", "\uD83C\uDFCD Гараж");
+        buttons.put("config", "⚙ Настройка");
+        buttons.put("back", "\uD83D\uDD19 Назад");
         return createTmMessage(request.chatId, request.messageId,
                 text, createButtons(request.path, buttons, 2));
     }
@@ -65,7 +65,7 @@ public class HeatingCommand extends AbstractCommand {
             String room = request.next();
             switch (room) {
                 case "floor":
-                    return processRoom(request, FLOOR);
+                    return processRoom(request, HALL);
                 case "bedroom":
                     return processRoom(request, BEDROOM);
                 case "bathroom":
@@ -77,14 +77,14 @@ public class HeatingCommand extends AbstractCommand {
         }
 
         String text = "Выберите помещение:";
-        String v1 = showTempInRoom("Первый этаж", FLOOR);
+        String v1 = showTempInRoom("Зал", HALL);
         String v2 = showTempInRoom("Спальня", BEDROOM);
         String v3 = showTempInRoom("Ванная", BATHROOM);
         Map<String, String> buttons = new LinkedHashMap<>();
         buttons.put("floor", v1);
         buttons.put("bedroom", v2);
         buttons.put("bathroom", v3);
-        buttons.put("back", "Назад");
+        buttons.put("back", "\uD83D\uDD19 Назад");
 
         return createTmMessage(request.chatId, request.messageId,
                 text, createButtons(request.path, buttons));
@@ -119,7 +119,7 @@ public class HeatingCommand extends AbstractCommand {
         Map<String, String> buttons = new LinkedHashMap<>();
         buttons.put("garage", v1);
         buttons.put("workshop", v2);
-        buttons.put("back", "Назад");
+        buttons.put("back", "\uD83D\uDD19 Назад");
         return createTmMessage(request.chatId, request.messageId,
                 text, createButtons(request.path, buttons));
     }
@@ -164,7 +164,7 @@ public class HeatingCommand extends AbstractCommand {
         Map<String, String> buttons = new LinkedHashMap<>();
         buttons.put("restart", "restart");
         buttons.put("mixer", "mixer: " + heatingService.mixerPosition);
-        buttons.put("back", "Назад");
+        buttons.put("back", "\uD83D\uDD19 Назад");
         return createTmMessage(request.chatId, request.messageId, text, createButtons(List.of("config"), buttons));
     }
 
@@ -186,7 +186,7 @@ public class HeatingCommand extends AbstractCommand {
         for (Integer value : values) {
             buttons.put(value.toString(), value.toString());
         }
-        buttons.put("back", "Назад");
+        buttons.put("back", "\uD83D\uDD19 Назад");
         return createTmMessage(request.chatId, request.messageId, text, createButtons(List.of("config", "mixer"), buttons));
     }
 

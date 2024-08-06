@@ -10,7 +10,6 @@ data class Device(
     val type: String?,
     val capabilities: List<Capability<*>> = listOf(),
     val properties: List<Property> = listOf(),
-    val actionResult: ActionResult? = null,
     val errorCode: String? = null,
     val errorMessage: String? = null,
 )

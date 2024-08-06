@@ -12,14 +12,14 @@ import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 
 @Service
-class AliceTempDevices(
+class AliceTempDevicesProvider(
     private var heatingService: HeatingService,
     private var weatherService: WeatherService,
-) {
+) : AliceDevicesProvider(TEMP_PREFIX) {
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    fun devices() =
+    override fun devices() =
         listOf(
             createDevice(deviceId = "bedroom"),
             createDevice(deviceId = "bathroom"),
@@ -28,14 +28,14 @@ class AliceTempDevices(
             createDevice(deviceId = "street"),
         )
 
-    fun query(device: Device): Device {
+    override fun query(device: Device): Device {
         logger.info("Query for device: $device")
         val deviceId = device.id.removePrefix(TEMP_PREFIX)
         return createDevice(deviceId, fillState = true)
     }
 
-    fun action(action: Device): Device? {
-        logger.info("Action for device: $action")
+    override fun action(device: Device): Device? {
+        logger.info("Action for device: $device")
         return null
     }
 
@@ -69,6 +69,6 @@ class AliceTempDevices(
         )
 
     companion object {
-        const val TEMP_PREFIX = "temp-"
+        private const val TEMP_PREFIX = "temp-"
     }
 }

@@ -14,14 +14,3 @@ open class Property(
     @JsonProperty("last_updated")
     open val lastUpdated: LocalDateTime? = null,
 )
-
-
-interface Parameter {
-    val instance: String
-    val unit: String
-}
-
-data class TempParameter(
-    override val instance: String = "temperature",
-    override val unit: String = "unit.temperature.celsius",
-) : Parameter

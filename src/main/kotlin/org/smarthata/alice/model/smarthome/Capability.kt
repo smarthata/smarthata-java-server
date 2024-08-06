@@ -10,7 +10,19 @@ open class Capability<T>(
 
 
 const val DEVICES_CAPABILITIES_ON_OFF = "devices.capabilities.on_off"
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 data class OnOffCapability(
     override val type: String = DEVICES_CAPABILITIES_ON_OFF,
-    override val state: State<Boolean>? = null
+    override val state: State<Boolean>? = null,
 ) : Capability<Boolean>(type, state)
+
+
+const val DEVICES_CAPABILITIES_RANGE = "devices.capabilities.range"
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+data class RangeCapability(
+    override val type: String = DEVICES_CAPABILITIES_RANGE,
+    override val state: State<Double>? = null,
+    val parameters: RangeParameter,
+) : Capability<Double>(type, state)

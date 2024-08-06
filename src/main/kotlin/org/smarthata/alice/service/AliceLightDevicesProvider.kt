@@ -12,22 +12,22 @@ import org.smarthata.service.message.EndpointType.ALICE
 import org.springframework.stereotype.Service
 
 @Service
-class AliceLightDevices(
+class AliceLightDevicesProvider(
     private val lightService: LightService,
-) {
+) : AliceDevicesProvider(LIGHT_PREFIX) {
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    fun devices() =
+    override fun devices() =
         lightService.lightState.map { createDevice(deviceId = it.key) }
 
-    fun query(device: Device): Device {
+    override fun query(device: Device): Device {
         logger.info("Query for device: $device")
         val room = device.id.removePrefix(LIGHT_PREFIX)
         return createDevice(room, fillState = true)
     }
 
-    fun action(device: Device): Device? {
+    override fun action(device: Device): Device {
         logger.info("Action for device: $device")
 
         val deviceId = device.id.removePrefix(LIGHT_PREFIX)
@@ -39,13 +39,15 @@ class AliceLightDevices(
             logger.info("Changing light $deviceId to state $value")
             lightService.updateLight(deviceId, value, ALICE)
 
-            createDevice(deviceId, actionResult = ActionResult(status = "DONE"))
+            createDevice(deviceId, fillState = true, actionResult = ActionResult(status = "DONE"))
         } else {
             createDevice(
-                deviceId, actionResult = ActionResult(
-                errorCode = "UNKNOWN",
-                errorMessage = "Could not find on_off capability"
-            )
+                deviceId,
+                fillState = true,
+                actionResult = ActionResult(
+                    errorCode = "UNKNOWN",
+                    errorMessage = "Could not find on_off capability"
+                )
             )
         }
     }
@@ -61,21 +63,21 @@ class AliceLightDevices(
             name = if (deviceId.contains("night")) "Ночник" else "Свет",
             room = room.rusName,
             type = "devices.types.light",
-            capabilities = if (actionResult == null) listOf(
+            capabilities = listOf(
                 OnOffCapability(
-                    state = if (fillState) lightState(deviceId) else null
+                    state = if (fillState) lightState(deviceId, actionResult) else null
                 )
-            ) else emptyList(),
-            actionResult = actionResult
+            )
         )
     }
 
-    private fun lightState(room: String) = BooleanState(
+    private fun lightState(room: String, actionResult: ActionResult?) = BooleanState(
         instance = "on",
         value = lightService.lightState(room),
+        actionResult = actionResult,
     )
 
     companion object {
-        const val LIGHT_PREFIX = "light-"
+        private const val LIGHT_PREFIX = "light-"
     }
 }

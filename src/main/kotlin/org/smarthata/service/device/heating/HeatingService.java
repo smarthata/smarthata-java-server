@@ -1,7 +1,20 @@
 package org.smarthata.service.device.heating;
 
+import static org.smarthata.service.device.Room.BATHROOM;
+import static org.smarthata.service.device.Room.BEDROOM;
+import static org.smarthata.service.device.Room.GARAGE;
+import static org.smarthata.service.device.Room.HALL;
+import static org.smarthata.service.device.Room.WORKSHOP;
+import static org.smarthata.service.message.EndpointType.MQTT;
+import static org.smarthata.service.message.EndpointType.SYSTEM;
+import static org.smarthata.service.message.EndpointType.TELEGRAM;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthata.service.device.Room;
@@ -11,19 +24,12 @@ import org.smarthata.service.message.SmarthataMessage;
 import org.smarthata.service.message.SmarthataMessageBroker;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
-
-import static org.smarthata.service.device.Room.*;
-import static org.smarthata.service.message.EndpointType.*;
-
 
 @Service
 public class HeatingService extends AbstractSmarthataMessageListener {
 
     private final ObjectMapper objectMapper;
+
     public HeatingService(SmarthataMessageBroker messageBroker, ObjectMapper objectMapper) {
         super(messageBroker);
         this.objectMapper = objectMapper;
@@ -36,11 +42,12 @@ public class HeatingService extends AbstractSmarthataMessageListener {
 
     private HashMap<Room, HeatingDevice> createMap() {
         return new HashMap<>() {{
-            put(FLOOR, new HeatingDevice("/heating/floor", new AtomicReference<>(30.0)));
+            put(HALL, new HeatingDevice("/heating/floor", new AtomicReference<>(30.0)));
             put(BEDROOM, new HeatingDevice("/bedroom", new AtomicReference<>(23.0)));
             put(BATHROOM, new HeatingDevice("/bathroom", new AtomicReference<>(23.0)));
             put(GARAGE, new HeatingDevice("/heating/garage/garage", new AtomicReference<>(15.0)));
-            put(WORKSHOP, new HeatingDevice("/heating/garage/workshop", new AtomicReference<>(20.0)));
+            put(WORKSHOP,
+                new HeatingDevice("/heating/garage/workshop", new AtomicReference<>(20.0)));
         }};
     }
 
@@ -56,43 +63,54 @@ public class HeatingService extends AbstractSmarthataMessageListener {
         return map.get(room).actualTemp.get();
     }
 
-    public void updateExpectedTemp(Room room, Double temp) {
+    public void updateExpectedTemp(Room room, Double temp, EndpointType source) {
         logger.info("Set temp [{}] for room [{}]", temp, room);
         HeatingDevice device = map.get(room);
         device.expectedTemp.set(temp);
-        saveTempToBroker(device);
+        saveTempToBroker(device, source);
     }
 
     public synchronized void incExpectedTemp(Room room, double delta) {
         logger.info("Inc temp [{}] for room [{}]", delta, room);
         HeatingDevice device = map.get(room);
         device.expectedTemp.getAndUpdate(value -> value + delta);
-        saveTempToBroker(device);
+        saveTempToBroker(device, TELEGRAM);
     }
 
-    public int floorPomp(Room room) {
+    public Boolean isEnabled(Room room) {
         logger.info("Get floor pomp for room {}", room);
         return map.get(room).enabled.get();
     }
 
-    public void updateFloorPomp(Room room, String floorPomp) {
-        logger.info("Set floor pomp [{}] for room {}", floorPomp, room);
+    public void updateEnabled(Room room, Boolean enabled, EndpointType source) {
+        logger.info("Set floor pomp [{}] for room {}", enabled, room);
         HeatingDevice device = map.get(room);
-        device.enabled.set(Integer.parseInt(floorPomp));
-        saveEnabledToBroker(device);
+        device.enabled.set(enabled);
+        saveEnabledToBroker(device, source);
     }
 
-    private void saveTempToBroker(HeatingDevice device) {
-        messageBroker.broadcast(new SmarthataMessage(device.queueExpectedTemp, device.expectedTemp.toString(), TELEGRAM, MQTT, true));
+    private void saveTempToBroker(HeatingDevice device, EndpointType source) {
+        messageBroker.broadcast(
+            new SmarthataMessage(device.queueExpectedTemp, device.expectedTemp.toString(),
+                source, MQTT, true));
     }
 
-    private void saveEnabledToBroker(HeatingDevice device) {
-        messageBroker.broadcast(new SmarthataMessage(device.queueEnabled, device.enabled.toString(), TELEGRAM, MQTT, true));
+    private void saveEnabledToBroker(HeatingDevice device, EndpointType source) {
+        messageBroker.broadcast(new SmarthataMessage(device.queueEnabled, device.enabled.toString(),
+            source, MQTT, true));
     }
 
     @Override
     public void receiveSmarthataMessage(SmarthataMessage message) {
-        map.forEach((room, device) -> readInputMessage(message, room, device));
+        try {
+            if (message.path.equals("/heating/floor/mixer-position")) {
+                mixerPosition.set(Integer.parseInt(message.text));
+            } else {
+                map.forEach((room, device) -> readInputMessage(message, room, device));
+            }
+        } catch (Exception e) {
+            logger.error("Failed to read smarthata message {}", message, e);
+        }
     }
 
     private void readInputMessage(SmarthataMessage message, Room room, HeatingDevice device) {
@@ -102,9 +120,7 @@ public class HeatingService extends AbstractSmarthataMessageListener {
         } else if (path.equals(device.queueActualTemp)) {
             parseActualTemp(message, room, device);
         } else if (path.equals(device.queueEnabled)) {
-            device.enabled.set(Integer.parseInt(message.text));
-        } else if (path.equals("/heating/floor/mixer-position")) {
-            mixerPosition.set(Integer.parseInt(message.text));
+            device.enabled.set(Boolean.parseBoolean(message.text));
         }
     }
 

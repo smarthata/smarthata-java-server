@@ -2,8 +2,8 @@ package org.smarthata.alice.rest
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
-import org.smarthata.alice.model.smarthome.DeviceAction
-import org.smarthata.alice.model.smarthome.DeviceQuery
+import org.smarthata.alice.model.smarthome.DevicesAction
+import org.smarthata.alice.model.smarthome.DevicesQuery
 import org.smarthata.alice.model.smarthome.DevicesPayload
 import org.smarthata.alice.model.smarthome.DevicesResponse
 import org.smarthata.alice.model.smarthome.Unlink
@@ -51,22 +51,22 @@ class AliceSmartHomeController(
     @PostMapping("/user/devices/query")
     fun devicesState(
         @RequestHeader("Authorization") auth: String,
-        @RequestBody deviceQuery: DeviceQuery
+        @RequestBody devicesQuery: DevicesQuery
     ): DevicesResponse {
         logger.info("Device auth: $auth")
-        logger.info("Device query: $deviceQuery")
-        return aliceDevicesService.devicesQuery(deviceQuery)
+        logger.info("Device query: $devicesQuery")
+        return aliceDevicesService.devicesQuery(devicesQuery)
             .also { logger.info("Return query answer ${objectMapper.writeValueAsString(it)}") }
     }
 
     @PostMapping("/user/devices/action")
     fun devicesAction(
         @RequestHeader("Authorization") auth: String,
-        @RequestBody deviceAction: DeviceAction
+        @RequestBody devicesAction: DevicesAction
     ): DevicesResponse {
         logger.info("Action auth: $auth")
-        logger.info("Device action: $deviceAction")
-        return aliceDevicesService.devicesAction(deviceAction)
+        logger.info("Device action: $devicesAction")
+        return aliceDevicesService.devicesAction(devicesAction)
             .also { logger.info("Return action answer ${objectMapper.writeValueAsString(it)}") }
     }
 }

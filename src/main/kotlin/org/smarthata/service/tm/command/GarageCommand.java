@@ -81,7 +81,7 @@ public class GarageCommand extends AbstractCommand {
         Map<String, String> map = new LinkedHashMap<>();
         String action = gatesOpen.get() ? "close" : "open";
         map.put(action, action);
-        map.put("back", "Назад");
+        map.put("back", "\uD83D\uDD19 Назад");
 
         InlineKeyboardMarkup buttons = createButtons(Collections.emptyList(), map, 2);
         return createTmMessage(request.chatId, request.messageId, text, buttons);
