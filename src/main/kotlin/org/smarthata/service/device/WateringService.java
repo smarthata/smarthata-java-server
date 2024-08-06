@@ -1,11 +1,12 @@
 package org.smarthata.service.device;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import static org.smarthata.service.message.EndpointType.MQTT;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthata.model.Mode;
@@ -14,8 +15,6 @@ import org.smarthata.service.message.EndpointType;
 import org.smarthata.service.message.SmarthataMessage;
 import org.smarthata.service.message.SmarthataMessageBroker;
 import org.springframework.stereotype.Service;
-
-import static org.smarthata.service.message.EndpointType.MQTT;
 
 @Service
 public class WateringService extends AbstractSmarthataMessageListener {
@@ -37,7 +36,8 @@ public class WateringService extends AbstractSmarthataMessageListener {
     }
 
     private void saveModeToBroker(String text, EndpointType source) {
-        messageBroker.broadcast(new SmarthataMessage("/watering/mode/in", text, source, MQTT, true));
+        messageBroker.broadcast(
+            new SmarthataMessage("/watering/mode/in", text, source, MQTT, true));
     }
 
     public void wave(EndpointType source) {
@@ -45,10 +45,11 @@ public class WateringService extends AbstractSmarthataMessageListener {
         logger.info("Wave to broker sent");
     }
 
-    private void sendActionToBroker(String action, EndpointType source){
+    private void sendActionToBroker(String action, EndpointType source) {
         try {
             String text = objectMapper.writeValueAsString(Map.of("action", action));
-            messageBroker.broadcast(new SmarthataMessage("/watering/in/json", text, source, MQTT, false));
+            messageBroker.broadcast(
+                new SmarthataMessage("/watering/in/json", text, source, MQTT, false));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
@@ -62,8 +63,10 @@ public class WateringService extends AbstractSmarthataMessageListener {
 
     private void sendChangeChannelBroker(int channel, int state, EndpointType source) {
         try {
-            String text = objectMapper.writeValueAsString(Map.of("channel", channel, "state", state));
-            messageBroker.broadcast(new SmarthataMessage("/watering/in/json", text, source, MQTT, false));
+            String text = objectMapper.writeValueAsString(
+                Map.of("channel", channel, "state", state));
+            messageBroker.broadcast(
+                new SmarthataMessage("/watering/in/json", text, source, MQTT, false));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
@@ -91,8 +94,8 @@ public class WateringService extends AbstractSmarthataMessageListener {
                     channelStates.put(1, map.get("g1"));
                     channelStates.put(2, map.get("g2"));
                     channelStates.put(3, map.get("g3"));
-                    channelStates.put(4, map.get("k"));
-                    channelStates.put(5, map.get("o"));
+                    channelStates.put(4, map.get("o"));
+                    channelStates.put(5, map.get("k"));
                 }
             }
         } catch (JsonProcessingException e) {

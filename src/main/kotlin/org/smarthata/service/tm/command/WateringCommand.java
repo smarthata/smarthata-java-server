@@ -143,7 +143,7 @@ public class WateringCommand extends AbstractCommand {
         Map<String, String> out = new LinkedHashMap<>();
         wateringService.channelStates.forEach((key, value) -> out.put(
                 key + "/" + (1 - value),
-                key + ":" + (value == 1 ? "On" : "Off")
+                key + (value == 1 ? " \uD83D\uDCA6" : "")
         ));
         out.put("disable", "Выключить");
         out.put("back", "\uD83D\uDD19 Назад");
