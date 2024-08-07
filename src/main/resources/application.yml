@@ -43,3 +43,7 @@ narodmon:
 
 oauth2.0:
   password: pass
+
+alice:
+  url: https://dialogs.yandex.net/api/v1/skills/5a6e8aa0-e300-46dc-bcb7-76d9318855fc
+  token: ${token}

@@ -18,13 +18,8 @@ class AliceTempDevicesProvider(
 ) : AliceDevicesProvider("temp-") {
 
     override fun devices() =
-        listOf(
-            createDevice(deviceId = "bedroom"),
-            createDevice(deviceId = "bathroom"),
-            createDevice(deviceId = "garage"),
-            createDevice(deviceId = "workshop"),
-            createDevice(deviceId = "street"),
-        )
+        listOf("bedroom", "bathroom", "garage", "workshop", "street")
+            .map { createDevice(deviceId = it) }
 
     override fun action(device: Device): Device? {
         logger.info("Action for device: $device")
@@ -45,7 +40,7 @@ class AliceTempDevicesProvider(
             properties = listOf(Property(
                 type = "devices.properties.float",
                 retrievable = true,
-                reportable = false,
+                reportable = true,
                 parameters = TempParameter(),
                 state = if (fillState) floatState(room) else null,
                 lastUpdated = LocalDateTime.now(),

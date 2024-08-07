@@ -23,6 +23,7 @@ dependencies {
     api("org.springframework.boot:spring-boot-starter-actuator")
     api("org.springframework.boot:spring-boot-starter-web")
     api("org.springframework.boot:spring-boot-starter-thymeleaf")
+    api("org.springframework.boot:spring-boot-starter-webflux")
     api("javax.xml.bind:jaxb-api:2.3.1")
     api("org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5")
     api("org.springframework.boot:spring-boot-starter-data-jpa")

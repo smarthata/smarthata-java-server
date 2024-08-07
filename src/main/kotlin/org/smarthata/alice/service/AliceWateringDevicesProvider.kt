@@ -16,13 +16,8 @@ class AliceWateringDevicesProvider(
 ) : AliceDevicesProvider("watering-") {
 
     override fun devices() =
-        listOf(
-            createDevice(deviceId = "1"),
-            createDevice(deviceId = "2"),
-            createDevice(deviceId = "3"),
-            createDevice(deviceId = "4"),
-            createDevice(deviceId = "5"),
-        )
+        listOf("1", "2", "3", "4", "5")
+            .map { createDevice(deviceId = it) }
 
     override fun action(device: Device): Device {
         logger.info("Action for device: $device")
