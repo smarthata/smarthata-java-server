@@ -1,6 +1,6 @@
 package org.smarthata.alice.service
 
-import org.slf4j.LoggerFactory
+import org.smarthata.alice.model.smarthome.ActionResult
 import org.smarthata.alice.model.smarthome.Device
 import org.smarthata.alice.model.smarthome.FloatState
 import org.smarthata.alice.model.smarthome.Property
@@ -15,9 +15,7 @@ import java.time.LocalDateTime
 class AliceTempDevicesProvider(
     private var heatingService: HeatingService,
     private var weatherService: WeatherService,
-) : AliceDevicesProvider(TEMP_PREFIX) {
-
-    private val logger = LoggerFactory.getLogger(javaClass)
+) : AliceDevicesProvider("temp-") {
 
     override fun devices() =
         listOf(
@@ -28,24 +26,19 @@ class AliceTempDevicesProvider(
             createDevice(deviceId = "street"),
         )
 
-    override fun query(device: Device): Device {
-        logger.info("Query for device: $device")
-        val deviceId = device.id.removePrefix(TEMP_PREFIX)
-        return createDevice(deviceId, fillState = true)
-    }
-
     override fun action(device: Device): Device? {
         logger.info("Action for device: $device")
         return null
     }
 
-    private fun createDevice(
+    override fun createDevice(
         deviceId: String,
-        fillState: Boolean = false,
+        fillState: Boolean,
+        actionResult: ActionResult?,
     ): Device {
         val room = Room.getFromRoomCode(deviceId)
         return Device(
-            id = TEMP_PREFIX + deviceId,
+            id = prefix + deviceId,
             name = "Датчик температуры",
             room = room.rusName,
             type = "devices.types.sensor.climate",
@@ -68,7 +61,4 @@ class AliceTempDevicesProvider(
                 heatingService.actualTemp(room)
         )
 
-    companion object {
-        private const val TEMP_PREFIX = "temp-"
-    }
 }

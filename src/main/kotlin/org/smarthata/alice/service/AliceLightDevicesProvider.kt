@@ -1,6 +1,5 @@
 package org.smarthata.alice.service
 
-import org.slf4j.LoggerFactory
 import org.smarthata.alice.model.smarthome.ActionResult
 import org.smarthata.alice.model.smarthome.BooleanState
 import org.smarthata.alice.model.smarthome.DEVICES_CAPABILITIES_ON_OFF
@@ -14,23 +13,15 @@ import org.springframework.stereotype.Service
 @Service
 class AliceLightDevicesProvider(
     private val lightService: LightService,
-) : AliceDevicesProvider(LIGHT_PREFIX) {
-
-    private val logger = LoggerFactory.getLogger(javaClass)
+) : AliceDevicesProvider("light-") {
 
     override fun devices() =
         lightService.lightState.map { createDevice(deviceId = it.key) }
 
-    override fun query(device: Device): Device {
-        logger.info("Query for device: $device")
-        val room = device.id.removePrefix(LIGHT_PREFIX)
-        return createDevice(room, fillState = true)
-    }
-
     override fun action(device: Device): Device {
         logger.info("Action for device: $device")
 
-        val deviceId = device.id.removePrefix(LIGHT_PREFIX)
+        val deviceId = device.id.removePrefix(prefix)
 
         val onOff = device.capabilities.firstOrNull { it.type == DEVICES_CAPABILITIES_ON_OFF }
 
@@ -52,14 +43,14 @@ class AliceLightDevicesProvider(
         }
     }
 
-    private fun createDevice(
+    override fun createDevice(
         deviceId: String,
-        fillState: Boolean = false,
-        actionResult: ActionResult? = null,
+        fillState: Boolean,
+        actionResult: ActionResult?,
     ): Device {
         val room = Room.getFromRoomCode(deviceId.replace("-night", ""))
         return Device(
-            id = LIGHT_PREFIX + deviceId,
+            id = prefix + deviceId,
             name = if (deviceId.contains("night")) "Ночник" else "Свет",
             room = room.rusName,
             type = "devices.types.light",
@@ -77,7 +68,4 @@ class AliceLightDevicesProvider(
         actionResult = actionResult,
     )
 
-    companion object {
-        private const val LIGHT_PREFIX = "light-"
-    }
 }

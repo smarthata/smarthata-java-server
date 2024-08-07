@@ -1,6 +1,5 @@
 package org.smarthata.alice.service
 
-import org.slf4j.LoggerFactory
 import org.smarthata.alice.model.smarthome.ActionResult
 import org.smarthata.alice.model.smarthome.BooleanState
 import org.smarthata.alice.model.smarthome.DEVICES_CAPABILITIES_ON_OFF
@@ -8,19 +7,20 @@ import org.smarthata.alice.model.smarthome.DEVICES_CAPABILITIES_RANGE
 import org.smarthata.alice.model.smarthome.Device
 import org.smarthata.alice.model.smarthome.FloatState
 import org.smarthata.alice.model.smarthome.OnOffCapability
+import org.smarthata.alice.model.smarthome.Property
 import org.smarthata.alice.model.smarthome.RangeCapability
 import org.smarthata.alice.model.smarthome.RangeParameter
+import org.smarthata.alice.model.smarthome.TempParameter
 import org.smarthata.service.device.Room
 import org.smarthata.service.device.heating.HeatingService
 import org.smarthata.service.message.EndpointType.ALICE
 import org.springframework.stereotype.Service
+import java.time.LocalDateTime
 
 @Service
 class AliceThermostatDevicesProvider(
     private var heatingService: HeatingService,
-): AliceDevicesProvider(THERMOSTAT_PREFIX) {
-
-    private val logger = LoggerFactory.getLogger(javaClass)
+) : AliceDevicesProvider("thermostat-") {
 
     override fun devices() =
         listOf(
@@ -31,16 +31,11 @@ class AliceThermostatDevicesProvider(
             createDevice(deviceId = "hall"),
         )
 
-    override fun query(device: Device): Device {
-        logger.info("Query for device: $device")
-        val deviceId = device.id.removePrefix(THERMOSTAT_PREFIX)
-        return createDevice(deviceId, fillState = true)
-    }
 
     override fun action(device: Device): Device? {
         logger.info("Action for device: $device")
 
-        val deviceId = device.id.removePrefix(THERMOSTAT_PREFIX)
+        val deviceId = device.id.removePrefix(prefix)
 
         val onOff = device.capabilities.firstOrNull { it.type == DEVICES_CAPABILITIES_ON_OFF }
         val range = device.capabilities.firstOrNull { it.type == DEVICES_CAPABILITIES_RANGE }
@@ -71,15 +66,18 @@ class AliceThermostatDevicesProvider(
         return createDevice(deviceId, fillState = true, onOffActionResult, rangeActionResult)
     }
 
+    override fun createDevice(deviceId: String, fillState: Boolean, actionResult: ActionResult?): Device =
+        createDevice(deviceId, fillState, null, null)
+
     private fun createDevice(
         deviceId: String,
-        fillState: Boolean = false,
+        fillState: Boolean,
         onOffActionResult: ActionResult? = null,
         rangeActionResult: ActionResult? = null,
     ): Device {
         val room = Room.getFromRoomCode(deviceId)
         return Device(
-            id = THERMOSTAT_PREFIX + deviceId,
+            id = prefix + deviceId,
             name = "Термостат",
             room = room.rusName,
             type = "devices.types.thermostat",
@@ -94,6 +92,14 @@ class AliceThermostatDevicesProvider(
                     )
                 )
             ),
+            properties = listOf(Property(
+                type = "devices.properties.float",
+                retrievable = true,
+                reportable = false,
+                parameters = TempParameter(),
+                state = if (fillState) floatState(room) else null,
+                lastUpdated = LocalDateTime.now(),
+            ))
         )
     }
 
@@ -109,7 +115,7 @@ class AliceThermostatDevicesProvider(
         actionResult = actionResult,
     )
 
-    companion object {
-        private const val THERMOSTAT_PREFIX = "thermostat-"
-    }
+    private fun floatState(room: Room) =
+        FloatState("temperature", heatingService.actualTemp(room))
+
 }
