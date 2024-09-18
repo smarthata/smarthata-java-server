@@ -52,8 +52,12 @@ class AliceTempNotificator(
                 }
         )
         logger.info("Alice device parameters update request: {}", jacksonObjectMapper().writeValueAsString(payload))
-        val response = postUpdates(payload)
-        logger.info("Alice device parameters update response: {}", response)
+        if (payload.devices.isNotEmpty()) {
+            val response = postUpdates(payload)
+            logger.info("Alice device parameters update response: {}", response)
+        } else {
+            logger.info("Alice device parameters update skip due to empty changed devices")
+        }
     }
 
     private fun createDevice(deviceId: String) = Device(
