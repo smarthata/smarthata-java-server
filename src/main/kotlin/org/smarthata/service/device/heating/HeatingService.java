@@ -129,7 +129,7 @@ public class HeatingService extends AbstractSmarthataMessageListener {
         try {
             Map<Object, Object> map = objectMapper.readValue(message.text, Map.class);
             if (map.containsKey("temp")) {
-                Double newActualTemp = (Double) map.get("temp");
+                Double newActualTemp = ((Number) map.get("temp")).doubleValue();
                 logger.trace("Update room [{}] set actual temp [{}]", room, newActualTemp);
                 device.actualTemp.set(newActualTemp);
             }
