@@ -45,6 +45,11 @@ public class WateringService extends AbstractSmarthataMessageListener {
         logger.info("Wave to broker sent");
     }
 
+    public void blowing(EndpointType source) {
+        sendActionToBroker("blowing", source);
+        logger.info("Blowing to broker sent");
+    }
+
     private void sendActionToBroker(String action, EndpointType source) {
         try {
             String text = objectMapper.writeValueAsString(Map.of("action", action));

@@ -1,5 +1,13 @@
 package org.smarthata.service.tm.command;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static org.smarthata.service.message.EndpointType.TELEGRAM;
+
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smarthata.model.Mode;
@@ -7,14 +15,6 @@ import org.smarthata.service.device.WateringService;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
-import static org.smarthata.service.message.EndpointType.TELEGRAM;
 
 @Service
 public class WateringCommand extends AbstractCommand {
@@ -34,39 +34,32 @@ public class WateringCommand extends AbstractCommand {
     public BotApiMethod<?> answer(CommandRequest request) {
         if (request.hasNext()) {
             String part = request.next();
-            logger.debug("part {}", part);
-            switch (part) {
-                case "mode":
-                    if (request.hasNext()) {
-                        String newModeIndex = request.next();
-                        Mode newMode = Mode.valueOf(Integer.parseInt(newModeIndex));
-                        wateringService.updateMode(newMode, TELEGRAM);
-                        logger.info("Mode has been changed to {}", newMode);
-                    }
-                    break;
-                case "duration":
-                    return showDurations(request);
-                case "start":
-                    return showStartTimes(request);
-                case "wave":
-                    return startWave(request);
-                case "channel":
-                    return showChannel(request);
-                default:
-                    return showMainButtons(request, "This is not implemented:" + request.path);
-            }
-
+            logger.debug("main part {}", part);
+            return switch (part) {
+                case "mode" -> changeMode(request);
+                case "settings" -> showSettings(request);
+                case "wave" -> startWave(request);
+                case "channel" -> showChannel(request);
+                default -> showMainButtons(request, "This is not implemented:" + request.path);
+            };
         }
 
         return showMainButtons(request, "Автополив:");
     }
 
-    private BotApiMethod<?> showMainButtons(CommandRequest request, String text) {
-
-        Mode currentMode = wateringService.mode;
-        if (currentMode == null) {
-            currentMode = Mode.OFF;
+    private BotApiMethod<?> changeMode(CommandRequest request) {
+        if (request.hasNext()) {
+            String newModeIndex = request.next();
+            Mode newMode = Mode.valueOf(Integer.parseInt(newModeIndex));
+            wateringService.updateMode(newMode, TELEGRAM);
+            logger.info("Mode has been changed to {}", newMode);
+            return showMainButtons(request, "Режим изменен");
         }
+        return showMainButtons(request, "Режим автополива:");
+    }
+
+    private BotApiMethod<?> showMainButtons(CommandRequest request, String text) {
+        Mode currentMode = Optional.of(wateringService.mode).orElse(Mode.OFF);
 
         int nextIndex = (currentMode.ordinal() + 1) % Mode.values().length;
         Mode next = Mode.values()[nextIndex];
@@ -75,15 +68,36 @@ public class WateringCommand extends AbstractCommand {
         map.put("mode/" + next.mode, "Режим: " + currentMode.name());
         if (currentMode != Mode.OFF) {
             map.put("channel", "Каналы: " + wateringService.channelStates.values());
-            map.put("wave/start", "Запустить полив");
-            map.put("duration", "Продолжительность каналов (мин): " + wateringService.durations);
+            map.put("wave", "Запустить полив");
         }
-        if (currentMode == Mode.AUTO) {
-            map.put("start", "Время начала (ч): " + wateringService.startTimes);
-        }
+        map.put("settings", "Настройки");
         map.put("back", "\uD83D\uDD19 Назад");
 
         InlineKeyboardMarkup keyboard = createButtons(emptyList(), map);
+        return createTmMessage(request.chatId, request.messageId, text, keyboard);
+    }
+
+    private BotApiMethod<?> showSettings(CommandRequest request) {
+        if (request.hasNext()) {
+            String part = request.next();
+            logger.debug("setting part {}", part);
+            return switch (part) {
+                case "duration" -> showDurations(request);
+                case "start" -> showStartTimes(request);
+                case "blowing" -> startBlowing(request);
+                default -> showMainButtons(request, "This is not implemented:" + request.path);
+            };
+        }
+        String text = "Настройки полива:";
+
+        Map<String, String> map = new LinkedHashMap<>();
+        map.put("duration", "Продолжительность каналов (мин): " + wateringService.durations);
+        map.put("start", "Время начала (ч): " + wateringService.startTimes);
+        map.put("blowing", "Продувка");
+        map.put("back", "\uD83D\uDD19 Назад");
+
+        InlineKeyboardMarkup keyboard = createButtons(singletonList("settings"), map);
+
         return createTmMessage(request.chatId, request.messageId, text, keyboard);
     }
 
@@ -105,28 +119,22 @@ public class WateringCommand extends AbstractCommand {
         return createTmMessage(request.chatId, request.messageId, text, keyboard);
     }
 
-
     private BotApiMethod<?> startWave(CommandRequest request) {
-        String text = "Полив запущен";
-
         wateringService.wave(TELEGRAM);
+        return showMainButtons(request, "Полив запущен");
+    }
 
-        Map<String, String> map = new LinkedHashMap<>();
-        map.put("disable", "Выключить");
-        map.put("back", "\uD83D\uDD19 Назад");
-
-        InlineKeyboardMarkup keyboard = createButtons(singletonList("watering"), map);
-
-        return createTmMessage(request.chatId, request.messageId, text, keyboard);
+    private BotApiMethod<?> startBlowing(CommandRequest request) {
+        wateringService.blowing(TELEGRAM);
+        return showMainButtons(request, "Продувка запущена");
     }
 
     private BotApiMethod<?> showChannel(CommandRequest request) {
-
         if (request.hasNext()) {
             String part = request.next();
             if (part.equals("disable")) {
                 wateringService.channelStates.keySet()
-                        .forEach(ch -> wateringService.updateChannel(ch, 0, TELEGRAM));
+                    .forEach(ch -> wateringService.updateChannel(ch, 0, TELEGRAM));
             } else {
                 int channel = Integer.parseInt(part);
                 logger.info("channel {}", channel);
@@ -142,14 +150,13 @@ public class WateringCommand extends AbstractCommand {
 
         Map<String, String> out = new LinkedHashMap<>();
         wateringService.channelStates.forEach((key, value) -> out.put(
-                key + "/" + (1 - value),
-                key + (value == 1 ? " \uD83D\uDCA6" : "")
+            key + "/" + (1 - value),
+            key + (value == 1 ? " \uD83D\uDCA6" : "")
         ));
         out.put("disable", "Выключить");
         out.put("back", "\uD83D\uDD19 Назад");
 
         InlineKeyboardMarkup keyboard = createButtons(singletonList("channel"), out);
-
         return createTmMessage(request.chatId, request.messageId, text, keyboard);
     }
 
