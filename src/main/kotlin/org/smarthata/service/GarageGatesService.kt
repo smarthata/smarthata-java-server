@@ -28,23 +28,29 @@ class GarageGatesService(
     private var lastNotificationTime: LocalDateTime? = null
 
     @Scheduled(cron = "0 */5 * * * *")
-    fun checkGarage() {
+    fun checkGarageTemp() {
         val averageTemp = findStreetAverageTemp()
         if (averageTemp == null) {
-            logger.error("Average street temp is not found")
+            logger.warn("Average street temp is not found")
             return
         }
         val streetTemp = findStreetTemp()
         if (streetTemp == null) {
-            logger.error("Street temp is not found")
+            logger.warn("Street temp is not found")
             return
         }
+        val garageTemp = findGarageTemp()
+        if (garageTemp == null) {
+            logger.warn("Garage temp is not found")
+            return
+        }
+
         if (averageTemp <= averageTempForHeating) {
             logger.debug("Check for heating garage")
-            handleGarageGatesAction(findGarageGateWarmingAction(streetTemp, findGarageTemp()), "heating")
-        }else if (averageTemp >= averageTempForCooldown) {
+            handleGarageGatesAction(findGarageGateWarmingAction(streetTemp, garageTemp), "heating")
+        } else if (averageTemp >= averageTempForCooldown) {
             logger.debug("Check for cooldown garage")
-            handleGarageGatesAction(findGarageGateCooldownAction(streetTemp, findGarageTemp()), "cooldown")
+            handleGarageGatesAction(findGarageGateCooldownAction(streetTemp, garageTemp), "cooldown")
         } else {
             logger.debug("Heating of garage is not needed")
         }
@@ -63,24 +69,16 @@ class GarageGatesService(
         }
     }
 
-    private fun findGarageGateWarmingAction(streetTemp: Double, garageTemp: Double?): GarageGateAction =
-        if (garageTemp == null && streetTemp <= averageTempForHeating)
-            GarageGateAction.CLOSE
-        else if (garageTemp == null)
-            GarageGateAction.ERROR
-        else if (streetTemp > garageTemp + 1.0 && !isGatesOpened())
+    private fun findGarageGateWarmingAction(streetTemp: Double, garageTemp: Double): GarageGateAction =
+        if (streetTemp > garageTemp + 1.0 && !isGatesOpened())
             GarageGateAction.OPEN
         else if (garageTemp > streetTemp + 1.0 && isGatesOpened())
             GarageGateAction.CLOSE
         else
             GarageGateAction.NOTHING
 
-    private fun findGarageGateCooldownAction(streetTemp: Double, garageTemp: Double?): GarageGateAction =
-        if (garageTemp == null && streetTemp >= averageTempForCooldown)
-            GarageGateAction.CLOSE
-        else if (garageTemp == null)
-            GarageGateAction.ERROR
-        else if (streetTemp > garageTemp + 1.0 && isGatesOpened())
+    private fun findGarageGateCooldownAction(streetTemp: Double, garageTemp: Double): GarageGateAction =
+        if (streetTemp > garageTemp + 1.0 && isGatesOpened())
             GarageGateAction.CLOSE
         else if (garageTemp > streetTemp + 1.0 && !isGatesOpened())
             GarageGateAction.OPEN
