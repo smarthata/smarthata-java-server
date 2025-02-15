@@ -1,36 +1,21 @@
-package org.smarthata.service.tm.command;
+package org.smarthata.service.tm.command
 
 
-import java.util.*;
-import java.util.stream.Collectors;
+data class CommandRequest(val path: List<String>, val chatId: String, val messageId: Int?) : Iterator<String> {
 
-public class CommandRequest implements Iterator<String> {
-    public final List<String> path;
-    public final String chatId;
-    public final Integer messageId;
-    private int read = 0;
+    private var read = 0
 
-    public CommandRequest(List<String> path, String chatId, Integer messageId) {
-        this.path = Collections.unmodifiableList(path);
-        this.chatId = chatId;
-        this.messageId = messageId;
-    }
-
-    public String next() {
+    override fun next(): String {
         if (hasNext()) {
-            return path.get(read++);
+            return path[read++]
         }
-        return "";
+        throw NoSuchElementException()
     }
 
-    public boolean hasNext() {
-        return path.size() > read;
-    }
+    override fun hasNext() = path.size > read
 
-    public List<String> createPathRemoving(String... removing) {
-        Set<String> set = new HashSet<>(Arrays.asList(removing));
-        return path.stream()
-                .filter(s -> !set.contains(s))
-                .collect(Collectors.toList());
+    fun createPathRemoving(vararg removing: String): List<String> {
+        val set = setOf(*removing)
+        return path.filter { s: String -> !set.contains(s) }
     }
 }

@@ -84,7 +84,7 @@ public class GarageCommand extends AbstractCommand {
         map.put("back", "\uD83D\uDD19 Назад");
 
         InlineKeyboardMarkup buttons = createButtons(Collections.emptyList(), map, 2);
-        return createTmMessage(request.chatId, request.messageId, text, buttons);
+        return createTmMessage(request.getChatId(), request.getMessageId(), text, buttons);
     }
 
 

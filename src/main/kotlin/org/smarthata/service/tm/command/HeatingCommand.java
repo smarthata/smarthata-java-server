@@ -44,7 +44,7 @@ public class HeatingCommand extends AbstractCommand {
                 case "config" -> processConfig(request);
                 default -> {
                     String text = "Unknown house";
-                    yield createTmMessage(request.chatId, request.messageId, text);
+                    yield createTmMessage(request.getChatId(), request.getMessageId(), text);
                 }
             };
         }
@@ -55,8 +55,8 @@ public class HeatingCommand extends AbstractCommand {
         buttons.put("garage", "\uD83C\uDFCD Гараж");
         buttons.put("config", "⚙ Настройка");
         buttons.put("back", "\uD83D\uDD19 Назад");
-        return createTmMessage(request.chatId, request.messageId,
-            text, createButtons(request.path, buttons, 2));
+        return createTmMessage(request.getChatId(), request.getMessageId(),
+            text, createButtons(request.getPath(), buttons, 2));
     }
 
     private BotApiMethod<?> processHouse(CommandRequest request) {
@@ -68,7 +68,7 @@ public class HeatingCommand extends AbstractCommand {
                 case "bedroom" -> processRoom(request, BEDROOM);
                 default -> {
                     String text = "Unknown room";
-                    yield createTmMessage(request.chatId, request.messageId, text);
+                    yield createTmMessage(request.getChatId(), request.getMessageId(), text);
                 }
             };
         }
@@ -79,8 +79,8 @@ public class HeatingCommand extends AbstractCommand {
         buttons.put("bedroom", showTempInRoom("Спальня", BEDROOM));
         buttons.put("back", "\uD83D\uDD19 Назад");
 
-        return createTmMessage(request.chatId, request.messageId,
-            text, createButtons(request.path, buttons));
+        return createTmMessage(request.getChatId(), request.getMessageId(),
+            text, createButtons(request.getPath(), buttons));
     }
 
     private String showTempInRoom(String roomName, Room room) {
@@ -100,7 +100,7 @@ public class HeatingCommand extends AbstractCommand {
                 case "workshop" -> processRoom(request, WORKSHOP);
                 default -> {
                     String text = "Unknown device";
-                    yield createTmMessage(request.chatId, request.messageId, text);
+                    yield createTmMessage(request.getChatId(), request.getMessageId(), text);
                 }
             };
         }
@@ -112,8 +112,8 @@ public class HeatingCommand extends AbstractCommand {
         buttons.put("garage", v1);
         buttons.put("workshop", v2);
         buttons.put("back", "\uD83D\uDD19 Назад");
-        return createTmMessage(request.chatId, request.messageId,
-            text, createButtons(request.path, buttons));
+        return createTmMessage(request.getChatId(), request.getMessageId(),
+            text, createButtons(request.getPath(), buttons));
     }
 
     private BotApiMethod<?> processRoom(CommandRequest request, Room room) {
@@ -124,7 +124,7 @@ public class HeatingCommand extends AbstractCommand {
                 heatingService.incExpectedTemp(room, Double.parseDouble(next));
             } catch (NumberFormatException e) {
                 String text = "Unknown command: " + next;
-                return createTmMessage(request.chatId, request.messageId, text);
+                return createTmMessage(request.getChatId(), request.getMessageId(), text);
             }
         }
 
@@ -136,7 +136,7 @@ public class HeatingCommand extends AbstractCommand {
             List.of("-0.5", "+0.5", "-1", "+1", "set", "back"),
             2
         );
-        return createTmMessage(request.chatId, request.messageId, text, buttons);
+        return createTmMessage(request.getChatId(), request.getMessageId(), text, buttons);
     }
 
 
@@ -167,7 +167,7 @@ public class HeatingCommand extends AbstractCommand {
         }
         buttons.put("mixer", "mixer: " + heatingService.getMixerPosition());
         buttons.put("back", "\uD83D\uDD19 Назад");
-        return createTmMessage(request.chatId, request.messageId, text,
+        return createTmMessage(request.getChatId(), request.getMessageId(), text,
             createButtons(List.of("config"), buttons));
     }
 
@@ -191,7 +191,7 @@ public class HeatingCommand extends AbstractCommand {
             buttons.put(value.toString(), value.toString());
         }
         buttons.put("back", "\uD83D\uDD19 Назад");
-        return createTmMessage(request.chatId, request.messageId, text,
+        return createTmMessage(request.getChatId(), request.getMessageId(), text,
             createButtons(List.of("config", "mixer"), buttons));
     }
 

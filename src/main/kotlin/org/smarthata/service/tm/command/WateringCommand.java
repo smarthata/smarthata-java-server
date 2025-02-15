@@ -40,7 +40,7 @@ public class WateringCommand extends AbstractCommand {
                 case "settings" -> showSettings(request);
                 case "wave" -> startWave(request);
                 case "channel" -> showChannel(request);
-                default -> showMainButtons(request, "This is not implemented:" + request.path);
+                default -> showMainButtons(request, "This is not implemented:" + request.getPath());
             };
         }
 
@@ -74,7 +74,7 @@ public class WateringCommand extends AbstractCommand {
         map.put("back", "\uD83D\uDD19 Назад");
 
         InlineKeyboardMarkup keyboard = createButtons(emptyList(), map);
-        return createTmMessage(request.chatId, request.messageId, text, keyboard);
+        return createTmMessage(request.getChatId(), request.getMessageId(), text, keyboard);
     }
 
     private BotApiMethod<?> showSettings(CommandRequest request) {
@@ -85,7 +85,7 @@ public class WateringCommand extends AbstractCommand {
                 case "duration" -> showDurations(request);
                 case "start" -> showStartTimes(request);
                 case "blowing" -> startBlowing(request);
-                default -> showMainButtons(request, "This is not implemented:" + request.path);
+                default -> showMainButtons(request, "This is not implemented:" + request.getPath());
             };
         }
         String text = "Настройки полива:";
@@ -98,7 +98,7 @@ public class WateringCommand extends AbstractCommand {
 
         InlineKeyboardMarkup keyboard = createButtons(singletonList("settings"), map);
 
-        return createTmMessage(request.chatId, request.messageId, text, keyboard);
+        return createTmMessage(request.getChatId(), request.getMessageId(), text, keyboard);
     }
 
     private BotApiMethod<?> showDurations(CommandRequest request) {
@@ -107,7 +107,7 @@ public class WateringCommand extends AbstractCommand {
         List<String> buttons = List.of("change", "back");
         InlineKeyboardMarkup keyboard = createButtons(singletonList("duration"), buttons);
 
-        return createTmMessage(request.chatId, request.messageId, text, keyboard);
+        return createTmMessage(request.getChatId(), request.getMessageId(), text, keyboard);
     }
 
     private BotApiMethod<?> showStartTimes(CommandRequest request) {
@@ -116,7 +116,7 @@ public class WateringCommand extends AbstractCommand {
         List<String> buttons = List.of("add", "remove", "back");
         InlineKeyboardMarkup keyboard = createButtons(singletonList("start"), buttons);
 
-        return createTmMessage(request.chatId, request.messageId, text, keyboard);
+        return createTmMessage(request.getChatId(), request.getMessageId(), text, keyboard);
     }
 
     private BotApiMethod<?> startWave(CommandRequest request) {
@@ -157,7 +157,7 @@ public class WateringCommand extends AbstractCommand {
         out.put("back", "\uD83D\uDD19 Назад");
 
         InlineKeyboardMarkup keyboard = createButtons(singletonList("channel"), out);
-        return createTmMessage(request.chatId, request.messageId, text, keyboard);
+        return createTmMessage(request.getChatId(), request.getMessageId(), text, keyboard);
     }
 
 }

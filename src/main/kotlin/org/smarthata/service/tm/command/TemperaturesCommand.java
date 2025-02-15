@@ -35,7 +35,7 @@ public class TemperaturesCommand extends AbstractCommand {
                 + createTextLineForSensor(83720510, "Гараж")
                 + createTextLineForSensor(85948634, "Мастерская");
 
-        return aSimpleSendMessage(request.chatId, text).build();
+        return aSimpleSendMessage(request.getChatId(), text).build();
     }
 
     private String createTextLineForSensor(int sensorId, String name) {

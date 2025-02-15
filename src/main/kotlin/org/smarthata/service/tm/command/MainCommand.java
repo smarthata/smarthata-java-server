@@ -28,7 +28,7 @@ public class MainCommand extends AbstractCommand {
     @Override
     public BotApiMethod<?> answer(CommandRequest request) {
         InlineKeyboardMarkup buttons = createButtons(emptyList(), devices);
-        BotApiMethod<?> smarthataBot = createTmMessage(request.chatId, request.messageId, "Smarthata bot", buttons);
+        BotApiMethod<?> smarthataBot = createTmMessage(request.getChatId(), request.getMessageId(), "Smarthata bot", buttons);
         return smarthataBot;
     }
 
