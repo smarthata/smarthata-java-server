@@ -139,10 +139,14 @@ public class HeatingCommand extends AbstractCommand {
 
     private BotApiMethod<?> processConfig(CommandRequest request) {
 
+        boolean restart = false;
         if (request.hasNext()) {
             String config = request.next();
             switch (config) {
-                case "restart" -> heatingService.sendAction("restart", 0, TELEGRAM);
+                case "restart" -> {
+                    restart = true;
+                    heatingService.sendAction("restart", 0, TELEGRAM);
+                }
                 case "mixer" -> {
                     return processMixer(request);
                 }
@@ -150,9 +154,10 @@ public class HeatingCommand extends AbstractCommand {
         }
 
         String text = "Настройки:\n";
+        if (restart) text += "Рестарт отправлен.\n";
 
         Map<String, String> buttons = new LinkedHashMap<>();
-        buttons.put("restart", "restart");
+        if (!restart) buttons.put("restart", "restart");
         buttons.put("mixer", "mixer: " + heatingService.mixerPosition);
         buttons.put("back", "\uD83D\uDD19 Назад");
         return createTmMessage(request.chatId, request.messageId, text, createButtons(List.of("config"), buttons));
