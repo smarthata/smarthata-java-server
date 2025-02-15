@@ -41,7 +41,7 @@ class AliceTempNotificator(
 
         logger.info("Alice device parameters try update")
 
-        val devices = listOf("bedroom", "bathroom", "garage", "workshop", "street")
+        val devices = listOf("bedroom", "garage", "workshop", "street")
 
         val payload = DevicesPayload(
             userId = "valery",

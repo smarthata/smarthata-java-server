@@ -1,6 +1,5 @@
 package org.smarthata.service.device.heating;
 
-import static org.smarthata.service.device.Room.BATHROOM;
 import static org.smarthata.service.device.Room.BEDROOM;
 import static org.smarthata.service.device.Room.GARAGE;
 import static org.smarthata.service.device.Room.HALL;
@@ -44,7 +43,6 @@ public class HeatingService extends AbstractSmarthataMessageListener {
         return new HashMap<>() {{
             put(HALL, new HeatingDevice("/heating/floor", new AtomicReference<>(30.0)));
             put(BEDROOM, new HeatingDevice("/bedroom", new AtomicReference<>(23.0)));
-            put(BATHROOM, new HeatingDevice("/bathroom", new AtomicReference<>(23.0)));
             put(GARAGE, new HeatingDevice("/heating/garage/garage", new AtomicReference<>(15.0)));
             put(WORKSHOP,
                 new HeatingDevice("/heating/garage/workshop", new AtomicReference<>(20.0)));

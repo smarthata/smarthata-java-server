@@ -25,7 +25,6 @@ class AliceThermostatDevicesProvider(
     override fun devices() =
         listOf(
             createDevice(deviceId = "bedroom"),
-            createDevice(deviceId = "bathroom"),
             createDevice(deviceId = "garage"),
             createDevice(deviceId = "workshop"),
             createDevice(deviceId = "hall"),

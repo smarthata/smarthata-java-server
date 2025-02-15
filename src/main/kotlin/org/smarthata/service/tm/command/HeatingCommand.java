@@ -68,8 +68,6 @@ public class HeatingCommand extends AbstractCommand {
                     return processRoom(request, HALL);
                 case "bedroom":
                     return processRoom(request, BEDROOM);
-                case "bathroom":
-                    return processRoom(request, BATHROOM);
                 default:
                     String text = "Unknown room";
                     return createTmMessage(request.chatId, request.messageId, text);
@@ -77,13 +75,9 @@ public class HeatingCommand extends AbstractCommand {
         }
 
         String text = "Выберите помещение:";
-        String v1 = showTempInRoom("Зал", HALL);
-        String v2 = showTempInRoom("Спальня", BEDROOM);
-        String v3 = showTempInRoom("Ванная", BATHROOM);
         Map<String, String> buttons = new LinkedHashMap<>();
-        buttons.put("floor", v1);
-        buttons.put("bedroom", v2);
-        buttons.put("bathroom", v3);
+        buttons.put("floor", showTempInRoom("Зал", HALL));
+        buttons.put("bedroom", showTempInRoom("Спальня", BEDROOM));
         buttons.put("back", "\uD83D\uDD19 Назад");
 
         return createTmMessage(request.chatId, request.messageId,

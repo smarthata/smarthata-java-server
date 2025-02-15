@@ -18,7 +18,7 @@ class AliceTempDevicesProvider(
 ) : AliceDevicesProvider("temp-") {
 
     override fun devices() =
-        listOf("bedroom", "bathroom", "garage", "workshop", "street")
+        listOf("bedroom", "garage", "workshop", "street")
             .map { createDevice(deviceId = it) }
 
     override fun action(device: Device): Device? {

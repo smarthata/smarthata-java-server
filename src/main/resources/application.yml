@@ -34,7 +34,7 @@ bot:
   adminChatId: ${bot.adminChatId}
 
 health:
-  devices: /bedroom, /bathroom, /heating, /heating/garage, /light, /watering
+  devices: /bedroom, /heating, /heating/garage, /light, /watering
 
 narodmon:
   enabled: false
