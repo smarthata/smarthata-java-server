@@ -50,51 +50,48 @@ public class HeatingService extends AbstractSmarthataMessageListener {
     }
 
     public double expectedTemp(Room room) {
-        return map.get(room).expectedTemp.get();
-    }
-
-    public boolean isActualTempExists(Room room) {
-        return map.get(room).actualTemp != null;
+        return map.get(room).getExpectedTemp().get();
     }
 
     public double actualTemp(Room room) {
-        return map.get(room).actualTemp.get();
+        return map.get(room).getActualTemp();
     }
 
     public void updateExpectedTemp(Room room, Double temp, EndpointType source) {
         logger.info("Set temp [{}] for room [{}]", temp, room);
         HeatingDevice device = map.get(room);
-        device.expectedTemp.set(temp);
+        device.setActualTemp(temp);
         saveTempToBroker(device, source);
     }
 
     public synchronized void incExpectedTemp(Room room, double delta) {
         logger.info("Inc temp [{}] for room [{}]", delta, room);
         HeatingDevice device = map.get(room);
-        device.expectedTemp.getAndUpdate(value -> value + delta);
+        device.getExpectedTemp().getAndUpdate(value -> value + delta);
         saveTempToBroker(device, TELEGRAM);
     }
 
     public Boolean isEnabled(Room room) {
         logger.info("Get floor pomp for room {}", room);
-        return map.get(room).enabled.get();
+        return map.get(room).getEnabled();
     }
 
     public void updateEnabled(Room room, Boolean enabled, EndpointType source) {
         logger.info("Set floor pomp [{}] for room {}", enabled, room);
         HeatingDevice device = map.get(room);
-        device.enabled.set(enabled);
+        device.setEnabled(enabled);
         saveEnabledToBroker(device, source);
     }
 
     private void saveTempToBroker(HeatingDevice device, EndpointType source) {
         messageBroker.broadcast(
-            new SmarthataMessage(device.queueExpectedTemp, device.expectedTemp.toString(),
+            new SmarthataMessage(device.getExpectedTempQueue(), device.getExpectedTemp().toString(),
                 source, MQTT, true));
     }
 
     private void saveEnabledToBroker(HeatingDevice device, EndpointType source) {
-        messageBroker.broadcast(new SmarthataMessage(device.queueEnabled, device.enabled.toString(),
+        messageBroker.broadcast(new SmarthataMessage(device.getEnabledQueue(),
+            Boolean.valueOf(device.getEnabled()).toString(),
             source, MQTT, true));
     }
 
@@ -113,12 +110,12 @@ public class HeatingService extends AbstractSmarthataMessageListener {
 
     private void readInputMessage(SmarthataMessage message, Room room, HeatingDevice device) {
         String path = message.path;
-        if (path.equals(device.queueExpectedTemp)) {
-            device.expectedTemp.set(Double.parseDouble(message.text));
-        } else if (path.equals(device.queueActualTemp)) {
+        if (path.equals(device.getExpectedTempQueue())) {
+            device.getExpectedTemp().set(Double.parseDouble(message.text));
+        } else if (path.equals(device.getQueueActualTemp())) {
             parseActualTemp(message, room, device);
-        } else if (path.equals(device.queueEnabled)) {
-            device.enabled.set(Boolean.parseBoolean(message.text));
+        } else if (path.equals(device.getEnabledQueue())) {
+            device.setEnabled(Boolean.parseBoolean(message.text));
         }
     }
 
@@ -127,9 +124,9 @@ public class HeatingService extends AbstractSmarthataMessageListener {
         try {
             Map<Object, Object> map = objectMapper.readValue(message.text, Map.class);
             if (map.containsKey("temp")) {
-                Double newActualTemp = ((Number) map.get("temp")).doubleValue();
+                double newActualTemp = ((Number) map.get("temp")).doubleValue();
                 logger.trace("Update room [{}] set actual temp [{}]", room, newActualTemp);
-                device.actualTemp.set(newActualTemp);
+                device.setActualTemp(newActualTemp);
             }
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
