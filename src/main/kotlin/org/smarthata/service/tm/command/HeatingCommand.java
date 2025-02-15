@@ -1,19 +1,21 @@
 package org.smarthata.service.tm.command;
 
-import org.smarthata.service.device.heating.HeatingService;
-import org.smarthata.service.device.Room;
-import org.springframework.core.annotation.Order;
-import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import static org.smarthata.service.device.Room.BEDROOM;
+import static org.smarthata.service.device.Room.GARAGE;
+import static org.smarthata.service.device.Room.HALL;
+import static org.smarthata.service.device.Room.WORKSHOP;
+import static org.smarthata.service.message.EndpointType.TELEGRAM;
 
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
-import static org.smarthata.service.device.Room.*;
-import static org.smarthata.service.message.EndpointType.TELEGRAM;
+import org.smarthata.service.device.Room;
+import org.smarthata.service.device.heating.HeatingService;
+import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Service;
+import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 
 
 @Order(1)
@@ -54,7 +56,7 @@ public class HeatingCommand extends AbstractCommand {
         buttons.put("config", "⚙ Настройка");
         buttons.put("back", "\uD83D\uDD19 Назад");
         return createTmMessage(request.chatId, request.messageId,
-                text, createButtons(request.path, buttons, 2));
+            text, createButtons(request.path, buttons, 2));
     }
 
     private BotApiMethod<?> processHouse(CommandRequest request) {
@@ -78,7 +80,7 @@ public class HeatingCommand extends AbstractCommand {
         buttons.put("back", "\uD83D\uDD19 Назад");
 
         return createTmMessage(request.chatId, request.messageId,
-                text, createButtons(request.path, buttons));
+            text, createButtons(request.path, buttons));
     }
 
     private String showTempInRoom(String roomName, Room room) {
@@ -111,7 +113,7 @@ public class HeatingCommand extends AbstractCommand {
         buttons.put("workshop", v2);
         buttons.put("back", "\uD83D\uDD19 Назад");
         return createTmMessage(request.chatId, request.messageId,
-                text, createButtons(request.path, buttons));
+            text, createButtons(request.path, buttons));
     }
 
     private BotApiMethod<?> processRoom(CommandRequest request, Room room) {
@@ -127,11 +129,12 @@ public class HeatingCommand extends AbstractCommand {
         }
 
         String roomName = room.name().toLowerCase(Locale.ROOT);
-        String text = String.format("Temp %s: %1.1f%s", roomName, heatingService.expectedTemp(room), CELSIUS);
+        String text = String.format("Temp %s: %1.1f%s", roomName, heatingService.expectedTemp(room),
+            CELSIUS);
         InlineKeyboardMarkup buttons = createButtons(
-                request.createPathRemoving("-0.5", "+0.5", "-1", "+1"),
-                List.of("-0.5", "+0.5", "-1", "+1", "set", "back"),
-                2
+            request.createPathRemoving("-0.5", "+0.5", "-1", "+1"),
+            List.of("-0.5", "+0.5", "-1", "+1", "set", "back"),
+            2
         );
         return createTmMessage(request.chatId, request.messageId, text, buttons);
     }
@@ -145,7 +148,7 @@ public class HeatingCommand extends AbstractCommand {
             switch (config) {
                 case "restart" -> {
                     restart = true;
-                    heatingService.sendAction("restart", 0, TELEGRAM);
+                    heatingService.sendAction("restart", TELEGRAM, null);
                 }
                 case "mixer" -> {
                     return processMixer(request);
@@ -154,13 +157,18 @@ public class HeatingCommand extends AbstractCommand {
         }
 
         String text = "Настройки:\n";
-        if (restart) text += "Рестарт отправлен.\n";
+        if (restart) {
+            text += "Рестарт отправлен.\n";
+        }
 
         Map<String, String> buttons = new LinkedHashMap<>();
-        if (!restart) buttons.put("restart", "restart");
-        buttons.put("mixer", "mixer: " + heatingService.mixerPosition);
+        if (!restart) {
+            buttons.put("restart", "restart");
+        }
+        buttons.put("mixer", "mixer: " + heatingService.getMixerPosition());
         buttons.put("back", "\uD83D\uDD19 Назад");
-        return createTmMessage(request.chatId, request.messageId, text, createButtons(List.of("config"), buttons));
+        return createTmMessage(request.chatId, request.messageId, text,
+            createButtons(List.of("config"), buttons));
     }
 
     private BotApiMethod<?> processMixer(CommandRequest request) {
@@ -170,19 +178,21 @@ public class HeatingCommand extends AbstractCommand {
         String commandText = "";
         if (request.hasNext()) {
             String command = request.next();
-            Integer value = values.stream().filter(integer -> command.equals(integer.toString())).findFirst().orElse(0);
-            heatingService.sendAction("mixer-move", value, TELEGRAM);
+            Integer value = values.stream().filter(integer -> command.equals(integer.toString()))
+                .findFirst().orElse(0);
+            heatingService.sendAction("mixer-move", TELEGRAM, value);
             commandText = "Принято " + command + "! ";
         }
 
-        String text = commandText + "Mixer: " + heatingService.mixerPosition;
+        String text = commandText + "Mixer: " + heatingService.getMixerPosition();
 
         Map<String, String> buttons = new LinkedHashMap<>();
         for (Integer value : values) {
             buttons.put(value.toString(), value.toString());
         }
         buttons.put("back", "\uD83D\uDD19 Назад");
-        return createTmMessage(request.chatId, request.messageId, text, createButtons(List.of("config", "mixer"), buttons));
+        return createTmMessage(request.chatId, request.messageId, text,
+            createButtons(List.of("config", "mixer"), buttons));
     }
 
 }

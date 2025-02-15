@@ -104,17 +104,17 @@ class AliceThermostatDevicesProvider(
 
     private fun thermostatOnOffState(room: Room, actionResult: ActionResult?) = BooleanState(
         instance = "on",
-        value = heatingService.isEnabled(room),
+        value = heatingService.isEnabled(room)!!,
         actionResult = actionResult,
     )
 
     private fun thermostatRangeState(room: Room, actionResult: ActionResult?) = FloatState(
         instance = "temperature",
-        value = heatingService.expectedTemp(room),
+        value = heatingService.expectedTemp(room)!!,
         actionResult = actionResult,
     )
 
     private fun floatState(room: Room) =
-        FloatState("temperature", heatingService.actualTemp(room))
+        FloatState("temperature", heatingService.actualTemp(room)!!)
 
 }

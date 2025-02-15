@@ -75,7 +75,7 @@ class AliceTempNotificator(
             if (room == Room.STREET)
                 weatherService.getLastStreetTemp()
             else
-                heatingService.actualTemp(room)
+                heatingService.actualTemp(room)!!
         )
 
     private fun postUpdates(payload: DevicesPayload) =
