@@ -12,6 +12,7 @@ import org.smarthata.service.WeatherService
 import org.smarthata.service.device.Room
 import org.smarthata.service.device.heating.HeatingService
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.scheduling.annotation.Scheduled
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 
 @Service
+@ConditionalOnProperty("alice.enabled", matchIfMissing = false)
 class AliceTempNotificator(
     @Value("\${alice.url}") url: String,
     @Value("\${alice.token}") token: String,

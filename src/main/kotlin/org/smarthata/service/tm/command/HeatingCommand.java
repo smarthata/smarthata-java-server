@@ -36,17 +36,15 @@ public class HeatingCommand extends AbstractCommand {
 
         if (request.hasNext()) {
             String house = request.next();
-            switch (house) {
-                case "house":
-                    return processHouse(request);
-                case "garage":
-                    return processGarage(request);
-                case "config":
-                    return processConfig(request);
-                default:
+            return switch (house) {
+                case "house" -> processHouse(request);
+                case "garage" -> processGarage(request);
+                case "config" -> processConfig(request);
+                default -> {
                     String text = "Unknown house";
-                    return createTmMessage(request.chatId, request.messageId, text);
-            }
+                    yield createTmMessage(request.chatId, request.messageId, text);
+                }
+            };
         }
 
         String text = "Выберите помещение:";
@@ -63,15 +61,14 @@ public class HeatingCommand extends AbstractCommand {
 
         if (request.hasNext()) {
             String room = request.next();
-            switch (room) {
-                case "floor":
-                    return processRoom(request, HALL);
-                case "bedroom":
-                    return processRoom(request, BEDROOM);
-                default:
+            return switch (room) {
+                case "floor" -> processRoom(request, HALL);
+                case "bedroom" -> processRoom(request, BEDROOM);
+                default -> {
                     String text = "Unknown room";
-                    return createTmMessage(request.chatId, request.messageId, text);
-            }
+                    yield createTmMessage(request.chatId, request.messageId, text);
+                }
+            };
         }
 
         String text = "Выберите помещение:";
@@ -96,15 +93,14 @@ public class HeatingCommand extends AbstractCommand {
 
         if (request.hasNext()) {
             String device = request.next();
-            switch (device) {
-                case "garage":
-                    return processRoom(request, GARAGE);
-                case "workshop":
-                    return processRoom(request, WORKSHOP);
-                default:
+            return switch (device) {
+                case "garage" -> processRoom(request, GARAGE);
+                case "workshop" -> processRoom(request, WORKSHOP);
+                default -> {
                     String text = "Unknown device";
-                    return createTmMessage(request.chatId, request.messageId, text);
-            }
+                    yield createTmMessage(request.chatId, request.messageId, text);
+                }
+            };
         }
 
         String text = "Выберите помещение:";
