@@ -1,35 +1,20 @@
-package org.smarthata.service.tm.command;
+package org.smarthata.service.tm.command
 
-import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-
-import java.util.Map;
-
-import static java.util.Collections.emptyList;
-
+import org.springframework.stereotype.Service
 
 @Service
-public class MainCommand extends AbstractCommand {
+class MainCommand : AbstractCommand(START) {
+    override fun answer(request: CommandRequest) =
+        createTmMessage(request, "Smarthata bot", createButtons(emptyList(), devices))
 
-    private static final String START = "";
-    private static final Map<String, String> devices =
-            Map.of("temp", "\uD83C\uDF21 Температура",
-                    "heating", "\uD83D\uDD25 Отопление",
-                    "light", "\uD83D\uDCA1 Освещение",
-                    "watering", "\uD83D\uDCA6 Автополив",
-                    "garage", "\uD83C\uDFCD Гараж",
-                    "start", "▶\uFE0F Старт");
-
-    public MainCommand() {
-        super(START);
+    companion object {
+        private const val START = ""
+        private val devices = mapOf(
+            "temp" to "\uD83C\uDF21 Температура",
+            "heating" to "\uD83D\uDD25 Отопление",
+            "light" to "\uD83D\uDCA1 Освещение",
+            "watering" to "\uD83D\uDCA6 Автополив",
+            "garage" to "\uD83C\uDFCD Гараж",
+            "start" to "▶\uFE0F Старт")
     }
-
-    @Override
-    public BotApiMethod<?> answer(CommandRequest request) {
-        InlineKeyboardMarkup buttons = createButtons(emptyList(), devices);
-        BotApiMethod<?> smarthataBot = createTmMessage(request.getChatId(), request.getMessageId(), "Smarthata bot", buttons);
-        return smarthataBot;
-    }
-
 }

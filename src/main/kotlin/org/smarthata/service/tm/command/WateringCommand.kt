@@ -1,163 +1,145 @@
-package org.smarthata.service.tm.command;
+package org.smarthata.service.tm.command
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
-import static org.smarthata.service.message.EndpointType.TELEGRAM;
-
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.smarthata.model.Mode;
-import org.smarthata.service.device.WateringService;
-import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.smarthata.model.Mode
+import org.smarthata.service.device.WateringService
+import org.smarthata.service.message.EndpointType
+import org.springframework.stereotype.Service
+import org.telegram.telegrambots.meta.api.methods.BotApiMethod
 
 @Service
-public class WateringCommand extends AbstractCommand {
-
-    private static final String WATERING = "watering";
-    private final WateringService wateringService;
-
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+class WateringCommand(private val wateringService: WateringService) : AbstractCommand(WATERING) {
+    private val logger: Logger = LoggerFactory.getLogger(this.javaClass)
 
 
-    public WateringCommand(WateringService wateringService) {
-        super(WATERING);
-        this.wateringService = wateringService;
-    }
-
-    @Override
-    public BotApiMethod<?> answer(CommandRequest request) {
+    override fun answer(request: CommandRequest): BotApiMethod<*> {
         if (request.hasNext()) {
-            String part = request.next();
-            logger.debug("main part {}", part);
-            return switch (part) {
-                case "mode" -> changeMode(request);
-                case "settings" -> showSettings(request);
-                case "wave" -> startWave(request);
-                case "channel" -> showChannel(request);
-                default -> showMainButtons(request, "This is not implemented:" + request.getPath());
-            };
+            val part = request.next()
+            logger.debug("main part {}", part)
+            return when (part) {
+                "mode" -> changeMode(request)
+                "settings" -> showSettings(request)
+                "wave" -> startWave(request)
+                "channel" -> showChannel(request)
+                else -> showMainButtons(request, "This is not implemented:" + request.path)
+            }
         }
 
-        return showMainButtons(request, "Автополив:");
+        return showMainButtons(request, "Автополив:")
     }
 
-    private BotApiMethod<?> changeMode(CommandRequest request) {
+    private fun changeMode(request: CommandRequest): BotApiMethod<*> {
         if (request.hasNext()) {
-            String newModeIndex = request.next();
-            Mode newMode = Mode.valueOf(Integer.parseInt(newModeIndex));
-            wateringService.updateMode(newMode, TELEGRAM);
-            logger.info("Mode has been changed to {}", newMode);
-            return showMainButtons(request, "Режим изменен");
+            val newModeIndex = request.next()
+            val newMode = Mode.valueOf(newModeIndex.toInt())
+            wateringService.updateMode(newMode, EndpointType.TELEGRAM)
+            logger.info("Mode has been changed to {}", newMode)
+            return showMainButtons(request, "Режим изменен")
         }
-        return showMainButtons(request, "Режим автополива:");
+        return showMainButtons(request, "Режим автополива:")
     }
 
-    private BotApiMethod<?> showMainButtons(CommandRequest request, String text) {
-        Mode currentMode = Optional.of(wateringService.mode).orElse(Mode.OFF);
+    private fun showMainButtons(request: CommandRequest, text: String): BotApiMethod<*> {
+        val currentMode = wateringService.mode
 
-        int nextIndex = (currentMode.ordinal() + 1) % Mode.values().length;
-        Mode next = Mode.values()[nextIndex];
+        val next = currentMode.nextMode()
 
-        Map<String, String> map = new LinkedHashMap<>();
-        map.put("mode/" + next.mode, "Режим: " + currentMode.name());
+        val map = mutableMapOf<String, String>()
+        map["mode/" + next.mode] = "Режим: " + currentMode.name
         if (currentMode != Mode.OFF) {
-            map.put("channel", "Каналы: " + wateringService.channelStates.values());
-            map.put("wave", "Запустить полив");
+            map["channel"] = "Каналы: " + wateringService.channelStates.values
+            map["wave"] = "Запустить полив"
         }
-        map.put("settings", "Настройки");
-        map.put("back", "\uD83D\uDD19 Назад");
+        map["settings"] = "Настройки"
+        map["back"] = "\uD83D\uDD19 Назад"
 
-        InlineKeyboardMarkup keyboard = createButtons(emptyList(), map);
-        return createTmMessage(request.getChatId(), request.getMessageId(), text, keyboard);
+        val keyboard = createButtons(emptyList(), map)
+        return createTmMessage(request, text, keyboard)
     }
 
-    private BotApiMethod<?> showSettings(CommandRequest request) {
+    private fun showSettings(request: CommandRequest): BotApiMethod<*> {
         if (request.hasNext()) {
-            String part = request.next();
-            logger.debug("setting part {}", part);
-            return switch (part) {
-                case "duration" -> showDurations(request);
-                case "start" -> showStartTimes(request);
-                case "blowing" -> startBlowing(request);
-                default -> showMainButtons(request, "This is not implemented:" + request.getPath());
-            };
+            val part = request.next()
+            logger.debug("setting part {}", part)
+            return when (part) {
+                "duration" -> showDurations(request)
+                "start" -> showStartTimes(request)
+                "blowing" -> startBlowing(request)
+                else -> showMainButtons(request, "This is not implemented:" + request.path)
+            }
         }
-        String text = "Настройки полива:";
+        val text = "Настройки полива:"
 
-        Map<String, String> map = new LinkedHashMap<>();
-        map.put("duration", "Продолжительность каналов (мин): " + wateringService.durations);
-        map.put("start", "Время начала (ч): " + wateringService.startTimes);
-        map.put("blowing", "Продувка");
-        map.put("back", "\uD83D\uDD19 Назад");
+        val map= mutableMapOf<String, String>()
+        map["duration"] = "Продолжительность каналов (мин): " + wateringService.durations
+        map["start"] = "Время начала (ч): " + wateringService.startTimes
+        map["blowing"] = "Продувка"
+        map["back"] = "\uD83D\uDD19 Назад"
 
-        InlineKeyboardMarkup keyboard = createButtons(singletonList("settings"), map);
+        val keyboard = createButtons(listOf("settings"), map)
 
-        return createTmMessage(request.getChatId(), request.getMessageId(), text, keyboard);
+        return createTmMessage(request, text, keyboard)
     }
 
-    private BotApiMethod<?> showDurations(CommandRequest request) {
-        String text = "Продолжительность (минуты): " + wateringService.durations;
+    private fun showDurations(request: CommandRequest): BotApiMethod<*> {
+        val text = "Продолжительность (минуты): " + wateringService.durations
 
-        List<String> buttons = List.of("change", "back");
-        InlineKeyboardMarkup keyboard = createButtons(singletonList("duration"), buttons);
+        val buttons = listOf("change", "back")
+        val keyboard = createButtons(listOf("duration"), buttons)
 
-        return createTmMessage(request.getChatId(), request.getMessageId(), text, keyboard);
+        return createTmMessage(request, text, keyboard)
     }
 
-    private BotApiMethod<?> showStartTimes(CommandRequest request) {
-        String text = "Время начала полива (часы): " + wateringService.startTimes;
+    private fun showStartTimes(request: CommandRequest): BotApiMethod<*> {
+        val text = "Время начала полива (часы): " + wateringService.startTimes
 
-        List<String> buttons = List.of("add", "remove", "back");
-        InlineKeyboardMarkup keyboard = createButtons(singletonList("start"), buttons);
+        val buttons = listOf("add", "remove", "back")
+        val keyboard = createButtons(listOf("start"), buttons)
 
-        return createTmMessage(request.getChatId(), request.getMessageId(), text, keyboard);
+        return createTmMessage(request, text, keyboard)
     }
 
-    private BotApiMethod<?> startWave(CommandRequest request) {
-        wateringService.wave(TELEGRAM);
-        return showMainButtons(request, "Полив запущен");
+    private fun startWave(request: CommandRequest): BotApiMethod<*> {
+        wateringService.wave(EndpointType.TELEGRAM)
+        return showMainButtons(request, "Полив запущен")
     }
 
-    private BotApiMethod<?> startBlowing(CommandRequest request) {
-        wateringService.blowing(TELEGRAM);
-        return showMainButtons(request, "Продувка запущена");
+    private fun startBlowing(request: CommandRequest): BotApiMethod<*> {
+        wateringService.blowing(EndpointType.TELEGRAM)
+        return showMainButtons(request, "Продувка запущена")
     }
 
-    private BotApiMethod<?> showChannel(CommandRequest request) {
+    private fun showChannel(request: CommandRequest): BotApiMethod<*> {
         if (request.hasNext()) {
-            String part = request.next();
-            if (part.equals("disable")) {
-                wateringService.channelStates.keySet()
-                    .forEach(ch -> wateringService.updateChannel(ch, 0, TELEGRAM));
+            val part = request.next()
+            if (part == "disable") {
+                wateringService.channelStates.keys
+                    .forEach { wateringService.updateChannel(it, 0, EndpointType.TELEGRAM) }
             } else {
-                int channel = Integer.parseInt(part);
-                logger.info("channel {}", channel);
+                val channel = part.toInt()
+                logger.info("channel {}", channel)
                 if (request.hasNext()) {
-                    int newState = Integer.parseInt(request.next());
-                    logger.info("newState {}", newState);
-                    wateringService.updateChannel(channel, newState, TELEGRAM);
+                    val newState = request.next().toInt()
+                    logger.info("newState {}", newState)
+                    wateringService.updateChannel(channel, newState, EndpointType.TELEGRAM)
                 }
             }
         }
 
-        String text = "Каналы: ";
+        val text = "Каналы: "
 
-        Map<String, String> out = new LinkedHashMap<>();
-        wateringService.channelStates.forEach((key, value) -> out.put(
-            key + "/" + (1 - value),
-            key + (value == 1 ? " \uD83D\uDCA6" : "")
-        ));
-        out.put("disable", "Выключить");
-        out.put("back", "\uD83D\uDD19 Назад");
+        val out= mutableMapOf<String, String>()
+        wateringService.channelStates
+            .forEach { (key: Int, value: Int) -> out[key.toString() + "/" + (1 - value)] = key.toString() + (if (value == 1) " \uD83D\uDCA6" else "") }
+        out["disable"] = "Выключить"
+        out["back"] = "\uD83D\uDD19 Назад"
 
-        InlineKeyboardMarkup keyboard = createButtons(singletonList("channel"), out);
-        return createTmMessage(request.getChatId(), request.getMessageId(), text, keyboard);
+        val keyboard = createButtons(listOf("channel"), out)
+        return createTmMessage(request, text, keyboard)
     }
 
+    companion object {
+        private const val WATERING = "watering"
+    }
 }

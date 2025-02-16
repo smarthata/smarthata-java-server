@@ -1,198 +1,168 @@
-package org.smarthata.service.tm.command;
+package org.smarthata.service.tm.command
 
-import static org.smarthata.service.device.Room.BEDROOM;
-import static org.smarthata.service.device.Room.GARAGE;
-import static org.smarthata.service.device.Room.HALL;
-import static org.smarthata.service.device.Room.WORKSHOP;
-import static org.smarthata.service.message.EndpointType.TELEGRAM;
-
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import org.smarthata.service.device.Room;
-import org.smarthata.service.device.heating.HeatingService;
-import org.springframework.core.annotation.Order;
-import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-
+import org.smarthata.service.device.Room
+import org.smarthata.service.device.heating.HeatingService
+import org.smarthata.service.message.EndpointType
+import org.springframework.core.annotation.Order
+import org.springframework.stereotype.Service
+import org.telegram.telegrambots.meta.api.methods.BotApiMethod
 
 @Order(1)
 @Service
-public class HeatingCommand extends AbstractCommand {
-
-    private static final String HEATING = "heating";
-    private static final String CELSIUS = "°C";
-
-    private final HeatingService heatingService;
-
-    public HeatingCommand(HeatingService heatingService) {
-        super(HEATING);
-        this.heatingService = heatingService;
-    }
-
-
-    @Override
-    public BotApiMethod<?> answer(CommandRequest request) {
-
+class HeatingCommand(private val heatingService: HeatingService) : AbstractCommand(HEATING) {
+    override fun answer(request: CommandRequest): BotApiMethod<*> {
         if (request.hasNext()) {
-            String house = request.next();
-            return switch (house) {
-                case "house" -> processHouse(request);
-                case "garage" -> processGarage(request);
-                case "config" -> processConfig(request);
-                default -> {
-                    String text = "Unknown house";
-                    yield createTmMessage(request.getChatId(), request.getMessageId(), text);
+            val house = request.next()
+            return when (house) {
+                "house" -> processHouse(request)
+                "garage" -> processGarage(request)
+                "config" -> processConfig(request)
+                else -> {
+                    val text = "Unknown house"
+                    createTmMessage(request, text)
                 }
-            };
+            }
         }
 
-        String text = "Выберите помещение:";
-        Map<String, String> buttons = new LinkedHashMap<>();
-        buttons.put("house", "\uD83C\uDFE0 Дом");
-        buttons.put("garage", "\uD83C\uDFCD Гараж");
-        buttons.put("config", "⚙ Настройка");
-        buttons.put("back", "\uD83D\uDD19 Назад");
-        return createTmMessage(request.getChatId(), request.getMessageId(),
-            text, createButtons(request.getPath(), buttons, 2));
+        val text = "Выберите помещение:"
+        val buttons = mutableMapOf<String, String>()
+        buttons["house"] = "\uD83C\uDFE0 Дом"
+        buttons["garage"] = "\uD83C\uDFCD Гараж"
+        buttons["config"] = "⚙ Настройка"
+        buttons["back"] = "\uD83D\uDD19 Назад"
+        return createTmMessage(request, text, createButtons(request.path, buttons, 2))
     }
 
-    private BotApiMethod<?> processHouse(CommandRequest request) {
-
+    private fun processHouse(request: CommandRequest): BotApiMethod<*> {
         if (request.hasNext()) {
-            String room = request.next();
-            return switch (room) {
-                case "floor" -> processRoom(request, HALL);
-                case "bedroom" -> processRoom(request, BEDROOM);
-                default -> {
-                    String text = "Unknown room";
-                    yield createTmMessage(request.getChatId(), request.getMessageId(), text);
+            val room = request.next()
+            return when (room) {
+                "floor" -> processRoom(request, Room.HALL)
+                "bedroom" -> processRoom(request, Room.BEDROOM)
+                else -> {
+                    val text = "Unknown room"
+                    createTmMessage(request, text)
                 }
-            };
+            }
         }
 
-        String text = "Выберите помещение:";
-        Map<String, String> buttons = new LinkedHashMap<>();
-        buttons.put("floor", showTempInRoom("Зал", HALL));
-        buttons.put("bedroom", showTempInRoom("Спальня", BEDROOM));
-        buttons.put("back", "\uD83D\uDD19 Назад");
+        val text = "Выберите помещение:"
+        val buttons = mutableMapOf<String, String>()
+        buttons["floor"] = showTempInRoom("Зал", Room.HALL)
+        buttons["bedroom"] = showTempInRoom("Спальня", Room.BEDROOM)
+        buttons["back"] = "\uD83D\uDD19 Назад"
 
-        return createTmMessage(request.getChatId(), request.getMessageId(),
-            text, createButtons(request.getPath(), buttons));
+        return createTmMessage(request, text, createButtons(request.path, buttons))
     }
 
-    private String showTempInRoom(String roomName, Room room) {
+    private fun showTempInRoom(roomName: String, room: Room): String {
 //        if (heatingDevice.isActualTempExists(room)) {
-//            return String.format("%s: %.1f%s/%.1f%s", roomName, heatingDevice.getActualTemp(room), CELSIUS,
+//            return "%s: %.1f%s/%.1f%s".format(roomName, heatingDevice.getActualTemp(room)), CELSIUS,
 //                    heatingDevice.getExpectedTemp(room), CELSIUS);
 //        }
-        return String.format("%s: %.1f%s", roomName, heatingService.expectedTemp(room), CELSIUS);
+        return "%s: %.1f%s".format(roomName, heatingService.expectedTemp(room), CELSIUS)
     }
 
-    private BotApiMethod<?> processGarage(CommandRequest request) {
-
+    private fun processGarage(request: CommandRequest): BotApiMethod<*> {
         if (request.hasNext()) {
-            String device = request.next();
-            return switch (device) {
-                case "garage" -> processRoom(request, GARAGE);
-                case "workshop" -> processRoom(request, WORKSHOP);
-                default -> {
-                    String text = "Unknown device";
-                    yield createTmMessage(request.getChatId(), request.getMessageId(), text);
+            val device = request.next()
+            return when (device) {
+                "garage" -> processRoom(request, Room.GARAGE)
+                "workshop" -> processRoom(request, Room.WORKSHOP)
+                else -> {
+                    val text = "Unknown device"
+                    createTmMessage(request, text)
                 }
-            };
+            }
         }
 
-        String text = "Выберите помещение:";
-        String v1 = showTempInRoom("Гараж", GARAGE);
-        String v2 = showTempInRoom("Мастерская", WORKSHOP);
-        Map<String, String> buttons = new LinkedHashMap<>();
-        buttons.put("garage", v1);
-        buttons.put("workshop", v2);
-        buttons.put("back", "\uD83D\uDD19 Назад");
-        return createTmMessage(request.getChatId(), request.getMessageId(),
-            text, createButtons(request.getPath(), buttons));
+        val text = "Выберите помещение:"
+        val v1 = showTempInRoom("Гараж", Room.GARAGE)
+        val v2 = showTempInRoom("Мастерская", Room.WORKSHOP)
+        val buttons = mutableMapOf<String, String>()
+        buttons["garage"] = v1
+        buttons["workshop"] = v2
+        buttons["back"] = "\uD83D\uDD19 Назад"
+        return createTmMessage(request, text, createButtons(request.path, buttons))
     }
 
-    private BotApiMethod<?> processRoom(CommandRequest request, Room room) {
-
+    private fun processRoom(request: CommandRequest, room: Room): BotApiMethod<*> {
         if (request.hasNext()) {
-            String next = request.next();
+            val next = request.next()
             try {
-                heatingService.incExpectedTemp(room, Double.parseDouble(next));
-            } catch (NumberFormatException e) {
-                String text = "Unknown command: " + next;
-                return createTmMessage(request.getChatId(), request.getMessageId(), text);
+                heatingService.incExpectedTemp(room, next.toDouble())
+            } catch (e: NumberFormatException) {
+                val text = "Unknown command: $next"
+                return createTmMessage(request, text)
             }
         }
 
-        String roomName = room.name().toLowerCase(Locale.ROOT);
-        String text = String.format("Temp %s: %1.1f%s", roomName, heatingService.expectedTemp(room),
-            CELSIUS);
-        InlineKeyboardMarkup buttons = createButtons(
+        val roomName = room.name.lowercase()
+        val text = "Temp %s: %1.1f%s".format(roomName, heatingService.expectedTemp(room),
+            CELSIUS)
+        val buttons = createButtons(
             request.createPathRemoving("-0.5", "+0.5", "-1", "+1"),
-            List.of("-0.5", "+0.5", "-1", "+1", "set", "back"),
+            listOf("-0.5", "+0.5", "-1", "+1", "set", "back"),
             2
-        );
-        return createTmMessage(request.getChatId(), request.getMessageId(), text, buttons);
+        )
+        return createTmMessage(request, text, buttons)
     }
 
 
-    private BotApiMethod<?> processConfig(CommandRequest request) {
-
-        boolean restart = false;
+    private fun processConfig(request: CommandRequest): BotApiMethod<*> {
+        var restart = false
         if (request.hasNext()) {
-            String config = request.next();
-            switch (config) {
-                case "restart" -> {
-                    restart = true;
-                    heatingService.sendAction("restart", TELEGRAM, null);
+            val config = request.next()
+            when (config) {
+                "restart" -> {
+                    restart = true
+                    heatingService.sendAction("restart", EndpointType.TELEGRAM, null)
                 }
-                case "mixer" -> {
-                    return processMixer(request);
+
+                "mixer" -> {
+                    return processMixer(request)
                 }
             }
         }
 
-        String text = "Настройки:\n";
+        var text = "Настройки:\n"
         if (restart) {
-            text += "Рестарт отправлен.\n";
+            text += "Рестарт отправлен.\n"
         }
 
-        Map<String, String> buttons = new LinkedHashMap<>();
+        val buttons = mutableMapOf<String, String>()
         if (!restart) {
-            buttons.put("restart", "restart");
+            buttons["restart"] = "restart"
         }
-        buttons.put("mixer", "mixer: " + heatingService.getMixerPosition());
-        buttons.put("back", "\uD83D\uDD19 Назад");
-        return createTmMessage(request.getChatId(), request.getMessageId(), text,
-            createButtons(List.of("config"), buttons));
+        buttons["mixer"] = "mixer: " + heatingService.mixerPosition
+        buttons["back"] = "\uD83D\uDD19 Назад"
+        return createTmMessage(request, text, createButtons(listOf("config"), buttons))
     }
 
-    private BotApiMethod<?> processMixer(CommandRequest request) {
+    private fun processMixer(request: CommandRequest): BotApiMethod<*> {
+        val values = listOf(-120, -60, -30, -15, 15, 30)
 
-        List<Integer> values = List.of(-120, -60, -30, -15, 15, 30);
-
-        String commandText = "";
+        var commandText = ""
         if (request.hasNext()) {
-            String command = request.next();
-            Integer value = values.stream().filter(integer -> command.equals(integer.toString()))
-                .findFirst().orElse(0);
-            heatingService.sendAction("mixer-move", TELEGRAM, value);
-            commandText = "Принято " + command + "! ";
+            val command = request.next()
+            val value = values.stream().filter { integer: Int -> command == integer.toString() }
+                .findFirst().orElse(0)
+            heatingService.sendAction("mixer-move", EndpointType.TELEGRAM, value)
+            commandText = "Принято $command! "
         }
 
-        String text = commandText + "Mixer: " + heatingService.getMixerPosition();
+        val text = commandText + "Mixer: " + heatingService.mixerPosition
 
-        Map<String, String> buttons = new LinkedHashMap<>();
-        for (Integer value : values) {
-            buttons.put(value.toString(), value.toString());
+        val buttons = mutableMapOf<String, String>()
+        for (value in values) {
+            buttons[value.toString()] = value.toString()
         }
-        buttons.put("back", "\uD83D\uDD19 Назад");
-        return createTmMessage(request.getChatId(), request.getMessageId(), text,
-            createButtons(List.of("config", "mixer"), buttons));
+        buttons["back"] = "\uD83D\uDD19 Назад"
+        return createTmMessage(request, text, createButtons(listOf("config", "mixer"), buttons))
     }
 
+    companion object {
+        private const val HEATING = "heating"
+        private const val CELSIUS = "°C"
+    }
 }

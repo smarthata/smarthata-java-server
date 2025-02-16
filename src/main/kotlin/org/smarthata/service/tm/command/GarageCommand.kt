@@ -1,103 +1,82 @@
-package org.smarthata.service.tm.command;
+package org.smarthata.service.tm.command
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.smarthata.service.mqtt.MqttMessagesCache;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.smarthata.service.mqtt.MqttMessagesCache
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.stereotype.Service
+import org.telegram.telegrambots.meta.api.methods.BotApiMethod
+import java.util.LinkedList
+import java.util.concurrent.atomic.AtomicBoolean
 
 @Service
-public class GarageCommand extends AbstractCommand {
+class GarageCommand(
+    private val mqttMessagesCache: MqttMessagesCache,
+    @param:Value("\${bot.adminChatId}") val adminChatId: String
+) : AbstractCommand(GARAGE) {
+    var gatesOpen: AtomicBoolean = AtomicBoolean(false)
 
-    private static final String GARAGE = "garage";
+    private val logger: Logger = LoggerFactory.getLogger(this.javaClass)
 
-    public final String adminChatId;
+    override fun answer(request: CommandRequest): BotApiMethod<*> {
+        logger.info("Garage request: {}", request)
 
-    private final MqttMessagesCache mqttMessagesCache;
-
-    public AtomicBoolean gatesOpen = new AtomicBoolean(false);
-
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
-
-    public GarageCommand(
-            MqttMessagesCache mqttMessagesCache,
-            @Value("${bot.adminChatId}") String adminChatId
-    ) {
-        super(GARAGE);
-        this.adminChatId = adminChatId;
-        this.mqttMessagesCache = mqttMessagesCache;
-    }
-
-    @Override
-    public BotApiMethod<?> answer(CommandRequest request) {
-
-        logger.info("Garage request: {}", request);
-
-        String text = "Ворота " + (gatesOpen.get() ? "открыты" : "закрыты");
+        var text = "Ворота " + (if (gatesOpen.get()) "открыты" else "закрыты")
 
         if (request.hasNext()) {
-            String item = request.next();
-            switch (item) {
-                case "open" -> {
-                    gatesOpen.set(true);
-                    text = "Принято! Ворота открыты";
+            when (val item = request.next()) {
+                "open" -> {
+                    gatesOpen.set(true)
+                    text = "Принято! Ворота открыты"
                 }
-                case "close" -> {
-                    gatesOpen.set(false);
-                    text = "Принято! Ворота закрыты";
+
+                "close" -> {
+                    gatesOpen.set(false)
+                    text = "Принято! Ворота закрыты"
                 }
-                default -> text = item;
+
+                else -> text = item
             }
         }
 
-        List<String> temps = new LinkedList<>();
-        Double streetTemp = findStreetTemp();
+        val temps: MutableList<String> = LinkedList()
+        val streetTemp = findStreetTemp()
         if (streetTemp != null) {
-            temps.add(String.format("улица %.1f°C", streetTemp));
+            temps.add("улица %.1f°C".format(streetTemp))
         }
-        Double averageTemp = findStreetAverageTemp();
+        val averageTemp = findStreetAverageTemp()
         if (averageTemp != null) {
-            temps.add(String.format("среднесуточная %.1f°C", averageTemp));
+            temps.add("среднесуточная %.1f°C".format(averageTemp))
         }
-        Double garageTemp = findGarageTemp();
+        val garageTemp = findGarageTemp()
         if (garageTemp != null) {
-            temps.add(String.format("гараж %.1f°C", garageTemp));
+            temps.add("гараж %.1f°C".format(garageTemp))
         }
-        if (temps.size() > 0) {
-            text += " (" + String.join(", ", temps) + ")";
+        if (temps.size > 0) {
+            text += " (" + java.lang.String.join(", ", temps) + ")"
         }
 
 
-        Map<String, String> map = new LinkedHashMap<>();
-        String action = gatesOpen.get() ? "close" : "open";
-        map.put(action, action);
-        map.put("back", "\uD83D\uDD19 Назад");
+        val map= mutableMapOf<String, String>()
+        val action = if (gatesOpen.get()) "close" else "open"
+        map[action] = action
+        map["back"] = "\uD83D\uDD19 Назад"
 
-        InlineKeyboardMarkup buttons = createButtons(Collections.emptyList(), map, 2);
-        return createTmMessage(request.getChatId(), request.getMessageId(), text, buttons);
+        val buttons = createButtons(emptyList(), map, 2)
+        return createTmMessage(request, text, buttons)
     }
 
 
-    private Double findStreetTemp() {
-        return mqttMessagesCache.findLastMessageAsDouble("/street/temp");
-    }
+    private fun findStreetTemp() =
+        mqttMessagesCache.findLastMessageAsDouble("/street/temp")
 
-    private Double findStreetAverageTemp() {
-        return mqttMessagesCache.findLastMessageAsDouble("/street/temp-average");
-    }
+    private fun findStreetAverageTemp() =
+        mqttMessagesCache.findLastMessageAsDouble("/street/temp-average")
 
-    private Double findGarageTemp() {
-        return (Double) mqttMessagesCache.findLastMessageFieldFromJson("/heating/garage/garage", "temp");
-    }
+    private fun findGarageTemp() =
+        mqttMessagesCache.findLastMessageFieldFromJson("/heating/garage/garage", "temp") as Double?
 
+    companion object {
+        private const val GARAGE = "garage"
+    }
 }

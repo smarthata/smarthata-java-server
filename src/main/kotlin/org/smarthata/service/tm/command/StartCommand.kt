@@ -1,42 +1,30 @@
-package org.smarthata.service.tm.command;
+package org.smarthata.service.tm.command
 
-import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
-
-import java.util.Collections;
-import java.util.List;
-
+import org.springframework.stereotype.Service
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow
 
 @Service
-public class StartCommand extends AbstractCommand {
+class StartCommand : AbstractCommand(START) {
+    override fun answer(request: CommandRequest) =
+        aSimpleSendMessage(request.chatId, "Smarthata bot", createMainButtons())
 
-    private static final String START = "start";
-    private static final List<String> devices = List.of("/temp", "/heating", "/light", "/watering");
-
-    public StartCommand() {
-        super(START);
+    private fun createMainButtons(): ReplyKeyboardMarkup {
+        val keyboard = ReplyKeyboardMarkup()
+        keyboard.selective = true
+        keyboard.resizeKeyboard = true
+        keyboard.oneTimeKeyboard = false
+        keyboard.keyboard = createKeyboardRows()
+        return keyboard
     }
 
-    @Override
-    public BotApiMethod<?> answer(CommandRequest request) {
-        return aSimpleSendMessage(request.getChatId(), "Smarthata bot", createMainButtons());
-    }
+    private fun createKeyboardRows(): List<KeyboardRow> =
+        listOf(KeyboardRow()
+            .apply { addAll(devices.map { KeyboardButton(it) }) })
 
-    private ReplyKeyboardMarkup createMainButtons() {
-        ReplyKeyboardMarkup keyboard = new ReplyKeyboardMarkup();
-        keyboard.setSelective(true);
-        keyboard.setResizeKeyboard(true);
-        keyboard.setOneTimeKeyboard(false);
-        keyboard.setKeyboard(createKeyboardRows());
-        return keyboard;
-    }
-
-    private List<KeyboardRow> createKeyboardRows() {
-        KeyboardRow row = new KeyboardRow();
-        devices.forEach(device -> row.add(new KeyboardButton(device)));
-        return Collections.singletonList(row);
+    companion object {
+        private const val START = "start"
+        private val devices = listOf("/temp", "/heating", "/light", "/watering")
     }
 }

@@ -60,7 +60,7 @@ class WeatherService(
         }
         val temp = lastMeasure.value
         try {
-            val url = String.format("http://narodmon.ru/get?ID=%s&street=%s", mac, round(temp))
+            val url = "http://narodmon.ru/get?ID=%s&street=%s".format(mac, round(temp))
             val result = restTemplate.getForObject(url, String::class.java)
             logger.info("Temp {} sent to narodmon.ru result: {}", temp, result)
         } catch (e: RestClientException) {

@@ -17,4 +17,9 @@ public enum Mode {
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Mode " + mode + " is not found"));
     }
+
+    public Mode nextMode() {
+        int nextIndex = (this.ordinal() + 1) % Mode.values().length;
+        return Mode.values()[nextIndex];
+    }
 }
