@@ -2,6 +2,7 @@ package org.smarthata.service.tm.command
 
 import org.smarthata.repository.MeasureRepository
 import org.smarthata.repository.SensorRepository
+import org.smarthata.service.formatTemp
 import org.springframework.stereotype.Service
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod
 import java.util.Date
@@ -25,7 +26,8 @@ class TemperaturesCommand(
     private fun createTextLineForSensor(sensorId: Int, name: String): String {
         val sensor = sensorRepository.findByIdOrElseThrow(sensorId)
         val measure = measureRepository.findTopBySensorOrderByDateDesc(sensor)
-        return "$name : %.1f°C (%d мин. назад)\n".format(measure.value, createMinutesAgo(measure.date))
+        val minutes = createMinutesAgo(measure.date)
+        return "$name : ${formatTemp(measure.value)} ($minutes мин. назад)\n"
     }
 
     private fun createMinutesAgo(date: Date): Long =

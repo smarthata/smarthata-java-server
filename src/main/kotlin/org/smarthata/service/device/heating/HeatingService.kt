@@ -26,12 +26,12 @@ class HeatingService(
 
     private fun createMap() = mapOf(
         Room.HALL to HeatingDevice("/heating/floor", 30.0),
-        Room.BEDROOM to HeatingDevice("/bedroom", 23.0),
+        Room.BEDROOM to HeatingDevice("/bedroom", 23.0, true),
         Room.GARAGE to HeatingDevice("/heating/garage/garage", 15.0),
         Room.WORKSHOP to HeatingDevice("/heating/garage/workshop", 20.0),
     )
 
-    fun expectedTemp(room: Room) = map[room]?.expectedTemp?.get()
+    fun expectedTemp(room: Room) = map[room]!!.expectedTemp.get()
 
     fun actualTemp(room: Room) = map[room]?.actualTemp
 
@@ -53,8 +53,21 @@ class HeatingService(
         }
     }
 
+    fun incExpectedNightTemp(room: Room, delta: Double) {
+        logger.info("Inc night temp [{}] for room [{}]", delta, room)
+        map[room]?.apply {
+            this.expectedNightTemp.getAndUpdate { value: Double -> value + delta }
+        }?.also {
+            saveNightTempToBroker(it, EndpointType.TELEGRAM)
+        }
+    }
+
     fun isEnabled(room: Room) = map[room]?.enabled
         .also { logger.info("Get floor pomp for room {}", room) }
+
+    fun expectedNightTemp(room: Room): Double = map[room]!!.expectedNightTemp.get()
+
+    fun hasNightMode(room: Room) = map[room]!!.nightMode
 
     fun updateEnabled(room: Room, enabled: Boolean, source: EndpointType) {
         logger.info("Set enabled = [{}] for room {}", enabled, room)
@@ -68,6 +81,12 @@ class HeatingService(
     private fun saveTempToBroker(device: HeatingDevice, source: EndpointType) {
         messageBroker.broadcast(
             SmarthataMessage(device.expectedTempQueue, device.expectedTemp.toString(),
+                source, EndpointType.MQTT, true))
+    }
+
+    private fun saveNightTempToBroker(device: HeatingDevice, source: EndpointType) {
+        messageBroker.broadcast(
+            SmarthataMessage(device.expectedNightTempQueue, device.expectedNightTemp.toString(),
                 source, EndpointType.MQTT, true))
     }
 
@@ -93,6 +112,10 @@ class HeatingService(
         when (message.path) {
             device.expectedTempQueue -> {
                 device.expectedTemp.set(message.text.toDouble())
+            }
+
+            device.expectedNightTempQueue -> {
+                device.expectedNightTemp.set(message.text.toDouble())
             }
 
             device.actualTempQueue -> {

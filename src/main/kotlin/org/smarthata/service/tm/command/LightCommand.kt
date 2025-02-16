@@ -2,10 +2,10 @@ package org.smarthata.service.tm.command
 
 import org.smarthata.service.device.LightService
 import org.smarthata.service.device.Room
-import org.smarthata.service.message.EndpointType
+import org.smarthata.service.message.EndpointType.TELEGRAM
 import org.springframework.stereotype.Service
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeUnit.MINUTES
 
 @Service
 class LightCommand(private val lightService: LightService) : AbstractCommand(LIGHT) {
@@ -22,18 +22,18 @@ class LightCommand(private val lightService: LightService) : AbstractCommand(LIG
             if (request.hasNext()) {
                 if (temporary > 0) {
                     val room = request.next()
-                    lightService.enableLightTemporary(room, TimeUnit.MINUTES.toSeconds(temporary.toLong()), EndpointType.TELEGRAM)
+                    lightService.enableLightTemporary(room, MINUTES.toSeconds(temporary.toLong()), TELEGRAM)
                     text = "Принято $room!"
                 } else {
                     val action = request.next()
                     when (action) {
                         "on" -> {
-                            lightService.updateLight(part, true, EndpointType.TELEGRAM)
+                            lightService.updateLight(part, true, TELEGRAM)
                             text = "Включено\n$text"
                         }
 
                         "off" -> {
-                            lightService.updateLight(part, false, EndpointType.TELEGRAM)
+                            lightService.updateLight(part, false, TELEGRAM)
                             text = "Выключено\n$text"
                         }
                     }
@@ -47,13 +47,12 @@ class LightCommand(private val lightService: LightService) : AbstractCommand(LIG
     }
 
     private fun showMainView(request: CommandRequest, text: String): BotApiMethod<*> {
-        // /light
-        val rooms = mutableMapOf<String, String>()
-        lightService.lightState.forEach { (room: String, roomState: Boolean) ->
-            val action = if (!roomState) "on" else "off"
-            val currentStatus = if (roomState) " \uD83D\uDCA1" else ""
-            rooms["$room/$action"] = getRusName(room) + currentStatus
-        }
+        val rooms = lightService.lightState.entries
+            .associate { (room, state) ->
+                val action = if (!state) "on" else "off"
+                val currentStatus = if (state) " \uD83D\uDCA1" else ""
+                Pair("$room/$action", getRusName(room) + currentStatus)
+            }.toMutableMap()
 
         rooms["1min"] = "1 мин"
         rooms["5min"] = "5 мин"
@@ -64,7 +63,7 @@ class LightCommand(private val lightService: LightService) : AbstractCommand(LIG
 
     private fun showTemporaryView(request: CommandRequest, temporary: Int, prefix: String): BotApiMethod<*> {
 
-        val text = prefix + "\nВключить на %d мин:".format(temporary)
+        val text = "$prefix\nВключить на $temporary мин:"
 
         val rooms = mutableMapOf<String, String>()
         lightService.lightState.forEach { (room: String, roomState: Boolean) ->

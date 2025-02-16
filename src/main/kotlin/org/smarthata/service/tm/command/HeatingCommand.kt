@@ -2,6 +2,7 @@ package org.smarthata.service.tm.command
 
 import org.smarthata.service.device.Room
 import org.smarthata.service.device.heating.HeatingService
+import org.smarthata.service.formatTemp
 import org.smarthata.service.message.EndpointType
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Service
@@ -56,11 +57,11 @@ class HeatingCommand(private val heatingService: HeatingService) : AbstractComma
     }
 
     private fun showTempInRoom(roomName: String, room: Room): String {
-//        if (heatingDevice.isActualTempExists(room)) {
-//            return "%s: %.1f%s/%.1f%s".format(roomName, heatingDevice.getActualTemp(room)), CELSIUS,
-//                    heatingDevice.getExpectedTemp(room), CELSIUS);
-//        }
-        return "%s: %.1f%s".format(roomName, heatingService.expectedTemp(room), CELSIUS)
+        val nightTempStr = if (heatingService.hasNightMode(room)) {
+            " (" + formatTemp(heatingService.expectedNightTemp(room)) + ")"
+        } else ""
+        val dayTempStr = formatTemp(heatingService.expectedTemp(room))
+        return "$roomName: $dayTempStr$nightTempStr"
     }
 
     private fun processGarage(request: CommandRequest): BotApiMethod<*> {
@@ -77,11 +78,9 @@ class HeatingCommand(private val heatingService: HeatingService) : AbstractComma
         }
 
         val text = "Выберите помещение:"
-        val v1 = showTempInRoom("Гараж", Room.GARAGE)
-        val v2 = showTempInRoom("Мастерская", Room.WORKSHOP)
         val buttons = mutableMapOf<String, String>()
-        buttons["garage"] = v1
-        buttons["workshop"] = v2
+        buttons["garage"] = showTempInRoom("Гараж", Room.GARAGE)
+        buttons["workshop"] = showTempInRoom("Мастерская", Room.WORKSHOP)
         buttons["back"] = "\uD83D\uDD19 Назад"
         return createTmMessage(request, text, createButtons(request.path, buttons))
     }
@@ -89,20 +88,48 @@ class HeatingCommand(private val heatingService: HeatingService) : AbstractComma
     private fun processRoom(request: CommandRequest, room: Room): BotApiMethod<*> {
         if (request.hasNext()) {
             val next = request.next()
+            if (next == "night") {
+                return processRoomNight(request, room)
+            }
             try {
                 heatingService.incExpectedTemp(room, next.toDouble())
             } catch (e: NumberFormatException) {
-                val text = "Unknown command: $next"
+                val text = "Unknown command: $next from ${request.path}"
                 return createTmMessage(request, text)
             }
         }
 
         val roomName = room.name.lowercase()
-        val text = "Temp %s: %1.1f%s".format(roomName, heatingService.expectedTemp(room),
-            CELSIUS)
+        var text = "Temp $roomName: ${formatTemp(heatingService.expectedTemp(room))}"
+        val nightButton = if (heatingService.hasNightMode(room)) {
+            text += " (${formatTemp(heatingService.expectedNightTemp(room))})"
+            "night"
+        }
+        else null
         val buttons = createButtons(
             request.createPathRemoving("-0.5", "+0.5", "-1", "+1"),
-            listOf("-0.5", "+0.5", "-1", "+1", "set", "back"),
+            listOfNotNull("-0.5", "+0.5", "-1", "+1", nightButton, "back"),
+            2
+        )
+        return createTmMessage(request, text, buttons)
+    }
+
+    private fun processRoomNight(request: CommandRequest, room: Room): BotApiMethod<*> {
+        if (request.hasNext()) {
+            val next = request.next()
+            try {
+                heatingService.incExpectedNightTemp(room, next.toDouble())
+            } catch (e: NumberFormatException) {
+                val text = "Unknown command: $next from ${request.path}"
+                return createTmMessage(request, text)
+            }
+        }
+
+        val roomName = room.name.lowercase()
+        val text = "Night Temp $roomName: ${formatTemp(heatingService.expectedNightTemp(room))}"
+        val buttons = createButtons(
+            request.createPathRemoving("-0.5", "+0.5", "-1", "+1"),
+            listOfNotNull("-0.5", "+0.5", "-1", "+1", "back"),
             2
         )
         return createTmMessage(request, text, buttons)
@@ -163,6 +190,5 @@ class HeatingCommand(private val heatingService: HeatingService) : AbstractComma
 
     companion object {
         private const val HEATING = "heating"
-        private const val CELSIUS = "°C"
     }
 }
