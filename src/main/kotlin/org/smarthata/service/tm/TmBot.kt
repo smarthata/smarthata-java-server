@@ -66,7 +66,7 @@ final class TmBot(
     private fun onMessageReceived(chatId: Long, text: String, messageId: Int? = null) {
         logger.info("text: [{}], messageId {}", text, messageId)
         text.replace("@$username", "").let {
-        val messageProcessed = processMessage(chatId, text, messageId)
+        val messageProcessed = processMessage(chatId, it, messageId)
             if (!messageProcessed && it.isNotEmpty()) {
                 broadcast(it)
             }
